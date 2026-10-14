@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Two-Stage Autonomous Issue Queue**:
+  - Implemented asynchronous issue poller (`scripts/poll_issues.py`) supporting the deterministic two-stage approval workflow (`agent:plan` -> `agent:plan-review` -> `agent:approved` -> `agent:in-progress` -> `agent:review-ready`).
+  - Added GitHub issue templates for feature requests (`.github/ISSUE_TEMPLATE/feature_request.md`) and bug reports (`.github/ISSUE_TEMPLATE/bug_report.md`).
+  - Created standardized `agent:*` label taxonomy in the GitHub repository.
+  - Added unit test suite for the issue poller (`tests/unit/test_poll_issues.py`).
+- **Architecture & Feature Plan Archive (`docs/plans/`)**:
+  - Added persistent architecture plan directory in `docs/plans/` with `README.md` and `PLAN-TEMPLATE.md`.
+  - Integrated Architecture Plans into `mkdocs.yml` navigation for built-in documentation and GitHub Pages.
+- **Antigravity Scheduled Automation (`wealth-pilot-issue-worker`)**:
+  - Configured hourly background automation sidecar (`CRON_TZ=Europe/Brussels 0 * * * *`) for autonomous local queue processing while active.
+
+---
+
+## [0.3.0] - 2026-10-14
+
+### Added
 - **Multi-CSV Upload Accumulation & Local SQLite Storage**:
   - Implemented `LocalDbRepository` in `src/wealth_pilot/adapters/repositories/local_db.py` using SQLite.
   - Caches transactions, discovered bank assets, and liabilities permanently without overwriting earlier uploads.

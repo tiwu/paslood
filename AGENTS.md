@@ -151,3 +151,50 @@ Guidelines:
 - **Clean Architecture Preservation**: When asked to add quick features, never take shortcuts that compromise the pure domain layer (e.g. importing `Request` or `yaml` inside `domain/`).
 - **Artifacts**: When presenting architectural plans, detailed analysis, or tax simulations, write them to the designated artifacts directory in Markdown format.
 - **Git Commits**: Use conventional commits (`feat:`, `fix:`, `test:`, `refactor:`, `docs:`).
+
+---
+
+## 7. Autonomous Issue Queue & Feature Plan Tracking
+
+Wealth Pilot includes an automated, asynchronous work queue driven by GitHub Issues.
+
+### 7.1 Two-Stage Lifecycle
+
+```text
+1. User queues issue with label 'agent:plan'
+2. Agent inspects issue -> writes docs/plans/PLAN-<id>-<slug>.md -> comments on issue -> sets 'agent:plan-review'
+3. User reviews plan -> sets label 'agent:approved'
+4. Agent creates branch feature/issue-<id>-<slug> -> implements with TDD (>=90% cov) -> opens PR -> sets 'agent:review-ready'
+5. User reviews PR -> merges to main -> issue closes
+```
+
+### 7.2 Label Taxonomy
+
+| Label | Meaning | Who Applies |
+| :--- | :--- | :--- |
+| `agent:plan` | Ready for agent to formulate architecture plan | Human |
+| `agent:plan-review` | Plan drafted in `docs/plans/`; awaiting human review | Agent |
+| `agent:approved` | Plan approved; ready for implementation | Human |
+| `agent:in-progress` | Agent is actively implementing code & tests | Agent |
+| `agent:review-ready` | PR opened with passing tests; awaiting human review | Agent |
+| `agent:blocked` | Agent blocked on user input or credentials | Agent |
+| `agent:manual` | Human-only task; agent ignores | Human |
+
+### 7.3 Feature Plans Archive (`docs/plans/`)
+
+Every non-trivial feature or architectural change MUST have a corresponding plan archived at:
+```text
+docs/plans/PLAN-<issue_number>-<slug>.md
+```
+Plans are indexed in `mkdocs.yml` and render directly within the built-in documentation (`/guide`) and GitHub Pages. Use `docs/plans/PLAN-TEMPLATE.md` as the baseline.
+
+### 7.4 Running the Issue Worker
+
+- **On-Demand Polling**:
+  ```bash
+  uv run python scripts/poll_issues.py
+  uv run python scripts/poll_issues.py --status  # Check queue counts
+  uv run python scripts/poll_issues.py --dry-run # Simulate
+  ```
+- **Scheduled Background Poller**: Configured via the Antigravity scheduled automation sidecar `wealth-pilot-issue-worker` running hourly (`CRON_TZ=Europe/Brussels 0 * * * *`).
+
