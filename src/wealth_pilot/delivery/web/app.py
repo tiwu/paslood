@@ -26,8 +26,9 @@ from wealth_pilot.adapters.ingestion.kbc_csv import KbcCsvGateway
 from wealth_pilot.adapters.ingestion.pdt_auth import PdtAuthManager, generate_pkce_pair
 from wealth_pilot.adapters.ingestion.pdt_mcp import PdtMcpGateway
 from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
+from wealth_pilot.adapters.repositories.local_db import LocalDbRepository
 from wealth_pilot.domain.asset import Asset
-from wealth_pilot.domain.balance_sheet import BalanceSheet, MonthlyCashflow
+from wealth_pilot.domain.balance_sheet import BalanceSheet
 from wealth_pilot.domain.liability import Liability
 from wealth_pilot.domain.money import Money
 from wealth_pilot.use_cases.advise_ai import AdviseAiUseCase
@@ -40,6 +41,15 @@ from wealth_pilot.use_cases.project_net_worth import ProjectNetWorthUseCase
 
 
 # Request Models
+class BucketCreateOrUpdateRequest(BaseModel):
+    id: str | None = None
+    name: str
+    target_weight_pct: float
+    color: str | None = None
+    drift_tolerance_pct: float | None = 3.0
+    description: str | None = None
+
+
 class TargetWeightRequest(BaseModel):
     bucket_id: str
     name: str
@@ -130,7 +140,10 @@ class TaxCalculationRequest(BaseModel):
     available_annual_exemption: float | None = None
 
 
-def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
+def create_app(
+    config_repo: ConfigRepository | None = None,
+    local_db: LocalDbRepository | None = None,
+) -> FastAPI:
     app = FastAPI(
         title="Wealth Pilot", description="Strategic Wealth & Asset Allocation Guidance Platform"
     )
@@ -151,6 +164,7 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
 
     # Core Services & State
     repo = config_repo or ConfigRepository()
+    db = local_db or LocalDbRepository(db_path=repo.config_path.parent / "wealth_pilot.db")
     kbc_gateway = KbcCsvGateway()
     generic_gateway = GenericCsvGateway()
     pdt_gateway = PdtMcpGateway()
@@ -161,6 +175,8 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
     categorizer = CategorizeTransactionsUseCase()
     tax_optimizer = OptimizeTaxUseCase()
 
+    app.state.repo = repo
+    app.state.local_db = db
     app.state.kbc_gateway = kbc_gateway
     app.state.generic_gateway = generic_gateway
     app.state.pdt_gateway = pdt_gateway
@@ -174,35 +190,43 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
     # Session State
     pending_oauth: dict[str, Any] = {}
     state: dict[str, Any] = {
-        "kbc_cash_asset": None,
-        "kbc_liabilities": [],
-        "kbc_transactions": [],
-        "kbc_cashflow": None,
-        "generic_assets": [],
         "pdt_assets": [],
     }
 
     def _get_consolidated_balance_sheet() -> BalanceSheet:
         assets: list[Asset] = []
-        # Manual assets (e.g. Bunq savings)
-        assets.extend(repo.load_manual_assets())
+        # Manual assets (e.g. Bunq savings, Real Estate)
+        manual_assets = repo.load_manual_assets()
+        assets.extend(manual_assets)
+        existing_asset_ids = {a.id for a in manual_assets}
 
-        # Ingested assets
-        if state["kbc_cash_asset"]:
-            assets.append(state["kbc_cash_asset"])
-        assets.extend(state["generic_assets"])
-        assets.extend(state["pdt_assets"])
+        # Cached discovered assets from SQLite DB
+        for a in db.get_discovered_assets():
+            if a.id not in existing_asset_ids:
+                assets.append(a)
+                existing_asset_ids.add(a.id)
+
+        # In-memory PDT synced assets
+        for a in state["pdt_assets"]:
+            if a.id not in existing_asset_ids:
+                assets.append(a)
+                existing_asset_ids.add(a.id)
 
         liabilities: list[Liability] = []
-        liabilities.extend(repo.load_manual_liabilities())
-        liabilities.extend(state["kbc_liabilities"])
+        manual_liabs = repo.load_manual_liabilities()
+        liabilities.extend(manual_liabs)
+        existing_liab_ids = {liab.id for liab in manual_liabs}
+        existing_liab_refs = {
+            liab.account_reference for liab in manual_liabs if liab.account_reference
+        }
 
-        cashflow = state["kbc_cashflow"] or MonthlyCashflow(
-            monthly_income=Money.from_val(4800.0),
-            fixed_costs=Money.from_val(1200.0),
-            debt_payments=Money.from_val(1553.92) if liabilities else Money.from_val(0.0),
-            living_expenses=Money.from_val(800.0),
-        )
+        for liab in db.get_discovered_liabilities():
+            if liab.id not in existing_liab_ids and (
+                not liab.account_reference or liab.account_reference not in existing_liab_refs
+            ):
+                liabilities.append(liab)
+
+        cashflow = db.get_monthly_cashflow()
 
         return BalanceSheet(assets=assets, liabilities=liabilities, cashflow=cashflow)
 
@@ -248,7 +272,7 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
             years=30,
         )
 
-        txs = state["kbc_transactions"]
+        txs = db.get_transactions(limit=1000)
         tx_data = [
             {
                 "id": t.id,
@@ -394,16 +418,22 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
             # Apply learned rules
             categorized_txs = kbc_gateway.categorizer.execute(data["transactions"], rules)
 
-            state["kbc_cash_asset"] = data["cash_asset"]
-            state["kbc_liabilities"] = data["discovered_liabilities"]
-            state["kbc_transactions"] = categorized_txs
-            state["kbc_cashflow"] = data["cashflow"]
+            # Save to local SQLite database (merges with earlier uploads without overwriting!)
+            inserted_txs = db.save_transactions(categorized_txs, source="kbc_csv")
+            if data.get("cash_asset"):
+                db.save_discovered_assets([data["cash_asset"]], source="kbc_csv")
+            if data.get("discovered_liabilities"):
+                db.save_discovered_liabilities(data["discovered_liabilities"])
+
+            total_txs = len(db.get_transactions())
 
             return {
                 "status": "success",
                 "account_number": data["account_number"],
                 "latest_balance": data["latest_balance"].format(),
                 "transaction_count": len(categorized_txs),
+                "new_transactions": inserted_txs,
+                "total_cumulative_transactions": total_txs,
                 "discovered_liabilities_count": len(data["discovered_liabilities"]),
             }
         finally:
@@ -423,7 +453,7 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
 
         try:
             assets = generic_gateway.parse_assets_file(tmp_path)
-            state["generic_assets"] = assets
+            db.save_discovered_assets(assets, source="generic_csv")
             return {
                 "status": "success",
                 "asset_count": len(assets),
@@ -444,6 +474,24 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
             },
         )
 
+    # Strategic Allocation Buckets Endpoints
+    @app.post("/api/buckets")
+    async def add_or_update_bucket(req: BucketCreateOrUpdateRequest):
+        bucket_id = repo.save_bucket(req.model_dump(exclude_unset=True))
+        return {"status": "success", "bucket_id": bucket_id}
+
+    @app.put("/api/buckets/{bucket_id}")
+    async def update_bucket(bucket_id: str, req: BucketCreateOrUpdateRequest):
+        data = req.model_dump(exclude_unset=True)
+        data["id"] = bucket_id
+        repo.save_bucket(data)
+        return {"status": "success", "bucket_id": bucket_id}
+
+    @app.delete("/api/buckets/{bucket_id}")
+    async def delete_bucket(bucket_id: str):
+        deleted = repo.delete_bucket(bucket_id)
+        return {"status": "success", "deleted": deleted}
+
     @app.post("/api/buckets/target")
     async def update_bucket_target(req: TargetWeightRequest):
         repo.save_bucket_target(
@@ -455,10 +503,7 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
 
     @app.post("/api/transactions/rebucket")
     async def rebucket_transaction(req: RebucketRequest):
-        for tx in state["kbc_transactions"]:
-            if tx.id == req.transaction_id:
-                tx.category = req.target_category
-                break
+        db.update_transaction_category(req.transaction_id, req.target_category)
 
         if req.remember_rule and req.counterparty_name:
             repo.save_transaction_rule(
@@ -470,6 +515,11 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
             )
 
         return {"status": "success"}
+
+    @app.post("/api/data/reset-cache")
+    async def reset_cached_data():
+        db.clear_all_cached_data()
+        return {"status": "success", "message": "All ingested CSV cache cleared"}
 
     @app.get("/api/ai/models")
     async def get_ai_models(provider: str = "gemini", api_key: str | None = None):
@@ -533,11 +583,22 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
     async def save_manual_liability(req: ManualLiabilityRequest):
         liab_dict = req.model_dump(exclude_unset=True)
         repo.save_manual_liability(liab_dict)
+        if req.id:
+            db.update_liability(req.id, liab_dict)
+        return {"status": "success", "liability": liab_dict}
+
+    @app.put("/api/liabilities/manual/{liability_id}")
+    async def update_manual_liability(liability_id: str, req: ManualLiabilityRequest):
+        liab_dict = req.model_dump(exclude_unset=True)
+        liab_dict["id"] = liability_id
+        repo.save_manual_liability(liab_dict)
+        db.update_liability(liability_id, liab_dict)
         return {"status": "success", "liability": liab_dict}
 
     @app.delete("/api/liabilities/manual/{liability_id}")
     async def delete_manual_liability(liability_id: str):
         repo.delete_manual_liability(liability_id)
+        db.delete_liability(liability_id)
         return {"status": "success"}
 
     # Asset-to-Bucket Mapping

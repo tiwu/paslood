@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import re
 from decimal import Decimal
 from pathlib import Path
@@ -62,7 +63,7 @@ class KbcCsvGateway(BaseIngestionGateway):
         mortgage_payments: dict[str, Decimal] = {}
         consumer_debt_payments: dict[str, Decimal] = {}
 
-        for i, row in enumerate(rows):
+        for row in rows:
             date_raw = str(row.get("Datum", "")).strip()
             formatted_date = self._format_date(date_raw)
 
@@ -99,8 +100,14 @@ class KbcCsvGateway(BaseIngestionGateway):
                 )
                 consumer_debt_payments[ref_key] = abs(amount.amount)
 
+            afschrift = str(row.get("Afschriftnummer", "")).strip()
+            hash_input = (
+                f"{account_number}|{formatted_date}|{amount.amount}|{full_desc}|{afschrift}"
+            )
+            tx_hash = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()[:16]
+
             tx = Transaction(
-                id=f"kbc-{account_number}-{i}",
+                id=f"kbc-{account_number}-{tx_hash}",
                 date=formatted_date,
                 amount=amount,
                 account_id=account_number,
@@ -115,7 +122,7 @@ class KbcCsvGateway(BaseIngestionGateway):
         # Categorize transactions
         transactions = self.categorizer.execute(raw_txs)
 
-        # Discovered liabilities
+        # Discovered liabilities - bank statement contains monthly payment only (balance and APR require user input)
         discovered_liabilities: list[Liability] = []
         for ref, monthly_amt in mortgage_payments.items():
             discovered_liabilities.append(
@@ -123,10 +130,8 @@ class KbcCsvGateway(BaseIngestionGateway):
                     id=f"mortgage-{ref}",
                     name=f"Woningkrediet ({ref})",
                     loan_type=LoanType.MORTGAGE,
-                    principal_balance=Money(
-                        monthly_amt * Decimal("240"), currency
-                    ),  # Estimate remaining duration
-                    interest_rate_pct=Decimal("1.85"),  # Standard reference, editable in UI
+                    principal_balance=Money(Decimal("0.00"), currency),
+                    interest_rate_pct=Decimal("0.00"),
                     monthly_payment=Money(monthly_amt, currency),
                     institution="KBC",
                     account_reference=ref,
@@ -139,10 +144,8 @@ class KbcCsvGateway(BaseIngestionGateway):
                     id=f"flex-{ref}",
                     name=f"Flex Budget ({ref})",
                     loan_type=LoanType.CONSUMER_LOAN,
-                    principal_balance=Money(monthly_amt * Decimal("12"), currency),
-                    interest_rate_pct=Decimal(
-                        "9.50"
-                    ),  # Standard consumer credit rate, editable in UI
+                    principal_balance=Money(Decimal("0.00"), currency),
+                    interest_rate_pct=Decimal("0.00"),
                     monthly_payment=Money(monthly_amt, currency),
                     institution="KBC",
                     account_reference=ref,

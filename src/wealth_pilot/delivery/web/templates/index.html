@@ -899,15 +899,21 @@
     </div>
   </div>
 
-  <!-- Add Manual Liability Modal -->
+  <!-- Add / Edit Manual Liability Modal -->
   <div id="add-liability-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>💳 Add Mortgage or Loan</span>
-        </h3>
-        <button onclick="closeAddLiabilityModal()" class="text-slate-400 hover:text-white">&times;</button>
+        <div>
+          <h3 id="liab-modal-title" class="text-base font-bold text-white flex items-center gap-2">
+            <span>💳 Add Mortgage or Loan</span>
+          </h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Specify actual remaining capital & APR for net worth and debt guidance.</p>
+        </div>
+        <button onclick="closeAddLiabilityModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
+
+      <input type="hidden" id="manual-liab-id">
+      <input type="hidden" id="manual-liab-ref">
 
       <div class="space-y-3 text-xs">
         <div>
@@ -950,6 +956,56 @@
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
         <button onclick="closeAddLiabilityModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
         <button onclick="saveManualLiability()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow">Save Liability</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Strategic Allocation Bucket Modal -->
+  <div id="bucket-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="bucket-modal-title" class="text-base font-bold text-white flex items-center gap-2">
+          <span>🪣 Strategic Allocation Bucket</span>
+        </h3>
+        <button onclick="closeBucketModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <input type="hidden" id="bucket-modal-id">
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Bucket Name</label>
+          <input type="text" id="bucket-modal-name" placeholder="e.g. Real Estate & Alternatives" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Target Weight (%)</label>
+            <input type="number" id="bucket-modal-target" step="0.5" min="0" max="100" placeholder="e.g. 15.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Drift Tolerance (±%)</label>
+            <input type="number" id="bucket-modal-tolerance" step="0.5" min="0.5" max="20" value="3.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block font-medium text-slate-300 mb-1.5">Color Palette</label>
+          <div id="bucket-color-picker" class="flex items-center gap-2 pt-1 flex-wrap">
+            <!-- Rendered dynamically -->
+          </div>
+          <input type="hidden" id="bucket-modal-color" value="#3B82F6">
+        </div>
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Description (Optional)</label>
+          <input type="text" id="bucket-modal-desc" placeholder="e.g. High cashflow rental properties or physical bullion" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+        <button id="bucket-modal-delete-btn" onclick="deleteCurrentBucket()" class="px-3 py-1.5 text-xs rounded-lg text-rose-400 hover:bg-rose-500/10 hidden">Delete Bucket</button>
+        <div class="flex items-center gap-2 ml-auto">
+          <button onclick="closeBucketModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+          <button onclick="saveBucketFromModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Bucket</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1445,6 +1501,126 @@
       }
     }
 
+    const BUCKET_PALETTE = [
+      '#3B82F6', // Blue
+      '#10B981', // Emerald
+      '#F59E0B', // Amber
+      '#8B5CF6', // Purple
+      '#EC4899', // Pink
+      '#06B6D4', // Cyan
+      '#F97316', // Orange
+      '#6366F1', // Indigo
+      '#14B8A6', // Teal
+      '#E11D48', // Rose
+    ];
+
+    function renderBucketColorPicker(selectedColor) {
+      const container = document.getElementById('bucket-color-picker');
+      if (!container) return;
+      container.innerHTML = '';
+      BUCKET_PALETTE.forEach(c => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = c.toLowerCase() === (selectedColor || '').toLowerCase();
+        btn.className = `w-6 h-6 rounded-full transition-transform hover:scale-110 flex items-center justify-center ${isSelected ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 scale-110' : 'opacity-80 hover:opacity-100'}`;
+        btn.style.backgroundColor = c;
+        btn.onclick = () => selectBucketColor(c);
+        container.appendChild(btn);
+      });
+      document.getElementById('bucket-modal-color').value = selectedColor;
+    }
+
+    function selectBucketColor(color) {
+      renderBucketColorPicker(color);
+    }
+
+    function openAddBucketModal() {
+      document.getElementById('bucket-modal-title').innerHTML = '<span>🪣 Add Strategic Bucket</span>';
+      document.getElementById('bucket-modal-id').value = '';
+      document.getElementById('bucket-modal-name').value = '';
+      document.getElementById('bucket-modal-target').value = '10.0';
+      document.getElementById('bucket-modal-tolerance').value = '3.0';
+      document.getElementById('bucket-modal-desc').value = '';
+      document.getElementById('bucket-modal-delete-btn').classList.add('hidden');
+      const nextColor = BUCKET_PALETTE[(currentData?.allocations?.length || 0) % BUCKET_PALETTE.length];
+      selectBucketColor(nextColor);
+      document.getElementById('bucket-modal').classList.remove('hidden');
+    }
+
+    function openEditBucketModal(bucketId, name, color, target, tolerance, desc) {
+      document.getElementById('bucket-modal-title').innerHTML = `<span>✏️ Edit Bucket: ${name}</span>`;
+      document.getElementById('bucket-modal-id').value = bucketId;
+      document.getElementById('bucket-modal-name').value = name;
+      document.getElementById('bucket-modal-target').value = target;
+      document.getElementById('bucket-modal-tolerance').value = tolerance || 3.0;
+      document.getElementById('bucket-modal-desc').value = desc || '';
+      document.getElementById('bucket-modal-delete-btn').classList.remove('hidden');
+      selectBucketColor(color || '#3B82F6');
+      document.getElementById('bucket-modal').classList.remove('hidden');
+    }
+
+    function closeBucketModal() {
+      document.getElementById('bucket-modal').classList.add('hidden');
+    }
+
+    async function saveBucketFromModal() {
+      const bucketId = document.getElementById('bucket-modal-id').value.trim();
+      const name = document.getElementById('bucket-modal-name').value.trim();
+      const target = parseFloat(document.getElementById('bucket-modal-target').value) || 0;
+      const tolerance = parseFloat(document.getElementById('bucket-modal-tolerance').value) || 3.0;
+      const color = document.getElementById('bucket-modal-color').value;
+      const desc = document.getElementById('bucket-modal-desc').value.trim();
+
+      if (!name) {
+        alert('Please enter a bucket name.');
+        return;
+      }
+
+      const payload = {
+        id: bucketId || undefined,
+        name: name,
+        target_weight_pct: target,
+        drift_tolerance_pct: tolerance,
+        color: color,
+        description: desc
+      };
+
+      try {
+        const res = await fetch('/api/buckets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          closeBucketModal();
+          await loadOverview();
+          showToast(bucketId ? 'Bucket updated!' : 'New bucket added!');
+        }
+      } catch (err) {
+        console.error('Failed to save bucket:', err);
+      }
+    }
+
+    async function deleteBucket(bucketId, name) {
+      if (!confirm(`Are you sure you want to delete the bucket "${name}"? Holdings mapped to this bucket will become unassigned.`)) return;
+      try {
+        const res = await fetch(`/api/buckets/${bucketId}`, { method: 'DELETE' });
+        if (res.ok) {
+          closeBucketModal();
+          await loadOverview();
+          showToast('Bucket removed.');
+        }
+      } catch (err) {
+        console.error('Failed to delete bucket:', err);
+      }
+    }
+
+    function deleteCurrentBucket() {
+      const bucketId = document.getElementById('bucket-modal-id').value;
+      const name = document.getElementById('bucket-modal-name').value;
+      if (bucketId) deleteBucket(bucketId, name);
+    }
+
     function renderBuckets(data) {
       const tbody = document.getElementById('buckets-table-body');
       tbody.innerHTML = '';
@@ -1455,22 +1631,24 @@
         // Table row
         const tr = document.createElement('tr');
         const statusBadge = a.drift_status === 'BALANCED' ? '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400">Balanced</span>' : (a.drift_status === 'UNDERWEIGHT' ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">Underweight</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Overweight</span>');
+        const safeName = (a.name || '').replace(/'/g, "\\'");
         tr.innerHTML = `
           <td class="px-4 py-3 font-medium flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${a.color}"></span>
-            ${a.name}
+            <span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color: ${a.color}"></span>
+            <span class="text-white font-semibold">${a.name}</span>
           </td>
-          <td class="px-4 py-3">€ ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
-          <td class="px-4 py-3 font-semibold">${a.current_weight_pct}%</td>
+          <td class="px-4 py-3 font-mono">€ ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
+          <td class="px-4 py-3 font-semibold font-mono">${a.current_weight_pct}%</td>
           <td class="px-4 py-3">
-            <input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${a.bucket_id}', '${a.name}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white"> %
+            <input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${a.bucket_id}', '${safeName}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"> %
           </td>
-          <td class="px-4 py-3 ${a.diff_value < 0 ? 'text-blue-400' : 'text-amber-400'}">
+          <td class="px-4 py-3 font-mono ${a.diff_value < 0 ? 'text-blue-400' : 'text-amber-400'}">
             ${a.diff_value > 0 ? '+' : ''}€ ${a.diff_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}
           </td>
           <td class="px-4 py-3">${statusBadge}</td>
-          <td class="px-4 py-3 text-right">
-            <button onclick="rebalanceBucket('${a.bucket_id}')" class="text-xs text-blue-400 hover:text-blue-300">Rebalance</button>
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+            <button onclick="openEditBucketModal('${a.bucket_id}', '${safeName}', '${a.color}', ${a.target_weight_pct}, ${a.drift_tolerance_pct})" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit / Rename</button>
+            <button onclick="deleteBucket('${a.bucket_id}', '${safeName}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1480,11 +1658,14 @@
         meter.className = 'space-y-1';
         meter.innerHTML = `
           <div class="flex justify-between text-xs">
-            <span class="font-medium text-white">${a.name}</span>
-            <span class="text-slate-400">Current: ${a.current_weight_pct}% / Target: ${a.target_weight_pct}% (±${a.drift_tolerance_pct}%)</span>
+            <span class="font-medium text-white flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${a.color}"></span>
+              ${a.name}
+            </span>
+            <span class="text-slate-400 font-mono text-[11px]">Current: ${a.current_weight_pct}% / Target: ${a.target_weight_pct}% (±${a.drift_tolerance_pct}%)</span>
           </div>
           <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 relative">
-            <div class="h-full rounded-full transition-all duration-500" style="width: ${Math.min(100, a.current_weight_pct)}%; background-color: ${a.color}"></div>
+            <div class="h-full rounded-full transition-all duration-500 shadow-sm" style="width: ${Math.min(100, a.current_weight_pct)}%; background-color: ${a.color}"></div>
           </div>
         `;
         meters.appendChild(meter);
@@ -1599,7 +1780,8 @@
         const result = await res.json();
         if (res.ok) {
           status.className = 'text-xs py-2 px-3 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-          status.textContent = `Successfully parsed ${file.name}! Loaded ${result.transaction_count || result.asset_count} records.`;
+          const totalMsg = result.total_cumulative_transactions ? ` (Cumulative total in SQLite database: ${result.total_cumulative_transactions} transactions)` : '';
+          status.textContent = `Successfully parsed ${file.name}! Loaded ${result.transaction_count || result.asset_count} records.${totalMsg}`;
           await loadOverview();
         } else {
           throw new Error(result.detail || 'Upload failed');
@@ -1885,14 +2067,27 @@
         } else {
           liabilities.forEach(l => {
             const tr = document.createElement('tr');
+            const isUnsetBalance = l.principal_balance <= 0;
+            const balanceHtml = isUnsetBalance
+              ? `<span class="text-amber-400 font-mono">Unset (€ 0,00)</span> <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30">Needs Balance</span>`
+              : `<span class="font-mono text-rose-400">${l.principal_balance_formatted}</span>`;
+            const rateHtml = l.interest_rate_pct <= 0
+              ? `<span class="text-slate-500 font-mono">—</span>`
+              : `<span class="font-mono text-slate-300">${l.interest_rate_pct}%</span>`;
+
+            const safeName = (l.name || '').replace(/'/g, "\\'");
+            const safeInst = (l.institution || '').replace(/'/g, "\\'");
+            const safeRef = (l.account_reference || '').replace(/'/g, "\\'");
+
             tr.innerHTML = `
               <td class="py-2.5 font-medium text-white">${l.name}</td>
               <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">${l.loan_type}</span></td>
-              <td class="py-2.5 font-mono text-rose-400">${l.principal_balance_formatted}</td>
-              <td class="py-2.5 font-mono text-slate-300">${l.interest_rate_pct}%</td>
+              <td class="py-2.5">${balanceHtml}</td>
+              <td class="py-2.5">${rateHtml}</td>
               <td class="py-2.5 font-mono text-slate-300">${l.monthly_payment_formatted}</td>
-              <td class="py-2.5 text-right">
-                <button onclick="deleteManualLiability('${l.id}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+              <td class="py-2.5 text-right whitespace-nowrap">
+                <button onclick="openEditLiabilityModal('${l.id}', '${safeName}', '${l.loan_type}', ${l.principal_balance}, ${l.interest_rate_pct}, ${l.monthly_payment}, '${safeInst}', '${safeRef}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit</button>
+                <button onclick="deleteManualLiability('${l.id}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
               </td>
             `;
             liabTbody.appendChild(tr);
@@ -1953,41 +2148,71 @@
       }
     }
 
-    function openAddLiabilityModal() { document.getElementById('add-liability-modal').classList.remove('hidden'); }
-    function closeAddLiabilityModal() { document.getElementById('add-liability-modal').classList.add('hidden'); }
+    function openAddLiabilityModal() {
+      document.getElementById('liab-modal-title').textContent = '💳 Add Mortgage or Loan';
+      document.getElementById('manual-liab-id').value = '';
+      document.getElementById('manual-liab-name').value = '';
+      document.getElementById('manual-liab-type').value = 'MORTGAGE';
+      document.getElementById('manual-liab-balance').value = '';
+      document.getElementById('manual-liab-rate').value = '';
+      document.getElementById('manual-liab-payment').value = '';
+      document.getElementById('manual-liab-inst').value = '';
+      document.getElementById('manual-liab-ref').value = '';
+      document.getElementById('add-liability-modal').classList.remove('hidden');
+    }
+
+    function openEditLiabilityModal(id, name, type, balance, rate, payment, inst, ref) {
+      document.getElementById('liab-modal-title').textContent = '✏️ Edit Loan / Mortgage Details';
+      document.getElementById('manual-liab-id').value = id;
+      document.getElementById('manual-liab-name').value = name;
+      document.getElementById('manual-liab-type').value = type;
+      document.getElementById('manual-liab-balance').value = balance > 0 ? balance : '';
+      document.getElementById('manual-liab-rate').value = rate > 0 ? rate : '';
+      document.getElementById('manual-liab-payment').value = payment > 0 ? payment : '';
+      document.getElementById('manual-liab-inst').value = inst || 'KBC';
+      document.getElementById('manual-liab-ref').value = ref || '';
+      document.getElementById('add-liability-modal').classList.remove('hidden');
+    }
+
+    function closeAddLiabilityModal() {
+      document.getElementById('add-liability-modal').classList.add('hidden');
+    }
 
     async function saveManualLiability() {
+      const id = document.getElementById('manual-liab-id').value.trim();
       const name = document.getElementById('manual-liab-name').value.trim();
       const loanType = document.getElementById('manual-liab-type').value;
       const balance = parseFloat(document.getElementById('manual-liab-balance').value) || 0;
       const rate = parseFloat(document.getElementById('manual-liab-rate').value) || 0;
       const payment = parseFloat(document.getElementById('manual-liab-payment').value) || 0;
       const inst = document.getElementById('manual-liab-inst').value.trim() || 'Manual';
+      const ref = document.getElementById('manual-liab-ref').value.trim();
 
-      if (!name || balance <= 0) {
-        alert('Please provide a debt name and principal balance.');
+      if (!name) {
+        alert('Please provide a name for this loan or debt.');
         return;
       }
 
       try {
+        const payload = {
+          id: id || undefined,
+          name: name,
+          loan_type: loanType,
+          principal_balance: balance,
+          interest_rate_pct: rate,
+          monthly_payment: payment,
+          institution: inst,
+          account_reference: ref || undefined,
+        };
         const res = await fetch('/api/liabilities/manual', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: name,
-            loan_type: loanType,
-            principal_balance: balance,
-            interest_rate_pct: rate,
-            monthly_payment: payment,
-            institution: inst
-          })
+          body: JSON.stringify(payload)
         });
         if (res.ok) {
           closeAddLiabilityModal();
-          document.getElementById('manual-liab-name').value = '';
-          document.getElementById('manual-liab-balance').value = '';
           await loadOverview();
-          showToast('Liability / Debt added successfully!');
+          showToast(id ? 'Loan details updated!' : 'Liability / Debt added successfully!');
         }
       } catch (err) {
         console.error('Failed to save liability:', err);
@@ -2013,17 +2238,20 @@
       const countBadge = document.getElementById('holdings-count-badge');
       if (!tbody) return;
       tbody.innerHTML = '';
-      const assets = data.assets || [];
-      if (countBadge) countBadge.textContent = `${assets.length} Holdings`;
+      const allAssets = data.assets || [];
 
-      if (assets.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-slate-500 text-center">No holdings loaded. Connect PDT in Settings or import a CSV statement.</td></tr>';
+      // Leave out 0 value items from the assignment list (as requested)
+      const nonZeroAssets = allAssets.filter(a => a.current_value > 0);
+      if (countBadge) countBadge.textContent = `${nonZeroAssets.length} Active Holdings`;
+
+      if (nonZeroAssets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-slate-500 text-center">No active holdings with positive value found. Connect PDT in Settings or import a CSV statement.</td></tr>';
         return;
       }
 
       const buckets = data.allocations || [];
 
-      assets.forEach(a => {
+      nonZeroAssets.forEach(a => {
         const tr = document.createElement('tr');
         let bucketOptions = `<option value="unassigned" ${a.bucket_id === 'unassigned' ? 'selected' : ''}>-- Unassigned --</option>`;
         buckets.forEach(b => {
@@ -2031,7 +2259,17 @@
           bucketOptions += `<option value="${b.bucket_id}" ${isSelected ? 'selected' : ''}>${b.name}</option>`;
         });
 
-        const badgeStyle = a.bucket_id !== 'unassigned' ? `background-color: ${a.bucket_color}22; color: ${a.bucket_color}; border-color: ${a.bucket_color}44;` : 'background-color: #334155; color: #94a3b8; border-color: #475569;';
+        const badgeHtml = a.bucket_id !== 'unassigned' ? `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border shadow-sm" style="background-color: ${a.bucket_color}22; color: ${a.bucket_color}; border-color: ${a.bucket_color}55;">
+            <span class="w-2 h-2 rounded-full inline-block shadow-sm" style="background-color: ${a.bucket_color};"></span>
+            ${a.bucket_name}
+          </span>
+        ` : `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-500 inline-block"></span>
+            Unassigned
+          </span>
+        `;
 
         const safeName = (a.name || '').replace(/'/g, "\\'");
         tr.innerHTML = `
@@ -2040,9 +2278,7 @@
           <td class="px-3 py-2.5 text-slate-400">${a.institution}</td>
           <td class="px-3 py-2.5 font-mono font-semibold text-slate-200">${a.current_value_formatted}</td>
           <td class="px-3 py-2.5">
-            <span class="px-2 py-0.5 rounded text-[11px] font-medium border" style="${badgeStyle}">
-              ${a.bucket_name}
-            </span>
+            ${badgeHtml}
           </td>
           <td class="px-3 py-2.5">
             <select class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-white text-xs focus:border-blue-500" onchange="assignAssetToBucket('${a.id}', '${a.symbol || ''}', '${a.isin || ''}', '${safeName}', this.value)">
