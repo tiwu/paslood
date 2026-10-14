@@ -40,6 +40,10 @@ nav:
       - Belgian Tax Optimization: guidance/tax-optimization.md
   - AI Advisor:
       - Setup & API Keys: ai-advisor/setup.md
+  - Architecture Plans:
+      - Overview & Standards: plans/README.md
+      - Plan Template: plans/PLAN-TEMPLATE.md
+
 
 markdown_extensions:
   - admonition
