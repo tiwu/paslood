@@ -113,3 +113,65 @@ class PdtMcpGateway:
             )
 
         return assets
+
+    async def lookup_historical_price(
+        self,
+        symbol: str,
+        date: str = "2025-12-31",
+        quote_id: str | None = None,
+        client: httpx.AsyncClient | None = None,
+    ) -> Money | None:
+        """Looks up closing price for a security on a specific historical date via PDT timetravel or market data."""
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            "User-Agent": USER_AGENT,
+        }
+        if self.auth_token:
+            headers["Authorization"] = f"Bearer {self.auth_token}"
+
+        # 1. Try PDT MCP timetravel query
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "pdt-get-portfolio-holdings",
+                "arguments": {"date": date, "as_of_date": date},
+            },
+        }
+
+        async def _call_mcp(c: httpx.AsyncClient) -> dict[str, Any]:
+            resp = await c.post(self.mcp_url, json=payload, headers=headers, timeout=10.0)
+            resp.raise_for_status()
+            raw = resp.text.strip()
+            if raw.startswith("data:"):
+                raw = raw[5:].strip()
+            return json.loads(raw)
+
+        try:
+            if client:
+                data = await _call_mcp(client)
+            else:
+                async with httpx.AsyncClient() as c:
+                    data = await _call_mcp(c)
+
+            assets = self._parse_holdings_response(data)
+            symbol_up = symbol.strip().upper()
+            match = next(
+                (
+                    a
+                    for a in assets
+                    if a.symbol.upper() == symbol_up
+                    or (quote_id and quote_id in a.id)
+                    or symbol_up in a.name.upper()
+                ),
+                None,
+            )
+            if match and match.quantity > Decimal("0.0"):
+                price_amt = (match.current_value.amount / match.quantity).quantize(Decimal("0.01"))
+                return Money(price_amt, match.currency)
+        except Exception:
+            pass
+
+        return None

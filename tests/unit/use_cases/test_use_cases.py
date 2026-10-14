@@ -236,3 +236,81 @@ def test_belgian_tax_optimization():
     assert res["taxable_gain"].amount == Decimal("6000.00")
     assert res["tax_to_pay"].amount == Decimal("0.00")
     assert res["remaining_exemption"].amount == Decimal("4000.00")
+
+
+def test_tax_with_pre_and_post_benchmark_lots():
+    use_case = OptimizeTaxUseCase()
+    # 20 shares sold at 1200.
+    # 10 shares bought pre-2026 (taxed on Dec 31 2025 benchmark price of 900 -> gain = 300/sh * 10 = 3000)
+    # 10 shares bought post-2025 (taxed on actual purchase price of 1000 -> gain = 200/sh * 10 = 2000)
+    # Total gain = 5000.
+    res = use_case.calculate_capital_gains_tax(
+        shares_to_sell=Decimal("20.0"),
+        current_price=Money.from_val(1200.0),
+        benchmark_price=Money.from_val(900.0),
+        shares_pre_benchmark=Decimal("10.0"),
+        shares_post_benchmark=Decimal("10.0"),
+        actual_purchase_price=Money.from_val(1000.0),
+        available_annual_exemption=Money.from_val(10000.0),
+    )
+
+    assert res["gain_pre_benchmark"].amount == Decimal("3000.00")
+    assert res["gain_post_benchmark"].amount == Decimal("2000.00")
+    assert res["taxable_gain"].amount == Decimal("5000.00")
+    assert res["remaining_exemption"].amount == Decimal("5000.00")
+    assert res["tax_to_pay"].amount == Decimal("0.00")
+    assert res["is_fully_exempt"] is True
+
+
+def test_tax_exceeding_annual_exemption():
+    use_case = OptimizeTaxUseCase()
+    # 100 shares bought post-2025 at 1000, sold at 1200. Gain = 20,000.
+    # Exemption = 10,000. Taxable above exemption = 10,000. Tax at 10% = 1,000.
+    res = use_case.calculate_capital_gains_tax(
+        shares_to_sell=Decimal("100.0"),
+        current_price=Money.from_val(1200.0),
+        shares_pre_benchmark=Decimal("0.0"),
+        shares_post_benchmark=Decimal("100.0"),
+        actual_purchase_price=Money.from_val(1000.0),
+        available_annual_exemption=Money.from_val(10000.0),
+        tax_rate_pct=Decimal("10.0"),
+    )
+
+    assert res["taxable_gain"].amount == Decimal("20000.00")
+    assert res["used_exemption"].amount == Decimal("10000.00")
+    assert res["remaining_exemption"].amount == Decimal("0.00")
+    assert res["tax_to_pay"].amount == Decimal("1000.00")
+    assert res["is_fully_exempt"] is False
+
+
+def test_tax_with_individual_lots_list():
+    use_case = OptimizeTaxUseCase()
+    lots = [
+        # Lot 1: bought 2024-05-10 (pre-benchmark). Cost basis must be benchmark_price (900.0)
+        {
+            "purchase_date": "2024-05-10",
+            "shares": Decimal("5.0"),
+            "purchase_price": Money.from_val(700.0),
+        },
+        # Lot 2: bought 2026-03-01 (post-benchmark). Cost basis must be actual purchase_price (1050.0)
+        {
+            "purchase_date": "2026-03-01",
+            "shares": Decimal("5.0"),
+            "purchase_price": Money.from_val(1050.0),
+        },
+    ]
+
+    res = use_case.calculate_from_lots(
+        lots=lots,
+        current_price=Money.from_val(1200.0),
+        benchmark_date="2025-12-31",
+        benchmark_price=Money.from_val(900.0),
+        available_annual_exemption=Money.from_val(10000.0),
+    )
+
+    # Lot 1 gain: (1200 - 900) * 5 = 1500
+    # Lot 2 gain: (1200 - 1050) * 5 = 750
+    # Total gain = 2250
+    assert res["total_taxable_gain"].amount == Decimal("2250.00")
+    assert res["tax_to_pay"].amount == Decimal("0.00")
+    assert res["remaining_exemption"].amount == Decimal("7750.00")

@@ -61,6 +61,9 @@
 
       <!-- Quick Actions & Docs -->
       <div class="flex items-center space-x-2">
+        <button onclick="openSetupWizard()" class="text-xs text-amber-400 hover:text-amber-300 px-2.5 py-1.5 rounded border border-amber-500/30 bg-amber-500/10 flex items-center gap-1 hover:border-amber-500 transition font-medium" title="Launch Interactive Setup Wizard">
+          <span>🚀 Setup Wizard</span>
+        </button>
         <a href="/guide/index.html" target="_blank" rel="noopener" class="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded border border-slate-700 bg-slate-800/60 flex items-center gap-1 hover:border-slate-500 transition" title="Built-in Documentation (Works Offline & Private Repos)">
           <span>📖 Docs</span>
           <span class="text-[10px]">↗</span>
@@ -237,30 +240,111 @@
         <div id="debt-advisor-list" class="space-y-3 pt-2"></div>
       </div>
 
-      <!-- Belgian Tax Exemption Module -->
-      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-base font-bold text-white">🇧🇪 Capital Gains Tax Reference Framework</h3>
-          <span class="text-xs text-slate-400">Fiscal Benchmark Tracking</span>
+      <!-- Belgian Capital Gains Tax Simulator & Benchmark Lookup Module -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🇧🇪 Belgian Capital Gains Tax Optimizer & Historical Benchmark</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Shares acquired on or before Dec 31, 2025 are taxed against the Dec 31, 2025 closing price (lookable via PDT timetravel). Buys after Dec 31, 2025 are taxed on their actual buying price. Annual capital gains exemption is € 10,000.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
+            10% Tax Above Exemption
+          </span>
         </div>
-        <p class="text-xs text-slate-400">
-          When rebalancing by selling legacy equities, capital gains can be evaluated relative to a historical benchmark reference date with statutory annual exemption thresholds.
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
-            <div class="text-xs text-slate-400">Annual Exemption</div>
-            <div class="text-lg font-bold text-white mt-0.5">€ 10.000,00</div>
-            <div class="text-[11px] text-emerald-400 mt-1">Configurable in Settings</div>
+
+        <!-- Simulation Inputs -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <!-- Ticker & PDT Lookup -->
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Security Symbol / Ticker</label>
+            <div class="flex items-center gap-1.5">
+              <input type="text" id="sim-tax-symbol" value="ASML" placeholder="e.g. ASML, NVDA, VWCE" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono uppercase">
+              <button onclick="lookupTaxPrice()" id="btn-lookup-tax-price" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium whitespace-nowrap shadow flex items-center gap-1" title="Query PDT MCP timetravel for Dec 31, 2025 closing price">
+                <span>🔍 Lookup PDT</span>
+              </button>
+            </div>
+            <span id="tax-lookup-feedback" class="text-[10px] text-slate-400 mt-1 block"></span>
           </div>
-          <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
-            <div class="text-xs text-slate-400">Reference Benchmark Basis</div>
-            <div class="text-lg font-bold text-white mt-0.5">Dec 31, 2025</div>
-            <div class="text-[11px] text-slate-400 mt-1">Closing Market Price Reference</div>
+
+          <!-- Benchmark Price on Dec 31, 2025 -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-slate-300 font-medium">Dec 31, 2025 Benchmark Price (€)</label>
+              <span class="text-[10px] text-emerald-400">User Editable</span>
+            </div>
+            <input type="number" id="sim-tax-bench-price" value="912.00" step="0.01" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <span class="text-[10px] text-slate-500 mt-1 block">Base cost for shares bought on or before Dec 31, 2025</span>
           </div>
-          <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
-            <div class="text-xs text-slate-400">Tax Rate Above Exemption</div>
-            <div class="text-lg font-bold text-white mt-0.5">10.0%</div>
-            <div class="text-[11px] text-slate-400 mt-1">Standard Capital Gains Rate</div>
+
+          <!-- Current Market Price -->
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Current Sale Market Price (€)</label>
+            <input type="number" id="sim-tax-current-price" value="1250.00" step="0.01" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <span class="text-[10px] text-slate-500 mt-1 block">Expected execution price per share</span>
+          </div>
+        </div>
+
+        <!-- Lots Breakdown (Pre-2026 vs Post-2025) -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 text-xs">
+          <div class="font-semibold text-white flex items-center justify-between">
+            <span>Holding Lots Acquisition Breakdown</span>
+            <span class="text-[11px] text-slate-400">Pre vs Post Benchmark Date Allocation</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-slate-400 mb-1">Pre-2026 Shares Held</label>
+              <input type="number" id="sim-tax-shares-pre" value="15.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
+              <span class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs Dec 31, 2025 price</span>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Post-2025 Shares Held</label>
+              <input type="number" id="sim-tax-shares-post" value="5.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
+              <span class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs actual buy price</span>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Actual Purchase Price (Post-2025) (€)</label>
+              <input type="number" id="sim-tax-post-buy-price" value="1050.00" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+              <span class="text-[10px] text-slate-500 mt-0.5 block">Cost basis for post-2025 buys</span>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Planned Shares to Sell</label>
+              <input type="number" id="sim-tax-sell-qty" value="10.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-bold text-blue-400">
+              <span class="text-[10px] text-slate-500 mt-0.5 block">Total rebalance quantity</span>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-1">
+            <button onclick="runTaxSimulation()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1.5 shadow">
+              <span>⚡ Calculate Realized Gain & Tax</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Simulation Results Cards -->
+        <div id="tax-sim-results" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 text-xs">
+          <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
+            <div class="text-slate-400">Pre-2026 Gain (vs Benchmark)</div>
+            <div id="res-gain-pre" class="text-base font-bold text-white mt-0.5">€ 3.380,00</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Dec 31, 2025 basis applied</div>
+          </div>
+          <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
+            <div class="text-slate-400">Post-2025 Gain (vs Buy Price)</div>
+            <div id="res-gain-post" class="text-base font-bold text-white mt-0.5">€ 0,00</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Actual purchase price applied</div>
+          </div>
+          <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
+            <div class="text-slate-400">Total Realized Gain / Exemption</div>
+            <div id="res-taxable-gain" class="text-base font-bold text-emerald-400 mt-0.5">€ 3.380,00</div>
+            <div id="res-remaining-exemption" class="text-[10px] text-emerald-400 mt-0.5">€ 6.620,00 exemption left</div>
+          </div>
+          <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
+            <div class="text-slate-400">Tax Due & Status</div>
+            <div id="res-tax-due" class="text-base font-bold text-white mt-0.5">€ 0,00</div>
+            <div id="res-tax-status" class="text-[10px] text-emerald-400 mt-0.5 font-semibold">🟢 100% Tax-Exempt</div>
           </div>
         </div>
       </div>
@@ -643,6 +727,214 @@
 
       <div class="pt-3 border-t border-slate-800 flex justify-end">
         <button onclick="closeHelpModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive First-Time Setup Wizard Modal -->
+  <div id="setup-wizard-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
+      <!-- Header -->
+      <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🚀</span>
+            <h2 class="text-lg font-bold text-white">Welcome to Wealth Pilot</h2>
+            <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">Quick Setup</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Let's configure your strategic wealth buckets, ingestion sources, and tax preferences in 3 simple steps.</p>
+        </div>
+        <button onclick="skipSetupWizard()" class="text-slate-500 hover:text-slate-300 text-xs px-2 py-1 rounded hover:bg-slate-800">Skip for now &times;</button>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="flex items-center justify-between text-xs font-medium border-b border-slate-800/80 pb-3">
+        <div id="wizard-indicator-1" class="flex items-center gap-2 text-blue-400 font-semibold">
+          <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">1</span>
+          <span>Data Ingestion</span>
+        </div>
+        <div class="h-0.5 w-12 bg-slate-800"></div>
+        <div id="wizard-indicator-2" class="flex items-center gap-2 text-slate-500">
+          <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs">2</span>
+          <span>Strategic Buckets</span>
+        </div>
+        <div class="h-0.5 w-12 bg-slate-800"></div>
+        <div id="wizard-indicator-3" class="flex items-center gap-2 text-slate-500">
+          <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs">3</span>
+          <span>Tax & AI Preferences</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Ingestion -->
+      <div id="wizard-step-1" class="wizard-step space-y-4 text-xs">
+        <h3 class="font-bold text-white text-sm">Step 1: Choose Your Primary Data Ingestion Source</h3>
+        <p class="text-slate-400">Wealth Pilot consolidates your brokerage and banking statements so you can track net worth and macro allocation drift.</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <!-- PDT Option -->
+          <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-blue-500/50 transition cursor-pointer flex flex-col justify-between">
+            <div>
+              <div class="font-semibold text-white text-sm flex items-center gap-1.5">
+                <span>📈</span> Portfolio Dividend Tracker (PDT)
+              </div>
+              <p class="text-slate-400 text-xs mt-1">Connect your PDT portfolio via Model Context Protocol (MCP) to live-stream holdings and dividends.</p>
+            </div>
+            <button onclick="connectPdtOAuth()" class="mt-4 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs">
+              Connect via OAuth 2.0 PKCE
+            </button>
+          </div>
+
+          <!-- KBC / Generic CSV Dropzone -->
+          <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-blue-500/50 transition flex flex-col justify-between">
+            <div>
+              <div class="font-semibold text-white text-sm flex items-center gap-1.5">
+                <span>🏦</span> Bank Statement / CSV
+              </div>
+              <p class="text-slate-400 text-xs mt-1">Upload a KBC bank export or generic CSV ledger to populate checking, mortgage, and expenses.</p>
+            </div>
+            <label class="mt-4 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs text-center cursor-pointer">
+              <span>Select Statement CSV</span>
+              <input type="file" accept=".csv" class="hidden" onchange="handleWizardFileUpload(event)">
+            </label>
+          </div>
+        </div>
+        <div id="wizard-upload-status" class="hidden text-xs py-2 px-3 rounded-lg"></div>
+      </div>
+
+      <!-- Step 2: Target Buckets -->
+      <div id="wizard-step-2" class="wizard-step hidden space-y-4 text-xs">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-white text-sm">Step 2: Customize Your Strategic Asset Buckets</h3>
+            <p class="text-slate-400">Set target percentages for your core pillars. Target total must equal 100%.</p>
+          </div>
+          <div id="wizard-total-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            Total: 100%
+          </div>
+        </div>
+
+        <div class="space-y-3 pt-2">
+          <div class="flex items-center justify-between bg-slate-950 p-3 rounded-lg border border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+              <div>
+                <div class="font-medium text-white">Global Core Equities & ETFs</div>
+                <div class="text-[10px] text-slate-500">Broad-market index funds (e.g. VWCE, IWDA)</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <input type="number" id="wiz-b1" value="50" min="0" max="100" step="5" oninput="updateWizardTotal()" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-right font-semibold">
+              <span class="text-slate-400">%</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between bg-slate-950 p-3 rounded-lg border border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+              <div>
+                <div class="font-medium text-white">High Growth & Conviction Tech</div>
+                <div class="text-[10px] text-slate-500">Specific stock picks and conviction growth bets</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <input type="number" id="wiz-b2" value="30" min="0" max="100" step="5" oninput="updateWizardTotal()" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-right font-semibold">
+              <span class="text-slate-400">%</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between bg-slate-950 p-3 rounded-lg border border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              <div>
+                <div class="font-medium text-white">Precious Metals & Gold</div>
+                <div class="text-[10px] text-slate-500">Inflation hedge and wealth preserver</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <input type="number" id="wiz-b3" value="10" min="0" max="100" step="5" oninput="updateWizardTotal()" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-right font-semibold">
+              <span class="text-slate-400">%</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between bg-slate-950 p-3 rounded-lg border border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+              <div>
+                <div class="font-medium text-white">Cash & Liquidity Buffer</div>
+                <div class="text-[10px] text-slate-500">Emergency fund and dry powder for dips</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <input type="number" id="wiz-b4" value="10" min="0" max="100" step="5" oninput="updateWizardTotal()" class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-right font-semibold">
+              <span class="text-slate-400">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Tax & AI Preferences -->
+      <div id="wizard-step-3" class="wizard-step hidden space-y-4 text-xs">
+        <h3 class="font-bold text-white text-sm">Step 3: Regional Tax & AI Preferences</h3>
+        <p class="text-slate-400">Configure your regional capital gains benchmark and optional AI advisor credentials.</p>
+
+        <div class="space-y-3 pt-2">
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+            <div class="font-medium text-white flex items-center justify-between">
+              <span>🇧🇪 Belgian Capital Gains Tax Preferences</span>
+              <span class="text-[10px] text-blue-400">Reference: Dec 31, 2025</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block text-slate-400 text-[11px] mb-1">Annual Exemption (€)</label>
+                <input type="number" id="wiz-tax-exemption" value="10000" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
+              </div>
+              <div>
+                <label class="block text-slate-400 text-[11px] mb-1">Tax Rate Above Exemption (%)</label>
+                <input type="number" id="wiz-tax-rate" value="10.0" step="0.5" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+            <div class="font-medium text-white flex items-center justify-between">
+              <span>🤖 AI Strategic Wealth Advisor (Optional)</span>
+              <span class="text-[10px] text-purple-400">Private & Local</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block text-slate-400 text-[11px] mb-1">Provider</label>
+                <select id="wiz-ai-provider" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
+                  <option value="gemini">Google Gemini (Recommended)</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="ollama">Ollama (Local)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 text-[11px] mb-1">API Key (Optional)</label>
+                <input type="password" id="wiz-ai-key" placeholder="Paste API key" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wizard Navigation Footer -->
+      <div class="flex items-center justify-between border-t border-slate-800 pt-4">
+        <button id="wiz-btn-prev" onclick="wizardStepPrev()" class="hidden px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium">
+          ← Previous
+        </button>
+        <div class="flex items-center gap-2 ml-auto">
+          <button onclick="skipSetupWizard()" class="px-3 py-2 text-slate-400 hover:text-white text-xs">
+            Skip Setup
+          </button>
+          <button id="wiz-btn-next" onclick="wizardStepNext()" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow">
+            Next: Buckets →
+          </button>
+          <button id="wiz-btn-finish" onclick="wizardFinish()" class="hidden px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow">
+            ✓ Complete Setup & Launch
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1349,10 +1641,301 @@
       }
     }
 
+    // --- Belgian Capital Gains Tax Simulator & PDT Lookup ---
+    async function lookupTaxPrice() {
+      const symbol = document.getElementById('sim-tax-symbol').value.trim();
+      const btn = document.getElementById('btn-lookup-tax-price');
+      const feedback = document.getElementById('tax-lookup-feedback');
+      if (!symbol) {
+        alert('Please enter a ticker symbol');
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ Looking up...</span>';
+      feedback.textContent = `Querying PDT MCP timetravel for ${symbol} on Dec 31, 2025...`;
+      feedback.className = 'text-[10px] text-blue-400 mt-1 block';
+
+      try {
+        const res = await fetch(`/api/tax/lookup-price?symbol=${encodeURIComponent(symbol)}&date=2025-12-31`);
+        const data = await res.json();
+        if (res.ok && data.price !== null) {
+          document.getElementById('sim-tax-bench-price').value = data.price.toFixed(2);
+          feedback.textContent = `✓ Found Dec 31, 2025 closing price: € ${data.price.toFixed(2)} (${data.source || 'PDT MCP'})`;
+          feedback.className = 'text-[10px] text-emerald-400 mt-1 block';
+          await runTaxSimulation();
+        } else {
+          feedback.textContent = data.message || `No historical quote found on PDT for ${symbol}. You can set the base price manually.`;
+          feedback.className = 'text-[10px] text-amber-400 mt-1 block';
+        }
+      } catch (err) {
+        feedback.textContent = `Lookup error: ${err.message}. You can manually specify base price.`;
+        feedback.className = 'text-[10px] text-red-400 mt-1 block';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>🔍 Lookup PDT</span>';
+      }
+    }
+
+    async function runTaxSimulation() {
+      const symbol = document.getElementById('sim-tax-symbol').value.trim();
+      const benchPrice = parseFloat(document.getElementById('sim-tax-bench-price').value || 0);
+      const currentPrice = parseFloat(document.getElementById('sim-tax-current-price').value || 0);
+      const sharesPre = parseFloat(document.getElementById('sim-tax-shares-pre').value || 0);
+      const sharesPost = parseFloat(document.getElementById('sim-tax-shares-post').value || 0);
+      const postBuyPrice = parseFloat(document.getElementById('sim-tax-post-buy-price').value || 0);
+      const sellQty = parseFloat(document.getElementById('sim-tax-sell-qty').value || 0);
+      const exemption = parseFloat(document.getElementById('settings-tax-exemption')?.value || 10000);
+      const rate = parseFloat(document.getElementById('settings-tax-rate')?.value || 10.0);
+
+      try {
+        const res = await fetch('/api/tax/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            symbol: symbol,
+            current_price: currentPrice,
+            benchmark_price: benchPrice,
+            actual_purchase_price: postBuyPrice,
+            shares_pre_benchmark: sharesPre,
+            shares_post_benchmark: sharesPost,
+            shares_to_sell: sellQty,
+            annual_exemption: exemption,
+            tax_rate_pct: rate
+          })
+        });
+        const d = await res.json();
+        if (res.ok) {
+          document.getElementById('res-gain-pre').textContent = `€ ${d.gain_pre_benchmark.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
+          document.getElementById('res-gain-post').textContent = `€ ${d.gain_post_benchmark.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
+          document.getElementById('res-taxable-gain').textContent = `€ ${d.total_taxable_gain.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
+          
+          const remBadge = document.getElementById('res-remaining-exemption');
+          if (d.remaining_exemption > 0) {
+            remBadge.textContent = `€ ${d.remaining_exemption.toLocaleString('nl-BE', {minimumFractionDigits: 2})} exemption left`;
+            remBadge.className = 'text-[10px] text-emerald-400 mt-0.5';
+          } else {
+            remBadge.textContent = `Exemption exhausted`;
+            remBadge.className = 'text-[10px] text-amber-400 mt-0.5';
+          }
+
+          document.getElementById('res-tax-due').textContent = `€ ${d.tax_due.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
+          const statusBadge = document.getElementById('res-tax-status');
+          if (d.tax_due > 0) {
+            statusBadge.textContent = `⚠️ Tax Due (€ ${d.tax_due.toLocaleString('nl-BE', {minimumFractionDigits: 2})})`;
+            statusBadge.className = 'text-[10px] text-amber-400 mt-0.5 font-semibold';
+          } else {
+            statusBadge.textContent = '🟢 100% Tax-Exempt';
+            statusBadge.className = 'text-[10px] text-emerald-400 mt-0.5 font-semibold';
+          }
+        }
+      } catch (err) {
+        console.error('Tax simulation calculation error:', err);
+      }
+    }
+
+    // --- Interactive First-Time Setup Wizard ---
+    let currentWizardStep = 1;
+
+    function openSetupWizard() {
+      currentWizardStep = 1;
+      updateWizardStepUI();
+      document.getElementById('setup-wizard-modal').classList.remove('hidden');
+    }
+
+    function closeSetupWizard() {
+      document.getElementById('setup-wizard-modal').classList.add('hidden');
+    }
+
+    function skipSetupWizard() {
+      localStorage.setItem('wealth_pilot_setup_completed', 'true');
+      closeSetupWizard();
+    }
+
+    function updateWizardStepUI() {
+      // Hide all steps
+      document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('hidden'));
+      const activeStep = document.getElementById(`wizard-step-${currentWizardStep}`);
+      if (activeStep) activeStep.classList.remove('hidden');
+
+      // Update indicators
+      for (let i = 1; i <= 3; i++) {
+        const ind = document.getElementById(`wizard-indicator-${i}`);
+        if (!ind) continue;
+        const badge = ind.querySelector('span:first-child');
+        if (i === currentWizardStep) {
+          ind.className = 'flex items-center gap-2 text-blue-400 font-semibold';
+          badge.className = 'w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs';
+          badge.textContent = `${i}`;
+        } else if (i < currentWizardStep) {
+          ind.className = 'flex items-center gap-2 text-emerald-400 font-medium';
+          badge.className = 'w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs';
+          badge.textContent = '✓';
+        } else {
+          ind.className = 'flex items-center gap-2 text-slate-500';
+          badge.className = 'w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs';
+          badge.textContent = `${i}`;
+        }
+      }
+
+      // Buttons
+      const prevBtn = document.getElementById('wiz-btn-prev');
+      const nextBtn = document.getElementById('wiz-btn-next');
+      const finishBtn = document.getElementById('wiz-btn-finish');
+
+      if (currentWizardStep === 1) {
+        prevBtn.classList.add('hidden');
+        nextBtn.classList.remove('hidden');
+        finishBtn.classList.add('hidden');
+        nextBtn.textContent = 'Next: Buckets →';
+      } else if (currentWizardStep === 2) {
+        prevBtn.classList.remove('hidden');
+        nextBtn.classList.remove('hidden');
+        finishBtn.classList.add('hidden');
+        nextBtn.textContent = 'Next: Tax & AI →';
+      } else if (currentWizardStep === 3) {
+        prevBtn.classList.remove('hidden');
+        nextBtn.classList.add('hidden');
+        finishBtn.classList.remove('hidden');
+      }
+    }
+
+    function wizardStepNext() {
+      if (currentWizardStep === 2) {
+        const total = getWizardBucketTotal();
+        if (total !== 100) {
+          alert(`Target bucket percentages must total 100% (currently ${total}%). Please adjust the allocations.`);
+          return;
+        }
+      }
+      if (currentWizardStep < 3) {
+        currentWizardStep++;
+        updateWizardStepUI();
+      }
+    }
+
+    function wizardStepPrev() {
+      if (currentWizardStep > 1) {
+        currentWizardStep--;
+        updateWizardStepUI();
+      }
+    }
+
+    function getWizardBucketTotal() {
+      const b1 = parseFloat(document.getElementById('wiz-b1').value || 0);
+      const b2 = parseFloat(document.getElementById('wiz-b2').value || 0);
+      const b3 = parseFloat(document.getElementById('wiz-b3').value || 0);
+      const b4 = parseFloat(document.getElementById('wiz-b4').value || 0);
+      return b1 + b2 + b3 + b4;
+    }
+
+    function updateWizardTotal() {
+      const total = getWizardBucketTotal();
+      const badge = document.getElementById('wizard-total-badge');
+      badge.textContent = `Total: ${total}%`;
+      if (total === 100) {
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+      } else {
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30';
+      }
+    }
+
+    async function handleWizardFileUpload(event) {
+      if (event.target.files.length > 0) {
+        const file = event.target.files[0];
+        const status = document.getElementById('wizard-upload-status');
+        status.className = 'text-xs py-2 px-3 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 block';
+        status.textContent = `Uploading and processing ${file.name}...`;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        const endpoint = file.name.toLowerCase().includes('kbc') ? '/api/ingest/kbc' : '/api/ingest/generic';
+
+        try {
+          const res = await fetch(endpoint, { method: 'POST', body: formData });
+          const result = await res.json();
+          if (res.ok) {
+            status.className = 'text-xs py-2 px-3 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 block';
+            status.textContent = `✓ Successfully imported ${file.name} (${result.transaction_count || result.asset_count} records loaded)!`;
+            await loadOverview();
+          } else {
+            throw new Error(result.detail || 'Import failed');
+          }
+        } catch (err) {
+          status.className = 'text-xs py-2 px-3 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 block';
+          status.textContent = `Import failed: ${err.message}`;
+        }
+      }
+    }
+
+    async function wizardFinish() {
+      // 1. Save Buckets
+      const b1 = parseFloat(document.getElementById('wiz-b1').value || 50);
+      const b2 = parseFloat(document.getElementById('wiz-b2').value || 30);
+      const b3 = parseFloat(document.getElementById('wiz-b3').value || 10);
+      const b4 = parseFloat(document.getElementById('wiz-b4').value || 10);
+
+      // 2. Save Tax Settings
+      const exemption = parseFloat(document.getElementById('wiz-tax-exemption').value || 10000);
+      const taxRate = parseFloat(document.getElementById('wiz-tax-rate').value || 10.0);
+
+      // 3. Save AI Preferences
+      const aiProv = document.getElementById('wiz-ai-provider').value;
+      const aiKey = document.getElementById('wiz-ai-key').value.trim();
+
+      try {
+        await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tax: { annual_exemption: exemption, tax_rate_pct: taxRate, benchmark_date: '2025-12-31' },
+            ai: { provider: aiProv, api_key: aiKey || null }
+          })
+        });
+
+        // Update default buckets
+        await fetch('/api/buckets/target', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bucket_id: 'b-core-etf', name: 'Core Global Equities', target_weight_pct: b1 })
+        });
+        await fetch('/api/buckets/target', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bucket_id: 'b-conviction', name: 'Conviction Growth', target_weight_pct: b2 })
+        });
+        await fetch('/api/buckets/target', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bucket_id: 'b-gold', name: 'Gold & Hard Assets', target_weight_pct: b3 })
+        });
+        await fetch('/api/buckets/target', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bucket_id: 'b-buffer', name: 'Cash Buffer', target_weight_pct: b4 })
+        });
+
+        localStorage.setItem('wealth_pilot_setup_completed', 'true');
+        closeSetupWizard();
+        await loadOverview();
+        await loadSettings();
+        showSettingsAlert('🎉 Setup complete! Welcome to Wealth Pilot.');
+      } catch (err) {
+        console.error('Wizard save error:', err);
+        localStorage.setItem('wealth_pilot_setup_completed', 'true');
+        closeSetupWizard();
+      }
+    }
+
     // Initialize on page load
     window.addEventListener('DOMContentLoaded', async () => {
       await loadOverview();
       await loadSettings();
+      await runTaxSimulation();
+
+      // Check first-time setup
+      if (localStorage.getItem('wealth_pilot_setup_completed') !== 'true') {
+        openSetupWizard();
+      }
 
       // Check URL hash and query params
       const hash = window.location.hash;

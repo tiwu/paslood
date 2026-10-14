@@ -82,6 +82,17 @@ class McpTestRequest(BaseModel):
     auth_token: str | None = None
 
 
+class TaxCalculationRequest(BaseModel):
+    symbol: str | None = None
+    shares_to_sell: float
+    current_price: float
+    benchmark_price: float | None = None
+    shares_pre_benchmark: float | None = None
+    shares_post_benchmark: float = 0.0
+    actual_purchase_price: float | None = None
+    available_annual_exemption: float | None = None
+
+
 def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
     app = FastAPI(
         title="Wealth Pilot", description="Strategic Wealth & Asset Allocation Guidance Platform"
@@ -539,6 +550,92 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
                 }
         except Exception as e:
             return {"status": "error", "detail": str(e)}
+
+    @app.get("/api/tax/lookup-price")
+    async def lookup_historical_tax_price(
+        symbol: str, date: str = "2025-12-31", quote_id: str | None = None
+    ):
+        s = repo.load_settings()
+        pdt_cfg = s.get("pdt", {})
+        gateway = PdtMcpGateway(
+            mcp_url=pdt_cfg.get("mcp_url", "https://mcp.portfoliodividendtracker.com"),
+            auth_token=pdt_cfg.get("auth_token"),
+        )
+        price = await gateway.lookup_historical_price(symbol=symbol, date=date, quote_id=quote_id)
+        if price:
+            return {
+                "status": "success",
+                "symbol": symbol,
+                "date": date,
+                "price": float(price.amount),
+                "price_formatted": price.format(),
+            }
+        return {
+            "status": "not_found",
+            "symbol": symbol,
+            "date": date,
+            "price": None,
+            "message": f"Historical price for {symbol} on {date} not found via PDT. You can set the base price manually.",
+        }
+
+    @app.post("/api/tax/calculate")
+    async def calculate_tax(req: TaxCalculationRequest):
+        s = repo.load_settings()
+        tax_cfg = s.get("tax", {})
+        default_bench = Decimal(str(tax_cfg.get("benchmark_price", 900.0)))
+        default_exemption = Decimal(str(tax_cfg.get("annual_exemption", 10000.0)))
+        default_rate = Decimal(str(tax_cfg.get("tax_rate_pct", 10.0)))
+
+        bench_price = (
+            Money.from_val(req.benchmark_price)
+            if req.benchmark_price is not None
+            else Money(default_bench)
+        )
+        exemption = (
+            Money.from_val(req.available_annual_exemption)
+            if req.available_annual_exemption is not None
+            else Money(default_exemption)
+        )
+        actual_buy_p = (
+            Money.from_val(req.actual_purchase_price)
+            if req.actual_purchase_price is not None
+            else None
+        )
+
+        res = tax_optimizer.calculate_capital_gains_tax(
+            shares_to_sell=Decimal(str(req.shares_to_sell)),
+            current_price=Money.from_val(req.current_price),
+            benchmark_price=bench_price,
+            shares_pre_benchmark=(
+                Decimal(str(req.shares_pre_benchmark))
+                if req.shares_pre_benchmark is not None
+                else None
+            ),
+            shares_post_benchmark=Decimal(str(req.shares_post_benchmark)),
+            actual_purchase_price=actual_buy_p,
+            available_annual_exemption=exemption,
+            tax_rate_pct=default_rate,
+        )
+
+        return {
+            "shares_to_sell": float(res["shares_to_sell"]),
+            "shares_pre_benchmark": float(res["shares_pre_benchmark"]),
+            "shares_post_benchmark": float(res["shares_post_benchmark"]),
+            "gain_pre_benchmark": float(res["gain_pre_benchmark"].amount),
+            "gain_pre_benchmark_formatted": res["gain_pre_benchmark"].format(),
+            "gain_post_benchmark": float(res["gain_post_benchmark"].amount),
+            "gain_post_benchmark_formatted": res["gain_post_benchmark"].format(),
+            "total_taxable_gain": float(res["total_taxable_gain"].amount),
+            "total_taxable_gain_formatted": res["total_taxable_gain"].format(),
+            "used_exemption": float(res["used_exemption"].amount),
+            "used_exemption_formatted": res["used_exemption"].format(),
+            "remaining_exemption": float(res["remaining_exemption"].amount),
+            "remaining_exemption_formatted": res["remaining_exemption"].format(),
+            "tax_to_pay": float(res["tax_to_pay"].amount),
+            "tax_due": float(res["tax_to_pay"].amount),
+            "tax_to_pay_formatted": res["tax_to_pay"].format(),
+            "is_fully_exempt": res["is_fully_exempt"],
+        }
 
     @app.get("/api/health")
     async def health_check():

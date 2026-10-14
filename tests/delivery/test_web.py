@@ -166,3 +166,40 @@ async def test_built_in_docs_serving(test_app):
         resp = await client.get("/guide/index.html")
         assert resp.status_code == 200
         assert "Wealth Pilot" in resp.text
+
+
+async def test_tax_endpoints(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # 1. Tax historical price lookup
+        lookup_resp = await client.get("/api/tax/lookup-price?symbol=ASML&date=2025-12-31")
+        assert lookup_resp.status_code == 200
+        l_data = lookup_resp.json()
+        assert "price" in l_data
+        assert l_data["symbol"] == "ASML"
+
+        # 2. Tax calculation endpoint
+        calc_resp = await client.post(
+            "/api/tax/calculate",
+            json={
+                "symbol": "ASML",
+                "current_price": 1200.0,
+                "benchmark_price": 900.0,
+                "actual_purchase_price": 1050.0,
+                "shares_pre_benchmark": 10.0,
+                "shares_post_benchmark": 5.0,
+                "shares_to_sell": 12.0,
+                "annual_exemption": 10000.0,
+                "tax_rate_pct": 10.0,
+            },
+        )
+        assert calc_resp.status_code == 200
+        c_data = calc_resp.json()
+        # 10 shares pre * (1200 - 900) = 3000
+        # 2 shares post * (1200 - 1050) = 300
+        # Total gain = 3300 <= 10000 -> 0 tax due
+        assert c_data["gain_pre_benchmark"] == 3000.0
+        assert c_data["gain_post_benchmark"] == 300.0
+        assert c_data["total_taxable_gain"] == 3300.0
+        assert c_data["tax_due"] == 0.0
+        assert c_data["remaining_exemption"] == 6700.0

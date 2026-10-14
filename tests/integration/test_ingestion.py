@@ -94,3 +94,34 @@ def test_config_repository_persistence(tmp_path: Path):
     rules = repo.load_transaction_rules()
     assert len(rules) >= 1
     assert rules[0]["pattern"] == "BASIC-FIT"
+
+
+async def test_pdt_mcp_historical_price_lookup():
+    import httpx
+
+    from wealth_pilot.adapters.ingestion.pdt_mcp import PdtMcpGateway
+
+    gateway = PdtMcpGateway(auth_token="test-token")
+
+    async def mock_handler(request: httpx.Request) -> httpx.Response:
+        content = {
+            "result": {
+                "holdings": [
+                    {
+                        "symbolName": "ASML",
+                        "unrealisedBoughtShares": 10.0,
+                        "currentWorth": {"value": 9120.0, "currency": "EUR"},
+                    }
+                ]
+            }
+        }
+        return httpx.Response(200, json=content)
+
+    transport = httpx.MockTransport(mock_handler)
+    async with httpx.AsyncClient(transport=transport) as client:
+        price = await gateway.lookup_historical_price(
+            symbol="ASML", date="2025-12-31", client=client
+        )
+        assert price is not None
+        assert price.amount == Decimal("912.00")
+        assert price.currency == "EUR"
