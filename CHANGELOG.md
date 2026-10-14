@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Multi-CSV Upload Accumulation & Local SQLite Storage**:
+  - Implemented `LocalDbRepository` in `src/wealth_pilot/adapters/repositories/local_db.py` using SQLite.
+  - Caches transactions, discovered bank assets, and liabilities permanently without overwriting earlier uploads.
+  - Automatically deduplicates overlapping transactions across monthly bank statements using SHA-256 content hashes.
+  - Cashflow metrics dynamically aggregate across all stored transactions in the database.
+- **Strategic Allocation Bucket Management**:
+  - Added interactive **Add Bucket** modal (`#bucket-modal`) with customizable color palettes, target weights, and drift tolerances (`POST /api/buckets`).
+  - Added **Edit / Rename Bucket** functionality and modal (`PUT /api/buckets/{id}`) to rename buckets, change targets, or adjust color themes.
+  - Added **Delete Bucket** endpoint (`DELETE /api/buckets/{id}`) with graceful unassignment of rules.
+  - Added vibrant, distinct color palette (`#3B82F6`, `#10B981`, `#F59E0B`, `#8B5CF6`, `#EC4899`, `#06B6D4`, `#F97316`, `#6366F1`) for all buckets.
+- **Holdings Assignment Enhancements**:
+  - Filtered out €0,00 holdings from the Portfolio Holdings & Assignment table to focus purely on active assets.
+  - Added color-coordinated badges with matching bullet dots for each bucket in the assignment table.
+- **Mortgage & Loan Editing**:
+  - Added an interactive **Edit** button for each mortgage, loan, or credit line on the dashboard.
+  - Preserves user-customized outstanding principal and actual APR across subsequent statement uploads.
+
+### Fixed
+- Fixed KBC loan detection: removed hardcoded/synthetic multiplier estimates (`monthly * 240`) and fabricated interest rates (`1.85%`, `9.5%`). Discovered loans default to €0 balance and 0% APR until confirmed and edited by the user.
+- Fixed non-functional `+ Add Bucket` button by adding complete modal flow and backend CRUD routes.
+
+
 ---
 
 ## [0.2.0] - 2026-10-14

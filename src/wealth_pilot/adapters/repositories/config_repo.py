@@ -147,29 +147,76 @@ class ConfigRepository:
 
     def save_bucket_target(self, bucket_id: str, name: str, target_weight_pct: Decimal) -> None:
         """Updates or creates a bucket allocation target in portfolio.yaml."""
+        self.save_bucket(
+            {"id": bucket_id, "name": name, "target_weight_pct": float(target_weight_pct)}
+        )
+
+    def save_bucket(self, bucket_data: dict[str, Any]) -> str:
+        """Adds or updates a strategic allocation bucket in portfolio.yaml."""
         with open(self.config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
 
         buckets = data.get("buckets", [])
+        bucket_id = str(bucket_data.get("id") or f"bucket-{uuid.uuid4().hex[:8]}")
         existing = next((b for b in buckets if b.get("id") == bucket_id), None)
         if existing:
-            existing["target_weight_pct"] = float(target_weight_pct)
-            existing["name"] = name
+            if "name" in bucket_data:
+                existing["name"] = bucket_data["name"]
+            if "target_weight_pct" in bucket_data:
+                existing["target_weight_pct"] = float(bucket_data["target_weight_pct"])
+            if "color" in bucket_data and bucket_data["color"]:
+                existing["color"] = bucket_data["color"]
+            if (
+                "drift_tolerance_pct" in bucket_data
+                and bucket_data["drift_tolerance_pct"] is not None
+            ):
+                existing["drift_tolerance_pct"] = float(bucket_data["drift_tolerance_pct"])
+            if "description" in bucket_data:
+                existing["description"] = bucket_data["description"]
         else:
+            palette = [
+                "#3B82F6",
+                "#10B981",
+                "#F59E0B",
+                "#8B5CF6",
+                "#EC4899",
+                "#06B6D4",
+                "#F97316",
+                "#6366F1",
+            ]
+            chosen_color = bucket_data.get("color") or palette[len(buckets) % len(palette)]
             buckets.append(
                 {
                     "id": bucket_id,
-                    "name": name,
-                    "target_weight_pct": float(target_weight_pct),
-                    "drift_tolerance_pct": 3.0,
-                    "color": "#8B5CF6",
-                    "rules": [],
+                    "name": bucket_data.get("name", "New Bucket"),
+                    "target_weight_pct": float(bucket_data.get("target_weight_pct", 0.0)),
+                    "drift_tolerance_pct": float(bucket_data.get("drift_tolerance_pct", 3.0)),
+                    "color": chosen_color,
+                    "description": bucket_data.get("description", ""),
+                    "rules": bucket_data.get("rules", []),
                 }
             )
 
         data["buckets"] = buckets
         with open(self.config_path, "w", encoding="utf-8") as f:
             yaml.dump(data, f, sort_keys=False, indent=2)
+        return bucket_id
+
+    def delete_bucket(self, bucket_id: str) -> bool:
+        """Deletes a bucket from portfolio.yaml."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        buckets = data.get("buckets", [])
+        original_count = len(buckets)
+        buckets = [b for b in buckets if b.get("id") != bucket_id]
+        if len(buckets) == original_count:
+            return False
+
+        data["buckets"] = buckets
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
+        return True
 
     def load_manual_assets(self) -> list[Asset]:
         """Loads manually configured assets (e.g. Bunq savings, private real estate)."""
