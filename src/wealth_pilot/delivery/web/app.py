@@ -6,6 +6,7 @@ import copy
 import secrets
 import tempfile
 import time
+import urllib.parse
 import uuid
 from decimal import Decimal
 from pathlib import Path
@@ -415,15 +416,24 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
             base_url = str(request.base_url).rstrip("/")
             redirect_uri = f"{base_url}/api/auth/pdt/callback"
 
-        pdt_cfg = repo.load_settings().get("pdt", {})
-        client_id = pdt_cfg.get("client_id")
-        if not client_id:
-            try:
-                client_id = await PdtAuthManager.register_client(redirect_uri)
-                pdt_cfg["client_id"] = client_id
-                repo.save_settings({"pdt": pdt_cfg})
-            except Exception:
-                client_id = "wealth-pilot-client"
+        # Dynamically register client for this redirect URI with localhost/127.0.0.1 variants
+        parsed = urllib.parse.urlparse(redirect_uri)
+        variants = [redirect_uri]
+        if "127.0.0.1" in parsed.netloc:
+            variants.append(redirect_uri.replace("127.0.0.1", "localhost"))
+        elif "localhost" in parsed.netloc:
+            variants.append(redirect_uri.replace("localhost", "127.0.0.1"))
+
+        try:
+            client_id = await PdtAuthManager.register_client(
+                redirect_uri=redirect_uri, additional_uris=variants
+            )
+            pdt_cfg = repo.load_settings().get("pdt", {})
+            pdt_cfg["client_id"] = client_id
+            repo.save_settings({"pdt": pdt_cfg})
+        except Exception:
+            pdt_cfg = repo.load_settings().get("pdt", {})
+            client_id = pdt_cfg.get("client_id") or "wealth-pilot-client"
 
         verifier, challenge = generate_pkce_pair()
         state_token = secrets.token_urlsafe(16)

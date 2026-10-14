@@ -29,11 +29,16 @@ class PdtAuthManager:
     """Manages dynamic OAuth client registration, authorization URLs, and token exchange for PDT MCP."""
 
     @staticmethod
-    async def register_client(redirect_uri: str) -> str:
+    async def register_client(redirect_uri: str, additional_uris: list[str] | None = None) -> str:
         """Dynamically registers an OAuth client with the PDT MCP service."""
+        uris = [redirect_uri]
+        if additional_uris:
+            for u in additional_uris:
+                if u not in uris:
+                    uris.append(u)
         payload = {
             "client_name": "Wealth Pilot Financial Planner",
-            "redirect_uris": [redirect_uri],
+            "redirect_uris": uris,
             "scope": "mcp:use",
         }
         async with httpx.AsyncClient(timeout=15.0) as client:
