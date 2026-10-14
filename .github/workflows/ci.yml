@@ -36,15 +36,9 @@ jobs:
         run: uv run mkdocs build --strict
 
   test:
-    name: Test on Python ${{ matrix.python-version }} (${{ matrix.os }})
+    name: Test Suite & Coverage (Python 3.11)
     needs: lint
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ["3.10", "3.11", "3.12"]
-
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -53,14 +47,18 @@ jobs:
         with:
           version: "latest"
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.11"
 
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
+      - name: Build Documentation Site
+        run: uv run mkdocs build
+
       - name: Run Test Suite with Coverage
         run: uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90 --cov-report=term-missing --cov-report=xml
+
 

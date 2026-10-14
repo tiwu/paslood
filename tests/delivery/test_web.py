@@ -159,13 +159,37 @@ async def test_settings_and_mcp_endpoints(test_app):
         assert s5["pdt"]["connected"] is False
 
 
-async def test_built_in_docs_serving(test_app):
-    transport = ASGITransport(app=test_app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        # Check documentation served at /guide
+async def test_built_in_docs_serving(test_app, tmp_path):
+    # 1. Test fallback when site is not built
+    fallback_app = create_app(
+        config_repo=ConfigRepository(config_path=tmp_path / "cfg.yaml"),
+        docs_dir=tmp_path / "nonexistent_site",
+    )
+    fallback_transport = ASGITransport(app=fallback_app)
+    async with AsyncClient(transport=fallback_transport, base_url="http://test") as client:
         resp = await client.get("/guide/index.html")
         assert resp.status_code == 200
-        assert "Wealth Pilot" in resp.text
+        assert "Wealth Pilot Documentation" in resp.text
+        assert "not been pre-built" in resp.text
+
+        resp_root = await client.get("/guide")
+        assert resp_root.status_code == 200
+        assert "Wealth Pilot Documentation" in resp_root.text
+
+    # 2. Test mounted static documentation when site/index.html exists
+    custom_site = tmp_path / "custom_site"
+    custom_site.mkdir(parents=True)
+    (custom_site / "index.html").write_text("<html><body>Wealth Pilot Static Docs</body></html>")
+
+    mounted_app = create_app(
+        config_repo=ConfigRepository(config_path=tmp_path / "cfg2.yaml"),
+        docs_dir=custom_site,
+    )
+    mounted_transport = ASGITransport(app=mounted_app)
+    async with AsyncClient(transport=mounted_transport, base_url="http://test") as client:
+        resp = await client.get("/guide/index.html")
+        assert resp.status_code == 200
+        assert "Wealth Pilot Static Docs" in resp.text
 
 
 async def test_tax_endpoints(test_app):

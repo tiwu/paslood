@@ -143,6 +143,7 @@ class TaxCalculationRequest(BaseModel):
 def create_app(
     config_repo: ConfigRepository | None = None,
     local_db: LocalDbRepository | None = None,
+    docs_dir: Path | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="Wealth Pilot", description="Strategic Wealth & Asset Allocation Guidance Platform"
@@ -155,10 +156,40 @@ def create_app(
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-    # Mount built-in documentation if available
-    site_dir = Path(__file__).resolve().parents[4] / "site"
-    if site_dir.exists():
-        app.mount("/guide", StaticFiles(directory=str(site_dir), html=True), name="guide")
+    # Mount built-in documentation if available, or register fallback route
+    resolved_docs = docs_dir or (Path(__file__).resolve().parents[4] / "site")
+    if resolved_docs.exists() and (resolved_docs / "index.html").exists():
+        app.mount("/guide", StaticFiles(directory=str(resolved_docs), html=True), name="guide")
+    else:
+
+        @app.get("/guide/{path:path}", response_class=HTMLResponse)
+        @app.get("/guide", response_class=HTMLResponse)
+        async def guide_fallback(path: str = ""):
+            return HTMLResponse(
+                """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wealth Pilot Documentation</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .card { background: #1e293b; padding: 2rem; border-radius: 0.75rem; border: 1px solid #334155; max-width: 500px; text-align: center; }
+    h1 { margin-top: 0; font-size: 1.5rem; color: #38bdf8; }
+    code { background: #0f172a; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.9em; }
+    a { color: #38bdf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Wealth Pilot Documentation</h1>
+    <p>The documentation site has not been pre-built in this environment.</p>
+    <p>Run <code>uv run mkdocs build</code> locally, or view the online docs at <a href="https://tiwu.github.io/wealth-pilot/" target="_blank">tiwu.github.io/wealth-pilot</a>.</p>
+  </div>
+</body>
+</html>""",
+                status_code=200,
+            )
 
     templates = Jinja2Templates(directory=str(templates_dir))
 
