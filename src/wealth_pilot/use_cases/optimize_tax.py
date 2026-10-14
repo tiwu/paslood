@@ -11,7 +11,7 @@ from wealth_pilot.domain.money import Money
 class OptimizeTaxUseCase:
     """Calculates capital gains tax liabilities and optimizes annual exemptions."""
 
-    def calculate_asml_tax(
+    def calculate_capital_gains_tax(
         self,
         shares_to_sell: Decimal,
         current_price: Money,
@@ -51,3 +51,6 @@ class OptimizeTaxUseCase:
             "tax_to_pay": Money(tax_to_pay, current_price.currency),
             "is_fully_exempt": tax_to_pay == Decimal("0.00"),
         }
+
+    # Backward compatibility alias
+    calculate_asml_tax = calculate_capital_gains_tax

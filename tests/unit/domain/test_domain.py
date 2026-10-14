@@ -32,14 +32,14 @@ def test_money_from_numeric_and_string():
 
 def test_asset_and_bucket_assignment():
     asset1 = Asset(
-        id="asml",
-        name="ASML Holding N.V.",
-        symbol="ASML",
-        isin="NL0010273215",
+        id="aapl",
+        name="Apple Inc.",
+        symbol="AAPL",
+        isin="US0378331005",
         asset_class=AssetClass.EQUITY,
         current_value=Money.from_val(40000.0),
-        quantity=Decimal("25.0"),
-        institution="Saxo Bank",
+        quantity=Decimal("200.0"),
+        institution="Broker",
     )
 
     asset2 = Asset(
@@ -69,7 +69,7 @@ def test_asset_and_bucket_assignment():
         target_weight_pct=Decimal("40.0"),
         drift_tolerance_pct=Decimal("3.0"),
         rules=[
-            AllocationRule(symbols={"ASML"}),
+            AllocationRule(symbols={"AAPL"}),
         ],
     )
 

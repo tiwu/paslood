@@ -20,7 +20,7 @@ DEFAULT_PATTERNS = [
         r"BASIC-FIT|NETFLIX|SPOTIFY|APPLE|GOOGLE|AMAZON PRIME",
         TransactionCategory.SUBSCRIPTION.value,
     ),
-    (r"SALARY|LOON|WEDDE|ASML NETHERLANDS|PAYROLL", TransactionCategory.INCOME.value),
+    (r"SALARY|LOON|WEDDE|PAYROLL|WAGE|EMPLOYER", TransactionCategory.INCOME.value),
     (
         r"SAXO|DEGIRO|BOLERO|INTERACTIVE BROKERS|TRADE REPUBLIC",
         TransactionCategory.INVESTMENTS.value,

@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+import copy
+import secrets
 import tempfile
+import time
+import uuid
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+import httpx
 from fastapi import FastAPI, HTTPException, Response, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -17,6 +22,7 @@ from starlette.requests import Request
 from wealth_pilot.adapters.ai.llm_client import UniversalAIAdvisorClient
 from wealth_pilot.adapters.ingestion.generic_csv import GenericCsvGateway
 from wealth_pilot.adapters.ingestion.kbc_csv import KbcCsvGateway
+from wealth_pilot.adapters.ingestion.pdt_auth import PdtAuthManager, generate_pkce_pair
 from wealth_pilot.adapters.ingestion.pdt_mcp import PdtMcpGateway
 from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
 from wealth_pilot.domain.asset import Asset
@@ -52,6 +58,30 @@ class AiAdviseRequest(BaseModel):
     question: str | None = None
 
 
+class SettingsUpdateRequest(BaseModel):
+    ai: dict[str, Any] | None = None
+    tax: dict[str, Any] | None = None
+    pdt: dict[str, Any] | None = None
+
+
+class PdtManualTokenRequest(BaseModel):
+    auth_token: str
+    mcp_url: str | None = None
+
+
+class CustomMcpServerRequest(BaseModel):
+    name: str
+    url: str
+    transport: str = "http"
+    auth_token: str | None = None
+    enabled: bool = True
+
+
+class McpTestRequest(BaseModel):
+    url: str
+    auth_token: str | None = None
+
+
 def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
     app = FastAPI(
         title="Wealth Pilot", description="Strategic Wealth & Asset Allocation Guidance Platform"
@@ -63,6 +93,11 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
 
     if static_dir.exists():
         app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+    # Mount built-in documentation if available
+    site_dir = Path(__file__).resolve().parents[4] / "site"
+    if site_dir.exists():
+        app.mount("/guide", StaticFiles(directory=str(site_dir), html=True), name="guide")
 
     templates = Jinja2Templates(directory=str(templates_dir))
 
@@ -89,6 +124,7 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
     app.state.tax_optimizer = tax_optimizer
 
     # Session State
+    pending_oauth: dict[str, Any] = {}
     state: dict[str, Any] = {
         "kbc_cash_asset": None,
         "kbc_liabilities": [],
@@ -341,6 +377,168 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
             user_question=req.question,
         )
         return {"advice": advice_text}
+
+    # Settings & MCP Management Endpoints
+    @app.get("/api/settings")
+    async def get_settings():
+        raw_settings = repo.load_settings()
+        masked = copy.deepcopy(raw_settings)
+        if masked.get("ai", {}).get("api_key"):
+            k = masked["ai"]["api_key"]
+            masked["ai"]["api_key"] = ("••••" + k[-4:]) if len(k) > 4 else "••••••••"
+        if masked.get("pdt", {}).get("auth_token"):
+            t = masked["pdt"]["auth_token"]
+            masked["pdt"]["auth_token"] = ("••••" + t[-4:]) if len(t) > 4 else "••••••••"
+        return masked
+
+    @app.post("/api/settings")
+    async def update_settings(req: SettingsUpdateRequest):
+        data = req.model_dump(exclude_unset=True)
+        repo.save_settings(data)
+        return {"status": "success"}
+
+    @app.get("/api/auth/pdt/connect")
+    async def initiate_pdt_oauth(request: Request):
+        redirect_uri = request.query_params.get("redirect_uri")
+        if not redirect_uri:
+            base_url = str(request.base_url).rstrip("/")
+            redirect_uri = f"{base_url}/api/auth/pdt/callback"
+
+        pdt_cfg = repo.load_settings().get("pdt", {})
+        client_id = pdt_cfg.get("client_id")
+        if not client_id:
+            try:
+                client_id = await PdtAuthManager.register_client(redirect_uri)
+                pdt_cfg["client_id"] = client_id
+                repo.save_settings({"pdt": pdt_cfg})
+            except Exception:
+                client_id = "wealth-pilot-client"
+
+        verifier, challenge = generate_pkce_pair()
+        state_token = secrets.token_urlsafe(16)
+        pending_oauth[state_token] = {
+            "verifier": verifier,
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+        }
+        auth_url = PdtAuthManager.build_authorization_url(
+            client_id, redirect_uri, state_token, challenge
+        )
+        return {"auth_url": auth_url, "state": state_token}
+
+    @app.get("/api/auth/pdt/callback")
+    async def pdt_oauth_callback(request: Request):
+        code = request.query_params.get("code")
+        state_param = request.query_params.get("state")
+        oauth_session = pending_oauth.pop(state_param or "", None)
+        if not oauth_session or not code:
+            return RedirectResponse(url="/#settings?pdt_error=invalid_or_expired_state")
+
+        try:
+            tokens = await PdtAuthManager.exchange_code(
+                client_id=oauth_session["client_id"],
+                code=code,
+                verifier=oauth_session["verifier"],
+                redirect_uri=oauth_session["redirect_uri"],
+            )
+            repo.save_pdt_tokens(tokens)
+            return RedirectResponse(url="/#settings?pdt_connected=true")
+        except Exception as e:
+            return RedirectResponse(url=f"/#settings?pdt_error={str(e)}")
+
+    @app.post("/api/auth/pdt/manual")
+    async def save_pdt_manual_token(req: PdtManualTokenRequest):
+        repo.save_pdt_tokens({"access_token": req.auth_token, "client_id": "manual"})
+        if req.mcp_url:
+            s = repo.load_settings()
+            p = s.get("pdt", {})
+            p["mcp_url"] = req.mcp_url
+            repo.save_settings({"pdt": p})
+        return {"status": "success"}
+
+    @app.post("/api/auth/pdt/disconnect")
+    async def disconnect_pdt():
+        repo.disconnect_pdt()
+        state["pdt_assets"] = []
+        return {"status": "disconnected"}
+
+    @app.post("/api/mcp/pdt/sync")
+    async def sync_pdt_holdings():
+        s = repo.load_settings()
+        pdt_cfg = s.get("pdt", {})
+        token = pdt_cfg.get("auth_token")
+        if not token:
+            raise HTTPException(
+                status_code=400,
+                detail="PDT is not connected. Please connect via OAuth or provide an API token in Settings.",
+            )
+        gateway = PdtMcpGateway(
+            mcp_url=pdt_cfg.get("mcp_url", "https://mcp.portfoliodividendtracker.com"),
+            auth_token=token,
+        )
+        assets = await gateway.fetch_portfolio_assets()
+        state["pdt_assets"] = assets
+        repo.update_pdt_sync_timestamp()
+        total_val = sum((a.current_value.amount for a in assets), Decimal("0.00"))
+        return {
+            "status": "success",
+            "asset_count": len(assets),
+            "total_value": float(total_val),
+            "last_sync": repo.load_settings()["pdt"].get("last_sync"),
+        }
+
+    @app.post("/api/settings/mcp/servers")
+    async def add_custom_mcp_server(req: CustomMcpServerRequest):
+        server_id = f"mcp-{uuid.uuid4().hex[:8]}"
+        server_dict = {
+            "id": server_id,
+            "name": req.name,
+            "url": req.url,
+            "transport": req.transport,
+            "auth_token": req.auth_token,
+            "enabled": req.enabled,
+        }
+        repo.add_mcp_server(server_dict)
+        return {"status": "success", "server": server_dict}
+
+    @app.delete("/api/settings/mcp/servers/{server_id}")
+    async def delete_custom_mcp_server(server_id: str):
+        repo.delete_mcp_server(server_id)
+        return {"status": "success"}
+
+    @app.post("/api/settings/mcp/servers/test")
+    async def test_mcp_server(req: McpTestRequest):
+        start_t = time.time()
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            "User-Agent": "WealthPilot/0.1.0",
+        }
+        if req.auth_token:
+            headers["Authorization"] = f"Bearer {req.auth_token}"
+
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {"name": "wealth-pilot", "version": "0.1.0"},
+            },
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.post(req.url, json=payload, headers=headers)
+                latency_ms = int((time.time() - start_t) * 1000)
+                return {
+                    "status": "success",
+                    "status_code": resp.status_code,
+                    "latency_ms": latency_ms,
+                }
+        except Exception as e:
+            return {"status": "error", "detail": str(e)}
 
     @app.get("/api/health")
     async def health_check():

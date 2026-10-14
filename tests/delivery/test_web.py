@@ -7,8 +7,8 @@ from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
 from wealth_pilot.delivery.web.app import create_app
 
 SAMPLE_KBC_CSV = """Rekeningnummer;Rubrieknaam;Naam;Munt;Afschriftnummer;Datum;Omschrijving;Valuta;Bedrag;Saldo;credit;debet;rekeningnummer tegenpartij;BIC tegenpartij;Naam tegenpartij;Adres tegenpartij;gestructureerde mededeling;Vrije mededeling
-BE90735017192832; ;WUYTENS TIM;EUR; 02026213;02/10/2026;OVERSCHRIJVING NAAR 02-10 BE45 5871 6272 7289;02/10/2026;-50,00;822,36; ;-50,00;BE45 5871 6272 7289;BIBLBE21XXX;TIM WUYTENS; ; ;saxoinst01336810
-BE90735017192832; ;WUYTENS TIM;EUR; 02026212;01/10/2026;TERUGBETALING 01-10 WONINGKREDIET REFERENTIE 420-3625993-43;01/10/2026;-579,68;872,36; ;-579,68; ; ; ; ; ;
+BE00987654321098; ;TEST HOLDER;EUR; 02026213;02/10/2026;OVERSCHRIJVING NAAR 02-10 BE45 0000 0000 0000;02/10/2026;-50,00;822,36; ;-50,00;BE45 0000 0000 0000;BIBLBE21XXX;COUNTERPARTY CORP; ; ;inst01336810
+BE00987654321098; ;TEST HOLDER;EUR; 02026212;01/10/2026;TERUGBETALING 01-10 WONINGKREDIET REFERENTIE 420-3625993-43;01/10/2026;-579,68;872,36; ;-579,68; ; ; ; ; ;
 """
 
 
@@ -44,7 +44,7 @@ async def test_kbc_file_upload_and_rebucketing(test_app):
         upload_resp = await client.post("/api/ingest/kbc", files=files)
         assert upload_resp.status_code == 200
         res = upload_resp.json()
-        assert res["account_number"] == "BE90735017192832"
+        assert res["account_number"] == "BE00987654321098"
         assert res["transaction_count"] == 2
 
         # Check overview shows new transactions
@@ -59,7 +59,7 @@ async def test_kbc_file_upload_and_rebucketing(test_app):
             json={
                 "transaction_id": tx_id,
                 "target_category": "INVESTMENTS",
-                "counterparty_name": "TIM WUYTENS",
+                "counterparty_name": "COUNTERPARTY CORP",
                 "remember_rule": True,
             },
         )
@@ -95,3 +95,74 @@ async def test_update_target_and_ai_consultation(test_app):
         tmpl_resp = await client.get("/api/template/generic")
         assert tmpl_resp.status_code == 200
         assert "asset_class" in tmpl_resp.text
+
+
+async def test_settings_and_mcp_endpoints(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # 1. Fetch settings
+        resp = await client.get("/api/settings")
+        assert resp.status_code == 200
+        settings = resp.json()
+        assert "pdt" in settings
+        assert "mcp_servers" in settings
+        assert "tax" in settings
+
+        # 2. Update settings
+        up_resp = await client.post(
+            "/api/settings",
+            json={
+                "tax": {"annual_exemption": 12000.0, "benchmark_date": "2025-12-31"},
+                "ai": {"provider": "gemini", "model": "gemini-1.5-pro", "api_key": "secret12345"},
+            },
+        )
+        assert up_resp.status_code == 200
+
+        # Check masked api key
+        s2 = (await client.get("/api/settings")).json()
+        assert s2["tax"]["annual_exemption"] == 12000.0
+        assert "••••" in s2["ai"]["api_key"]
+
+        # 3. Custom MCP Server CRUD
+        add_mcp = await client.post(
+            "/api/settings/mcp/servers",
+            json={
+                "name": "Crypto MCP",
+                "url": "http://localhost:4000/mcp",
+                "transport": "http",
+                "auth_token": "token-xyz",
+            },
+        )
+        assert add_mcp.status_code == 200
+        server_id = add_mcp.json()["server"]["id"]
+
+        s3 = (await client.get("/api/settings")).json()
+        assert any(s["id"] == server_id for s in s3["mcp_servers"])
+
+        # Delete MCP server
+        del_resp = await client.delete(f"/api/settings/mcp/servers/{server_id}")
+        assert del_resp.status_code == 200
+
+        # 4. PDT Manual Token
+        tok_resp = await client.post(
+            "/api/auth/pdt/manual",
+            json={"auth_token": "test-pdt-token", "mcp_url": "http://localhost:3000/mcp"},
+        )
+        assert tok_resp.status_code == 200
+        s4 = (await client.get("/api/settings")).json()
+        assert s4["pdt"]["connected"] is True
+
+        # Disconnect PDT
+        disc_resp = await client.post("/api/auth/pdt/disconnect")
+        assert disc_resp.status_code == 200
+        s5 = (await client.get("/api/settings")).json()
+        assert s5["pdt"]["connected"] is False
+
+
+async def test_built_in_docs_serving(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Check documentation served at /guide
+        resp = await client.get("/guide/index.html")
+        assert resp.status_code == 200
+        assert "Wealth Pilot" in resp.text

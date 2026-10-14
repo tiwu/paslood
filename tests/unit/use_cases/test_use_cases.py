@@ -16,7 +16,7 @@ from wealth_pilot.use_cases.project_net_worth import ProjectNetWorthUseCase
 
 def test_calculate_bucket_allocation_and_drift():
     assets = [
-        Asset(id="1", name="ASML", symbol="ASML", current_value=Money.from_val(60000.0)),
+        Asset(id="1", name="NVDA", symbol="NVDA", current_value=Money.from_val(60000.0)),
         Asset(
             id="2",
             name="VWCE",
@@ -36,10 +36,10 @@ def test_calculate_bucket_allocation_and_drift():
     buckets = [
         Bucket(
             id="b_tech",
-            name="Tech / ASML",
+            name="Tech Equities",
             target_weight_pct=Decimal("40.0"),
             drift_tolerance_pct=Decimal("3.0"),
-            rules=[AllocationRule(symbols={"ASML"})],
+            rules=[AllocationRule(symbols={"NVDA"})],
         ),
         Bucket(
             id="b_etf",
@@ -82,7 +82,7 @@ def test_calculate_bucket_allocation_and_drift():
 
 def test_advise_contribution_buy_only():
     assets = [
-        Asset(id="1", name="ASML", symbol="ASML", current_value=Money.from_val(60000.0)),
+        Asset(id="1", name="NVDA", symbol="NVDA", current_value=Money.from_val(60000.0)),
         Asset(
             id="2",
             name="VWCE",
@@ -104,7 +104,7 @@ def test_advise_contribution_buy_only():
             id="b_tech",
             name="Tech",
             target_weight_pct=Decimal("40.0"),
-            rules=[AllocationRule(symbols={"ASML"})],
+            rules=[AllocationRule(symbols={"NVDA"})],
         ),
         Bucket(
             id="b_etf",
@@ -224,15 +224,15 @@ def test_categorize_transactions_and_rule_learning():
 
 def test_belgian_tax_optimization():
     use_case = OptimizeTaxUseCase()
-    res = use_case.calculate_asml_tax(
+    res = use_case.calculate_capital_gains_tax(
         shares_to_sell=Decimal("10.0"),
-        current_price=Money.from_val(1597.0),
-        peildatum_price=Money.from_val(912.0),
+        current_price=Money.from_val(1500.0),
+        peildatum_price=Money.from_val(900.0),
         available_annual_exemption=Money.from_val(10000.0),
     )
 
-    # Gain per share = 1597 - 912 = 685. Total gain = 6850.
+    # Gain per share = 1500 - 900 = 600. Total gain = 6000.
     # Exemption = 10000. Tax = 0.
-    assert res["taxable_gain"].amount == Decimal("6850.00")
+    assert res["taxable_gain"].amount == Decimal("6000.00")
     assert res["tax_to_pay"].amount == Decimal("0.00")
-    assert res["remaining_exemption"].amount == Decimal("3150.00")
+    assert res["remaining_exemption"].amount == Decimal("4000.00")

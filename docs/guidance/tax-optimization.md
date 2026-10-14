@@ -7,7 +7,7 @@ For Belgian tax residents, capital gains legislation includes specific transitio
 ## Key Fiscal Parameters
 
 1. **Reference Benchmark Price (Dec 31, 2025)**:
-   - For long-held shares (such as ASML), the fiscal cost basis is benchmarked to the closing price on December 31, 2025 (e.g. €912.00 / share).
+   - For long-held shares, the fiscal cost basis is benchmarked to the closing market price on December 31, 2025.
    - Only capital appreciation *above* this reference price is subject to taxation upon sale.
 2. **Annual Capital Gains Exemption (€10,000.00)**:
    - Belgian tax residents benefit from a €10,000 annual exemption on realized capital gains.

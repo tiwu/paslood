@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -32,7 +33,7 @@ DEFAULT_BUCKETS_CONFIG: list[dict[str, Any]] = [
         "drift_tolerance_pct": 5.0,
         "color": "#10B981",
         "rules": [
-            {"symbols": ["ASML", "NVDA", "AAPL", "MSFT"]},
+            {"symbols": ["NVDA", "AAPL", "MSFT", "GOOGL"]},
         ],
     },
     {
@@ -248,3 +249,145 @@ class ConfigRepository:
 
         with open(self.rules_path, "w", encoding="utf-8") as f:
             yaml.dump(rules, f, sort_keys=False, indent=2)
+
+    def load_settings(self) -> dict[str, Any]:
+        """Loads system settings (PDT credentials, MCP servers, AI config, Tax settings)."""
+        if not self.config_path.exists():
+            return {}
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        settings = data.get("settings", {})
+        pdt_cfg = settings.get("pdt", {})
+        # Check if pdt_auth.json or ~/.pdt_auth.json exists as fallback if not explicitly disconnected
+        pdt_token_file = self.config_path.parent / "pdt_auth.json"
+        home_token_file = Path.home() / ".pdt_auth.json"
+        if pdt_cfg.get("connected") is not False and not pdt_cfg.get("auth_token"):
+            for tf in (pdt_token_file, home_token_file):
+                if tf.exists():
+                    try:
+                        import json
+
+                        with open(tf, encoding="utf-8") as f_tok:
+                            tok_data = json.load(f_tok)
+                            pdt_cfg["auth_token"] = tok_data.get("access_token")
+                            pdt_cfg["refresh_token"] = tok_data.get("refresh_token")
+                            pdt_cfg["client_id"] = tok_data.get("client_id")
+                            pdt_cfg["expires_at"] = tok_data.get("expires_at")
+                            pdt_cfg["connected"] = True
+                            break
+                    except Exception:
+                        pass
+
+        # Return consolidated settings with defaults
+        return {
+            "pdt": {
+                "mcp_url": pdt_cfg.get("mcp_url", "https://mcp.portfoliodividendtracker.com"),
+                "client_id": pdt_cfg.get("client_id"),
+                "auth_token": pdt_cfg.get("auth_token"),
+                "refresh_token": pdt_cfg.get("refresh_token"),
+                "expires_at": pdt_cfg.get("expires_at"),
+                "connected": bool(pdt_cfg.get("auth_token") or pdt_cfg.get("connected")),
+                "last_sync": pdt_cfg.get("last_sync"),
+            },
+            "mcp_servers": settings.get(
+                "mcp_servers",
+                [
+                    {
+                        "id": "pdt-official",
+                        "name": "Portfolio Dividend Tracker (PDT)",
+                        "url": "https://mcp.portfoliodividendtracker.com",
+                        "transport": "http",
+                        "auth_token": pdt_cfg.get("auth_token"),
+                        "enabled": True,
+                    }
+                ],
+            ),
+            "ai": {
+                "provider": settings.get("ai", {}).get("provider", "algorithmic"),
+                "api_key": settings.get("ai", {}).get("api_key"),
+                "model": settings.get("ai", {}).get("model", "gemini-1.5-pro"),
+                "ollama_url": settings.get("ai", {}).get("ollama_url", "http://localhost:11434"),
+            },
+            "tax": {
+                "annual_exemption": float(settings.get("tax", {}).get("annual_exemption", 10000.0)),
+                "benchmark_date": settings.get("tax", {}).get("benchmark_date", "2025-12-31"),
+                "benchmark_price": float(settings.get("tax", {}).get("benchmark_price", 900.0)),
+                "tax_rate_pct": float(settings.get("tax", {}).get("tax_rate_pct", 10.0)),
+            },
+        }
+
+    def save_settings(self, settings_dict: dict[str, Any]) -> None:
+        """Saves or updates system settings in portfolio.yaml."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        current_settings = data.get("settings", {})
+        current_settings.update(settings_dict)
+        data["settings"] = current_settings
+
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
+
+    def save_pdt_tokens(self, tokens: dict[str, Any]) -> None:
+        """Stores received PDT OAuth tokens in settings and standalone pdt_auth.json."""
+        current = self.load_settings()
+        pdt = current.get("pdt", {})
+        pdt["auth_token"] = tokens.get("access_token")
+        pdt["refresh_token"] = tokens.get("refresh_token")
+        pdt["client_id"] = tokens.get("client_id")
+        pdt["expires_at"] = tokens.get("expires_at")
+        pdt["connected"] = True
+
+        self.save_settings({"pdt": pdt})
+
+        # Also write to local token cache for compatibility with PDT-TUI
+        try:
+            import json
+
+            pdt_token_file = self.config_path.parent / "pdt_auth.json"
+            with open(pdt_token_file, "w", encoding="utf-8") as f:
+                json.dump(tokens, f, indent=2)
+        except Exception:
+            pass
+
+    def disconnect_pdt(self) -> None:
+        """Disconnects PDT MCP integration and clears stored tokens."""
+        current = self.load_settings()
+        pdt = current.get("pdt", {})
+        pdt["auth_token"] = None
+        pdt["refresh_token"] = None
+        pdt["connected"] = False
+        self.save_settings({"pdt": pdt})
+
+        pdt_token_file = self.config_path.parent / "pdt_auth.json"
+        if pdt_token_file.exists():
+            with contextlib.suppress(Exception):
+                pdt_token_file.unlink()
+
+    def add_mcp_server(self, server: dict[str, Any]) -> None:
+        """Registers a new custom MCP server."""
+        current = self.load_settings()
+        servers = current.get("mcp_servers", [])
+        # Check if already exists
+        existing = next((s for s in servers if s.get("id") == server.get("id")), None)
+        if existing:
+            existing.update(server)
+        else:
+            servers.append(server)
+        self.save_settings({"mcp_servers": servers})
+
+    def delete_mcp_server(self, server_id: str) -> None:
+        """Removes a custom MCP server by ID."""
+        current = self.load_settings()
+        servers = [s for s in current.get("mcp_servers", []) if s.get("id") != server_id]
+        self.save_settings({"mcp_servers": servers})
+
+    def update_pdt_sync_timestamp(self) -> None:
+        """Updates last successful sync timestamp for PDT."""
+        from datetime import datetime
+
+        current = self.load_settings()
+        pdt = current.get("pdt", {})
+        pdt["last_sync"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.save_settings({"pdt": pdt})

@@ -11,9 +11,9 @@ name,symbol,isin,asset_class,shares,current_price,current_value,institution,curr
 ```
 
 ### Supported Columns:
-- `name`: Security or account name (e.g. `ASML Holding N.V.`)
-- `symbol`: Ticker symbol (e.g. `ASML`, `VWCE`)
-- `isin`: 12-character ISIN code (e.g. `NL0010273215`)
+- `name`: Security or account name (e.g. `Microsoft Corp.`)
+- `symbol`: Ticker symbol (e.g. `MSFT`, `VWCE`)
+- `isin`: 12-character ISIN code (e.g. `US5949181045`)
 - `asset_class`: `EQUITY`, `ETF`, `COMMODITY`, `CRYPTO`, `CASH`, or `REAL_ESTATE`
 - `shares`: Number of units held
 - `current_price`: Market price per share

@@ -10,7 +10,7 @@ A **Bucket** represents a strategic investment pillar or wealth goal, rather tha
 
 Common examples:
 - **Core World ETFs (e.g. 50%)**: Broad, low-cost global equity index funds (e.g. VWCE, IWDA).
-- **High-Conviction Tech / Equities (e.g. 35%)**: Individual stock positions (e.g. ASML, NVDA) with higher growth potential.
+- **High-Conviction Tech / Equities (e.g. 35%)**: Individual stock positions (e.g. AAPL, NVDA) with higher growth potential.
 - **Gold & Commodities (e.g. 5%)**: Inflation hedges and uncorrelated assets.
 - **Liquid Emergency Buffer (e.g. 10%)**: High-yield cash reserves in checking/savings (KBC, Bunq).
 
@@ -32,7 +32,7 @@ Each bucket is defined by:
 ## Rule-Based Asset Matching
 
 Assets are dynamically assigned to buckets using declarative rules:
-- **Symbols**: Match specific tickers (e.g. `ASML`, `VWCE`).
+- **Symbols**: Match specific tickers (e.g. `AAPL`, `VWCE`).
 - **ISINs**: Match exact security identifiers (e.g. `NL0010273215`, `IE00BK5BQT80`).
 - **Asset Classes**: Match entire classes (`EQUITY`, `ETF`, `COMMODITY`, `CRYPTO`, `CASH`).
 - **Institutions**: Match specific accounts (e.g. `KBC`, `Bunq`).

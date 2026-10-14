@@ -25,14 +25,14 @@ TEMPLATE_CSV_HEADERS = [
 
 SAMPLE_TEMPLATE_ROWS = [
     [
-        "ASML Holding N.V.",
-        "ASML",
-        "NL0010273215",
+        "Microsoft Corporation",
+        "MSFT",
+        "US5949181045",
         "EQUITY",
-        "25.0",
-        "1597.00",
-        "39925.00",
-        "Saxo Bank",
+        "30.0",
+        "420.00",
+        "12600.00",
+        "Broker",
         "EUR",
     ],
     [

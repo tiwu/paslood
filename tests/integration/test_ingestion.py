@@ -9,11 +9,11 @@ from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
 from wealth_pilot.domain.asset import AssetClass
 
 SAMPLE_KBC_CSV_CONTENT = """Rekeningnummer;Rubrieknaam;Naam;Munt;Afschriftnummer;Datum;Omschrijving;Valuta;Bedrag;Saldo;credit;debet;rekeningnummer tegenpartij;BIC tegenpartij;Naam tegenpartij;Adres tegenpartij;gestructureerde mededeling;Vrije mededeling
-BE90735017192832; ;WUYTENS TIM;EUR; 02026213;02/10/2026;OVERSCHRIJVING NAAR 02-10 BE45 5871 6272 7289;02/10/2026;-50,00;822,36; ;-50,00;BE45 5871 6272 7289;BIBLBE21XXX;TIM WUYTENS; ; ;saxoinst01336810
-BE90735017192832; ;WUYTENS TIM;EUR; 02026212;01/10/2026;TERUGBETALING 01-10 WONINGKREDIET REFERENTIE 420-3625993-43;01/10/2026;-579,68;872,36; ;-579,68; ; ; ; ; ;
-BE90735017192832; ;WUYTENS TIM;EUR; 02026212;01/10/2026;TERUGBETALING 01-10 WONINGKREDIET REFERENTIE 420-3116262-47;01/10/2026;-664,64;1452,04; ;-664,64; ; ; ; ; ;
-BE90735017192832; ;WUYTENS TIM;EUR; 02026212;01/10/2026;AUTOMATISCHE BETALING 01-10 FLEX BUDGET 420-5415889-95;01/10/2026;-309,60;2116,68; ;-309,60; ; ; ; ; ;
-BE90735017192832; ;WUYTENS TIM;EUR; 02026210;25/09/2026;OVERSCHRIJVING VAN 25-09 SALARIS ASML NETHERLANDS BV;25/09/2026;4800,00;2426,28;4800,00; ;NL26 CITI 2032 28;CITINL2A;ASML NETHERLANDS BV; ; ;Salaris September 2026
+BE00123456789012; ;ALICE EXAMPLE;EUR; 02026213;02/10/2026;OVERSCHRIJVING NAAR 02-10 BE45 0000 0000 0000;02/10/2026;-50,00;822,36; ;-50,00;BE45 0000 0000 0000;BIBLBE21XXX;BOB RECIPIENT; ; ;inst01336810
+BE00123456789012; ;ALICE EXAMPLE;EUR; 02026212;01/10/2026;TERUGBETALING 01-10 WONINGKREDIET REFERENTIE 420-3625993-43;01/10/2026;-579,68;872,36; ;-579,68; ; ; ; ; ;
+BE00123456789012; ;ALICE EXAMPLE;EUR; 02026212;01/10/2026;TERUGBETALING 01-10 WONINGKREDIET REFERENTIE 420-3116262-47;01/10/2026;-664,64;1452,04; ;-664,64; ; ; ; ; ;
+BE00123456789012; ;ALICE EXAMPLE;EUR; 02026212;01/10/2026;AUTOMATISCHE BETALING 01-10 FLEX BUDGET 420-5415889-95;01/10/2026;-309,60;2116,68; ;-309,60; ; ; ; ; ;
+BE00123456789012; ;ALICE EXAMPLE;EUR; 02026210;25/09/2026;OVERSCHRIJVING VAN 25-09 SALARIS GLOBAL TECH CORP;25/09/2026;4800,00;2426,28;4800,00; ;NL26 CITI 0000 00;CITINL2A;GLOBAL TECH CORP; ; ;Salaris September 2026
 """
 
 
@@ -24,8 +24,8 @@ def test_kbc_csv_gateway_parsing(tmp_path: Path):
     gateway = KbcCsvGateway()
     data = gateway.parse_file(file_path)
 
-    assert data["account_number"] == "BE90735017192832"
-    assert data["account_holder"] == "WUYTENS TIM"
+    assert data["account_number"] == "BE00123456789012"
+    assert data["account_holder"] == "ALICE EXAMPLE"
     assert data["latest_balance"].amount == Decimal("822.36")
     assert len(data["transactions"]) == 5
 
@@ -51,7 +51,7 @@ def test_generic_csv_gateway(tmp_path: Path):
     file_path = tmp_path / "generic_portfolio.csv"
     file_path.write_text(
         "name,symbol,isin,asset_class,shares,current_price,current_value,institution\n"
-        "ASML Holding,ASML,NL0010273215,EQUITY,25,1500.00,37500.00,Saxo Bank\n"
+        "Microsoft Corp,MSFT,US5949181045,EQUITY,25,400.00,10000.00,Broker\n"
         "Vanguard All-World,VWCE,IE00BK5BQT80,ETF,300,120.00,36000.00,DEGIRO\n",
         encoding="utf-8",
     )
@@ -60,8 +60,8 @@ def test_generic_csv_gateway(tmp_path: Path):
     assets = gateway.parse_assets_file(file_path)
 
     assert len(assets) == 2
-    assert assets[0].symbol == "ASML"
-    assert assets[0].current_value.amount == Decimal("37500.00")
+    assert assets[0].symbol == "MSFT"
+    assert assets[0].current_value.amount == Decimal("10000.00")
     assert assets[1].symbol == "VWCE"
     assert assets[1].asset_class == AssetClass.ETF
 

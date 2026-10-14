@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import json
 from decimal import Decimal
 from typing import Any
 
@@ -10,19 +12,24 @@ import httpx
 from wealth_pilot.domain.asset import Asset, AssetClass
 from wealth_pilot.domain.money import Money
 
+DEFAULT_MCP_URL = "https://mcp.portfoliodividendtracker.com"
+USER_AGENT = "WealthPilot/0.1.0 (Strategic Wealth Guidance Platform; Python httpx)"
+
 
 class PdtMcpGateway:
     """Connects to the Portfolio Dividend Tracker (PDT) MCP server and imports assets."""
 
-    def __init__(
-        self, mcp_url: str = "http://localhost:3000/mcp", auth_token: str | None = None
-    ) -> None:
+    def __init__(self, mcp_url: str = DEFAULT_MCP_URL, auth_token: str | None = None) -> None:
         self.mcp_url = mcp_url
         self.auth_token = auth_token
 
     async def fetch_portfolio_assets(self, client: httpx.AsyncClient | None = None) -> list[Asset]:
         """Queries PDT MCP server for current holdings and converts to domain Assets."""
-        headers = {"Content-Type": "application/json"}
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            "User-Agent": USER_AGENT,
+        }
         if self.auth_token:
             headers["Authorization"] = f"Bearer {self.auth_token}"
 
@@ -34,9 +41,13 @@ class PdtMcpGateway:
         }
 
         async def _call(c: httpx.AsyncClient) -> dict[str, Any]:
-            resp = await c.post(self.mcp_url, json=payload, headers=headers, timeout=10.0)
+            resp = await c.post(self.mcp_url, json=payload, headers=headers, timeout=15.0)
             resp.raise_for_status()
-            return resp.json()
+            raw = resp.text.strip()
+            if raw.startswith("data:"):
+                raw = raw[5:].strip()
+
+            return json.loads(raw)
 
         try:
             if client:
@@ -51,6 +62,13 @@ class PdtMcpGateway:
 
     def _parse_holdings_response(self, data: dict[str, Any]) -> list[Asset]:
         result = data.get("result", {})
+        # If response content is wrapped in MCP content text block
+        content = result.get("content", [])
+        if content and isinstance(content, list):
+            first = content[0]
+            if isinstance(first, dict) and "text" in first:
+                with contextlib.suppress(Exception):
+                    result = json.loads(first["text"])
         holdings = result.get("holdings", [])
         assets: list[Asset] = []
 
