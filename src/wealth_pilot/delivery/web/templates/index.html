@@ -78,6 +78,18 @@
   <!-- Main Content Container -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
+    <!-- Global Celebration / Toast Banner -->
+    <div id="oauth-success-banner" class="hidden mb-6 p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center justify-between shadow-lg shadow-emerald-950/40">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🎉</span>
+        <div>
+          <div class="text-sm font-bold text-white">Successfully Connected with Portfolio Dividend Tracker!</div>
+          <div id="oauth-success-subtitle" class="text-xs text-emerald-300/80 mt-0.5">Your holdings have been imported and synchronized via MCP.</div>
+        </div>
+      </div>
+      <button onclick="dismissOAuthBanner()" class="text-emerald-400 hover:text-white text-lg font-bold px-2 py-1">&times;</button>
+    </div>
+
     <!-- TAB 1: OVERVIEW & DASHBOARD -->
     <section id="tab-dashboard" class="tab-content active space-y-6">
       <!-- KPI Row -->
@@ -123,19 +135,113 @@
           <div id="donut-legend" class="mt-4 space-y-1.5 text-xs text-slate-300"></div>
         </div>
 
-        <!-- 30-Year Net Worth Projection -->
+        <!-- Compound Net Worth Projection with Timeframe & CAGR controls -->
         <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm flex flex-col">
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 class="text-sm font-semibold text-white">30-Year Compound Wealth Trajectory</h3>
-              <p class="text-xs text-slate-400">Simulated growth at 7.0% CAGR + monthly cashflow</p>
+              <h3 class="text-sm font-semibold text-white">Compound Wealth Trajectory</h3>
+              <p class="text-xs text-slate-400">Simulated growth with monthly cashflow compounding</p>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-300 border border-slate-700">Milestones: €250k • €500k • €1M</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center rounded-lg bg-slate-950 border border-slate-800 p-0.5 text-xs">
+                <button onclick="setProjectionTimeframe(5)" id="btn-timeframe-5" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">5Y</button>
+                <button onclick="setProjectionTimeframe(10)" id="btn-timeframe-10" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">10Y</button>
+                <button onclick="setProjectionTimeframe(20)" id="btn-timeframe-20" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">20Y</button>
+                <button onclick="setProjectionTimeframe(30)" id="btn-timeframe-30" class="px-2.5 py-1 rounded bg-blue-600 text-white font-medium transition">30Y</button>
+              </div>
+              <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg text-xs">
+                <span class="text-slate-400">CAGR:</span>
+                <input type="number" id="projection-cagr-input" step="0.5" value="7.0" class="w-12 bg-transparent text-white font-semibold text-right focus:outline-none" onchange="updateProjectionChart()">
+                <span class="text-slate-400">%</span>
+              </div>
             </div>
           </div>
           <div class="relative flex-1 min-h-[240px]">
             <canvas id="projectionAreaChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Independence Milestones Tracker -->
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+              <span>🎯 Financial Independence Milestones</span>
+              <span id="milestones-completed-badge" class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-medium">0 Reached</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Track your net worth progression across long-term wealth targets.</p>
+          </div>
+          <button onclick="openMilestonesModal()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
+            ⚙️ Configure Targets
+          </button>
+        </div>
+        <div id="milestones-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <!-- Dynamically generated milestone cards with progress bars -->
+        </div>
+      </div>
+
+      <!-- Balance Sheet: Real Estate, Manual Assets & Mortgages / Debts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Real Estate & Manual Assets Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <span>🏠 Real Estate & Manual Assets</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Properties, savings accounts, private equity, or physical assets.</p>
+            </div>
+            <button onclick="openAddAssetModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition">
+              + Add Asset / Property
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="pb-2">Asset</th>
+                  <th class="pb-2">Category</th>
+                  <th class="pb-2">Value</th>
+                  <th class="pb-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="manual-assets-tbody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mortgages & Liabilities Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <span>💳 Mortgages, Loans & Debts</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Mortgage balances, consumer loans, student loans, or credit lines.</p>
+            </div>
+            <button onclick="openAddLiabilityModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow transition">
+              + Add Mortgage / Loan
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="pb-2">Liability</th>
+                  <th class="pb-2">Type</th>
+                  <th class="pb-2">Balance</th>
+                  <th class="pb-2">APR</th>
+                  <th class="pb-2">Monthly</th>
+                  <th class="pb-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="manual-liabilities-tbody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -191,6 +297,38 @@
         <h3 class="text-sm font-semibold text-white">Allocation Visualizer & Tolerances</h3>
         <div id="bucket-meters-container" class="space-y-4">
           <!-- Meters populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Portfolio Holdings & Bucket Mapping Table -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm space-y-3 p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+              <span>📦 Portfolio Holdings & Bucket Assignment</span>
+              <span id="holdings-count-badge" class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700">0 Assets</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Assign or change which bucket each holding maps to. Rebalancing calculations update automatically.
+            </p>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-850 text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="px-3 py-2.5">Holding Name</th>
+                <th class="px-3 py-2.5">Symbol / ISIN</th>
+                <th class="px-3 py-2.5">Institution</th>
+                <th class="px-3 py-2.5">Value</th>
+                <th class="px-3 py-2.5">Current Bucket</th>
+                <th class="px-3 py-2.5">Assign To Bucket</th>
+              </tr>
+            </thead>
+            <tbody id="holdings-mapping-tbody" class="divide-y divide-slate-800 text-slate-200">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -423,22 +561,35 @@
           </div>
         </div>
 
-        <!-- Provider & Key Config -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Provider</label>
-            <select id="ai-provider-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
-              <option value="gemini">Google Gemini (Recommended)</option>
-              <option value="openai">OpenAI (GPT-4o)</option>
-              <option value="anthropic">Anthropic (Claude 3.5)</option>
+        <!-- Provider, Model & Key Config -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 text-xs">
+          <div class="sm:col-span-3">
+            <label class="block font-medium text-slate-400 mb-1">Provider</label>
+            <select id="ai-provider-select" onchange="onAiProviderOrKeyChanged()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+              <option value="gemini">Google Gemini</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
               <option value="ollama">Local Ollama</option>
             </select>
           </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs font-medium text-slate-400 mb-1">API Key</label>
+          <div class="sm:col-span-4">
+            <label class="block font-medium text-slate-400 mb-1 flex items-center justify-between">
+              <span>Model</span>
+              <button onclick="refreshAiModels()" class="text-[10px] text-purple-400 hover:text-purple-300 font-mono">🔄 Refresh</button>
+            </label>
+            <select id="ai-model-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash ★ Recommended</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            </select>
+          </div>
+          <div class="sm:col-span-5">
+            <label class="block font-medium text-slate-400 mb-1">API Key</label>
             <div class="flex gap-2">
-              <input type="password" id="ai-api-key" placeholder="Enter API key (or set in environment variable)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
-              <button onclick="runAiReview()" id="btn-run-ai" class="px-4 py-2 text-xs font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition flex items-center gap-1.5 whitespace-nowrap">
+              <input type="password" id="ai-api-key" placeholder="Paste API key" onchange="onAiProviderOrKeyChanged()" onblur="onAiProviderOrKeyChanged()" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
+              <button onclick="runAiReview()" id="btn-run-ai" class="px-3.5 py-2 font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition flex items-center gap-1.5 whitespace-nowrap shadow">
                 <span>⚡ Run Review</span>
               </button>
             </div>
@@ -613,7 +764,7 @@
           </div>
           <div>
             <label class="block text-slate-300 font-medium mb-1">Model Name</label>
-            <input type="text" id="settings-ai-model" value="gemini-1.5-pro" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <input type="text" id="settings-ai-model" value="gemini-2.5-flash" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
           <div>
             <label class="block text-slate-300 font-medium mb-1">API Key</label>
@@ -692,6 +843,142 @@
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
         <button onclick="closeRebucketModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
         <button onclick="commitRebucket()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white">Apply & Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Manual Asset Modal -->
+  <div id="add-asset-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🏠 Add Real Estate or Asset</span>
+        </h3>
+        <button onclick="closeAddAssetModal()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Asset Name</label>
+          <input type="text" id="manual-asset-name" placeholder="e.g. Family Residence (Leuven) or Physical Gold" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Category</label>
+            <select id="manual-asset-class" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+              <option value="REAL_ESTATE">Real Estate (House/Property)</option>
+              <option value="CASH">Cash / High-Yield Savings</option>
+              <option value="COMMODITY">Commodity / Gold</option>
+              <option value="EQUITY">Individual Stock / Equity</option>
+              <option value="ETF">Index ETF / Mutual Fund</option>
+              <option value="CRYPTO">Crypto Assets</option>
+              <option value="OTHER">Other Tangible Asset</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Current Estimated Value (€)</label>
+            <input type="number" id="manual-asset-val" step="1000" placeholder="e.g. 450000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Institution / Custodian</label>
+            <input type="text" id="manual-asset-inst" placeholder="e.g. Private Property, Bunq, Saxo" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Symbol / Ticker (Optional)</label>
+            <input type="text" id="manual-asset-sym" placeholder="e.g. HOUSE, GOLD" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <button onclick="closeAddAssetModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="saveManualAsset()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Asset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Manual Liability Modal -->
+  <div id="add-liability-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>💳 Add Mortgage or Loan</span>
+        </h3>
+        <button onclick="closeAddLiabilityModal()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Debt / Loan Name</label>
+          <input type="text" id="manual-liab-name" placeholder="e.g. KBC Home Mortgage" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Loan Type</label>
+            <select id="manual-liab-type" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+              <option value="MORTGAGE">Home Mortgage</option>
+              <option value="CONSUMER_LOAN">Consumer / Car Loan</option>
+              <option value="STUDENT_LOAN">Student Loan</option>
+              <option value="MARGIN_LOAN">Margin / Broker Loan</option>
+              <option value="CREDIT_CARD">Credit Card Balance</option>
+              <option value="OTHER">Other Debt</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Remaining Principal (€)</label>
+            <input type="number" id="manual-liab-balance" step="500" placeholder="e.g. 280000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Interest Rate (APR %)</label>
+            <input type="number" id="manual-liab-rate" step="0.05" placeholder="e.g. 1.85" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Monthly Payment (€/mo)</label>
+            <input type="number" id="manual-liab-payment" step="50" placeholder="e.g. 1150" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Lending Institution</label>
+          <input type="text" id="manual-liab-inst" placeholder="e.g. KBC, BNP Paribas Fortis, ING" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <button onclick="closeAddLiabilityModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="saveManualLiability()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow">Save Liability</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Milestones Config Modal -->
+  <div id="milestones-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🎯 Configure Wealth Milestones</span>
+        </h3>
+        <button onclick="closeMilestonesModal()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-400">Set key net worth targets to visually benchmark your journey to financial independence.</p>
+
+      <div id="modal-milestones-list" class="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
+        <!-- Milestone rows -->
+      </div>
+
+      <div class="pt-2">
+        <button onclick="addMilestoneRow()" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-dashed border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white w-full text-center">
+          + Add New Milestone
+        </button>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <button onclick="closeMilestonesModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="saveMilestonesConfig()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Targets</button>
       </div>
     </div>
   </div>
@@ -945,6 +1232,8 @@
     let donutChartInstance = null;
     let projectionChartInstance = null;
     let activeRebucketTx = null;
+    let currentProjectionYears = 30;
+    let currentProjectionCagr = 7.0;
 
     // Navigation Tab Switching
     function switchTab(tabId) {
@@ -972,6 +1261,9 @@
         currentData = await res.json();
         renderDashboard(currentData);
         renderBuckets(currentData);
+        renderHoldingsMapping(currentData);
+        renderMilestones(currentData.milestones || []);
+        renderManualAssetsAndDebts(currentData);
         renderAdvice(currentData);
         renderTransactions(currentData);
       } catch (err) {
@@ -1121,6 +1413,36 @@
           }
         }
       });
+    }
+
+    function setProjectionTimeframe(years) {
+      currentProjectionYears = years;
+      [5, 10, 20, 30].forEach(y => {
+        const btn = document.getElementById(`btn-timeframe-${y}`);
+        if (btn) {
+          if (y === years) {
+            btn.className = 'px-2.5 py-1 rounded bg-blue-600 text-white font-medium transition';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded text-slate-400 hover:text-white transition';
+          }
+        }
+      });
+      updateProjectionChart();
+    }
+
+    async function updateProjectionChart() {
+      const cagrInput = document.getElementById('projection-cagr-input');
+      if (cagrInput) {
+        currentProjectionCagr = parseFloat(cagrInput.value) || 7.0;
+      }
+      try {
+        const res = await fetch(`/api/projection?years=${currentProjectionYears}&cagr=${currentProjectionCagr}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        renderProjectionChart(data.trajectory);
+      } catch (err) {
+        console.error('Failed to update projection chart:', err);
+      }
     }
 
     function renderBuckets(data) {
@@ -1340,12 +1662,46 @@
       }
     }
 
-    // AI Review
+    // AI Advisor & Model Discovery
+    async function onAiProviderOrKeyChanged() {
+      await refreshAiModels();
+    }
+
+    async function refreshAiModels() {
+      const provider = document.getElementById('ai-provider-select').value;
+      const key = document.getElementById('ai-api-key').value;
+      const select = document.getElementById('ai-model-select');
+      if (!select) return;
+
+      select.innerHTML = '<option value="">Discovering models...</option>';
+
+      try {
+        const queryParams = new URLSearchParams({ provider });
+        if (key) queryParams.set('api_key', key);
+        const res = await fetch(`/api/ai/models?${queryParams.toString()}`);
+        if (!res.ok) throw new Error('Failed to query models');
+        const data = await res.json();
+        const models = data.models || [];
+        select.innerHTML = '';
+        models.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id;
+          opt.textContent = `${m.name}${m.recommended ? ' ★ Recommended' : ''}`;
+          if (m.recommended) opt.selected = true;
+          select.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Failed to load AI models:', err);
+        select.innerHTML = '<option value="gemini-2.5-flash">Gemini 2.5 Flash ★ Recommended</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option>';
+      }
+    }
+
     async function runAiReview() {
       const btn = document.getElementById('btn-run-ai');
       const loader = document.getElementById('ai-loading');
       const output = document.getElementById('ai-output');
       const provider = document.getElementById('ai-provider-select').value;
+      const model = document.getElementById('ai-model-select')?.value || null;
       const key = document.getElementById('ai-api-key').value;
       const question = document.getElementById('ai-user-question').value;
 
@@ -1357,16 +1713,380 @@
         const res = await fetch('/api/ai/advise', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ provider: provider, api_key: key, question: question })
+          body: JSON.stringify({
+            provider: provider,
+            model: model,
+            api_key: key || null,
+            question: question || null,
+          }),
         });
+
+        if (!res.ok) {
+          let errorDetail = `Request failed (${res.status} ${res.statusText})`;
+          try {
+            const errJson = await res.json();
+            errorDetail = errJson.detail || errorDetail;
+          } catch (e) {
+            const errText = await res.text();
+            if (errText) errorDetail = errText;
+          }
+          throw new Error(errorDetail);
+        }
+
         const data = await res.json();
-        output.innerHTML = marked.parse(data.advice);
+        output.innerHTML = marked.parse(data.advice || 'No advice generated.');
       } catch (err) {
-        output.innerHTML = `<span class="text-red-400">Error generating AI review: ${err.message}</span>`;
+        output.innerHTML = `
+          <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-xl space-y-2">
+            <div class="font-bold text-red-400 text-sm flex items-center gap-1.5">
+              <span>⚠️ AI Advisory Error</span>
+            </div>
+            <div class="text-xs text-red-300 font-mono leading-relaxed whitespace-pre-wrap">${err.message}</div>
+            <div class="text-[11px] text-slate-400 pt-1">
+              Tip: Verify that your API key is valid and has active quota, or select a different model in the dropdown above.
+            </div>
+          </div>
+        `;
       } finally {
         btn.disabled = false;
         loader.classList.add('hidden');
         output.classList.remove('hidden');
+      }
+    }
+
+    // Milestones Management
+    function renderMilestones(milestones) {
+      const container = document.getElementById('milestones-container');
+      if (!container) return;
+      container.innerHTML = '';
+      let reachedCount = 0;
+
+      milestones.forEach(m => {
+        if (m.is_reached) reachedCount++;
+        const card = document.createElement('div');
+        card.className = `p-3.5 rounded-xl border ${m.is_reached ? 'bg-emerald-950/20 border-emerald-500/30' : 'bg-slate-950 border-slate-800'} space-y-2`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-white truncate" title="${m.name}">${m.name}</span>
+            ${m.is_reached ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">✓ Reached</span>' : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${m.progress_pct}%</span>`}
+          </div>
+          <div class="text-base font-bold text-white font-mono">${m.target_formatted}</div>
+          <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+            <div class="h-full ${m.is_reached ? 'bg-emerald-500' : 'bg-blue-600'}" style="width: ${m.progress_pct}%"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      const badge = document.getElementById('milestones-completed-badge');
+      if (badge) {
+        badge.textContent = `${reachedCount} / ${milestones.length} Reached`;
+        if (reachedCount > 0) {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-medium';
+        } else {
+          badge.className = 'px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 font-medium';
+        }
+      }
+    }
+
+    function openMilestonesModal() {
+      const container = document.getElementById('modal-milestones-list');
+      container.innerHTML = '';
+      const milestones = (currentData && currentData.milestones) ? currentData.milestones : [];
+      milestones.forEach(m => {
+        addMilestoneRow(m.name, m.target_amount);
+      });
+      if (milestones.length === 0) {
+        addMilestoneRow('Financial Security', 100000);
+        addMilestoneRow('Quarter Million', 250000);
+        addMilestoneRow('Financial Independence (€1M)', 1000000);
+      }
+      document.getElementById('milestones-modal').classList.remove('hidden');
+    }
+
+    function closeMilestonesModal() {
+      document.getElementById('milestones-modal').classList.add('hidden');
+    }
+
+    function addMilestoneRow(name = '', amount = 100000) {
+      const container = document.getElementById('modal-milestones-list');
+      const div = document.createElement('div');
+      div.className = 'milestone-edit-row flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800';
+      div.innerHTML = `
+        <input type="text" placeholder="Milestone Name" value="${name}" class="ms-name flex-1 bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+        <div class="flex items-center gap-1">
+          <span class="text-slate-400 text-xs">€</span>
+          <input type="number" step="5000" placeholder="Amount" value="${amount}" class="ms-amount w-28 bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white text-xs font-mono text-right">
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-rose-400 hover:text-rose-300 p-1 text-sm font-bold">&times;</button>
+      `;
+      container.appendChild(div);
+    }
+
+    async function saveMilestonesConfig() {
+      const rows = document.querySelectorAll('.milestone-edit-row');
+      const milestones = [];
+      rows.forEach((r, idx) => {
+        const name = r.querySelector('.ms-name').value.trim();
+        const amount = parseFloat(r.querySelector('.ms-amount').value) || 0;
+        if (name && amount > 0) {
+          milestones.push({ id: `m-${idx + 1}`, name: name, target_amount: amount, currency: 'EUR' });
+        }
+      });
+
+      try {
+        const res = await fetch('/api/milestones', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ milestones: milestones })
+        });
+        if (res.ok) {
+          closeMilestonesModal();
+          await loadOverview();
+          showToast('Milestones saved successfully!');
+        }
+      } catch (err) {
+        console.error('Failed to save milestones:', err);
+      }
+    }
+
+    // Manual Assets & Debts
+    function renderManualAssetsAndDebts(data) {
+      const assetsTbody = document.getElementById('manual-assets-tbody');
+      if (assetsTbody) {
+        assetsTbody.innerHTML = '';
+        const manualOrRealEstate = (data.assets || []).filter(a =>
+          a.asset_class === 'REAL_ESTATE' || a.id.startsWith('asset-') || a.id === 'bunq-savings' || a.institution === 'Manual'
+        );
+        if (manualOrRealEstate.length === 0) {
+          assetsTbody.innerHTML = '<tr><td colspan="4" class="py-3 text-slate-500 text-center">No manual real estate or private assets added yet.</td></tr>';
+        } else {
+          manualOrRealEstate.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="py-2.5 font-medium text-white">${a.name}</td>
+              <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${a.asset_class}</span></td>
+              <td class="py-2.5 font-mono text-emerald-400">${a.current_value_formatted}</td>
+              <td class="py-2.5 text-right">
+                <button onclick="deleteManualAsset('${a.id}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+              </td>
+            `;
+            assetsTbody.appendChild(tr);
+          });
+        }
+      }
+
+      const liabTbody = document.getElementById('manual-liabilities-tbody');
+      if (liabTbody) {
+        liabTbody.innerHTML = '';
+        const liabilities = data.liabilities || [];
+        if (liabilities.length === 0) {
+          liabTbody.innerHTML = '<tr><td colspan="6" class="py-3 text-slate-500 text-center">No debt or mortgage balances recorded.</td></tr>';
+        } else {
+          liabilities.forEach(l => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="py-2.5 font-medium text-white">${l.name}</td>
+              <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">${l.loan_type}</span></td>
+              <td class="py-2.5 font-mono text-rose-400">${l.principal_balance_formatted}</td>
+              <td class="py-2.5 font-mono text-slate-300">${l.interest_rate_pct}%</td>
+              <td class="py-2.5 font-mono text-slate-300">${l.monthly_payment_formatted}</td>
+              <td class="py-2.5 text-right">
+                <button onclick="deleteManualLiability('${l.id}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+              </td>
+            `;
+            liabTbody.appendChild(tr);
+          });
+        }
+      }
+    }
+
+    function openAddAssetModal() { document.getElementById('add-asset-modal').classList.remove('hidden'); }
+    function closeAddAssetModal() { document.getElementById('add-asset-modal').classList.add('hidden'); }
+
+    async function saveManualAsset() {
+      const name = document.getElementById('manual-asset-name').value.trim();
+      const assetClass = document.getElementById('manual-asset-class').value;
+      const val = parseFloat(document.getElementById('manual-asset-val').value) || 0;
+      const inst = document.getElementById('manual-asset-inst').value.trim() || 'Manual';
+      const sym = document.getElementById('manual-asset-sym').value.trim();
+
+      if (!name || val <= 0) {
+        alert('Please provide an asset name and valid estimated value.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/assets/manual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            asset_class: assetClass,
+            current_value: val,
+            institution: inst,
+            symbol: sym || null
+          })
+        });
+        if (res.ok) {
+          closeAddAssetModal();
+          document.getElementById('manual-asset-name').value = '';
+          document.getElementById('manual-asset-val').value = '';
+          await loadOverview();
+          showToast('Asset added successfully!');
+        }
+      } catch (err) {
+        console.error('Failed to save manual asset:', err);
+      }
+    }
+
+    async function deleteManualAsset(assetId) {
+      if (!confirm('Are you sure you want to remove this asset?')) return;
+      try {
+        const res = await fetch(`/api/assets/manual/${assetId}`, { method: 'DELETE' });
+        if (res.ok) {
+          await loadOverview();
+          showToast('Asset deleted.');
+        }
+      } catch (err) {
+        console.error('Failed to delete asset:', err);
+      }
+    }
+
+    function openAddLiabilityModal() { document.getElementById('add-liability-modal').classList.remove('hidden'); }
+    function closeAddLiabilityModal() { document.getElementById('add-liability-modal').classList.add('hidden'); }
+
+    async function saveManualLiability() {
+      const name = document.getElementById('manual-liab-name').value.trim();
+      const loanType = document.getElementById('manual-liab-type').value;
+      const balance = parseFloat(document.getElementById('manual-liab-balance').value) || 0;
+      const rate = parseFloat(document.getElementById('manual-liab-rate').value) || 0;
+      const payment = parseFloat(document.getElementById('manual-liab-payment').value) || 0;
+      const inst = document.getElementById('manual-liab-inst').value.trim() || 'Manual';
+
+      if (!name || balance <= 0) {
+        alert('Please provide a debt name and principal balance.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/liabilities/manual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            loan_type: loanType,
+            principal_balance: balance,
+            interest_rate_pct: rate,
+            monthly_payment: payment,
+            institution: inst
+          })
+        });
+        if (res.ok) {
+          closeAddLiabilityModal();
+          document.getElementById('manual-liab-name').value = '';
+          document.getElementById('manual-liab-balance').value = '';
+          await loadOverview();
+          showToast('Liability / Debt added successfully!');
+        }
+      } catch (err) {
+        console.error('Failed to save liability:', err);
+      }
+    }
+
+    async function deleteManualLiability(liabId) {
+      if (!confirm('Are you sure you want to remove this liability?')) return;
+      try {
+        const res = await fetch(`/api/liabilities/manual/${liabId}`, { method: 'DELETE' });
+        if (res.ok) {
+          await loadOverview();
+          showToast('Liability removed.');
+        }
+      } catch (err) {
+        console.error('Failed to delete liability:', err);
+      }
+    }
+
+    // Holdings & Bucket Assignment
+    function renderHoldingsMapping(data) {
+      const tbody = document.getElementById('holdings-mapping-tbody');
+      const countBadge = document.getElementById('holdings-count-badge');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const assets = data.assets || [];
+      if (countBadge) countBadge.textContent = `${assets.length} Holdings`;
+
+      if (assets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-slate-500 text-center">No holdings loaded. Connect PDT in Settings or import a CSV statement.</td></tr>';
+        return;
+      }
+
+      const buckets = data.allocations || [];
+
+      assets.forEach(a => {
+        const tr = document.createElement('tr');
+        let bucketOptions = `<option value="unassigned" ${a.bucket_id === 'unassigned' ? 'selected' : ''}>-- Unassigned --</option>`;
+        buckets.forEach(b => {
+          const isSelected = a.bucket_id === b.bucket_id;
+          bucketOptions += `<option value="${b.bucket_id}" ${isSelected ? 'selected' : ''}>${b.name}</option>`;
+        });
+
+        const badgeStyle = a.bucket_id !== 'unassigned' ? `background-color: ${a.bucket_color}22; color: ${a.bucket_color}; border-color: ${a.bucket_color}44;` : 'background-color: #334155; color: #94a3b8; border-color: #475569;';
+
+        const safeName = (a.name || '').replace(/'/g, "\\'");
+        tr.innerHTML = `
+          <td class="px-3 py-2.5 font-medium text-white">${a.name}</td>
+          <td class="px-3 py-2.5 font-mono text-slate-400">${a.symbol || a.isin || '—'}</td>
+          <td class="px-3 py-2.5 text-slate-400">${a.institution}</td>
+          <td class="px-3 py-2.5 font-mono font-semibold text-slate-200">${a.current_value_formatted}</td>
+          <td class="px-3 py-2.5">
+            <span class="px-2 py-0.5 rounded text-[11px] font-medium border" style="${badgeStyle}">
+              ${a.bucket_name}
+            </span>
+          </td>
+          <td class="px-3 py-2.5">
+            <select class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-white text-xs focus:border-blue-500" onchange="assignAssetToBucket('${a.id}', '${a.symbol || ''}', '${a.isin || ''}', '${safeName}', this.value)">
+              ${bucketOptions}
+            </select>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function assignAssetToBucket(assetId, symbol, isin, name, bucketId) {
+      try {
+        const res = await fetch('/api/buckets/assign-asset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bucket_id: bucketId,
+            symbol: symbol || null,
+            isin: isin || null,
+            asset_id: assetId || null,
+            asset_name: name || null
+          })
+        });
+        if (res.ok) {
+          await loadOverview();
+          showToast('Holding successfully re-mapped to bucket!');
+        }
+      } catch (err) {
+        console.error('Failed to assign holding to bucket:', err);
+      }
+    }
+
+    function dismissOAuthBanner() {
+      document.getElementById('oauth-success-banner').classList.add('hidden');
+    }
+
+    function showToast(msg) {
+      const note = document.getElementById('settings-notification');
+      if (note) {
+        document.getElementById('settings-notification-text').textContent = msg;
+        note.className = 'p-3 rounded-xl border text-xs flex items-center justify-between bg-emerald-500/10 border-emerald-500/30 text-emerald-300 fixed bottom-5 right-5 z-50 shadow-lg';
+        note.classList.remove('hidden');
+        setTimeout(() => note.classList.add('hidden'), 4000);
       }
     }
 
@@ -1931,21 +2651,51 @@
       await loadOverview();
       await loadSettings();
       await runTaxSimulation();
+      await refreshAiModels();
 
       // Check first-time setup
       if (localStorage.getItem('wealth_pilot_setup_completed') !== 'true') {
         openSetupWizard();
       }
 
-      // Check URL hash and query params
+      // Check URL hash and query params for OAuth confirmation or error
+      const urlParams = new URLSearchParams(window.location.search);
       const hash = window.location.hash;
+      const isPdtConnected =
+        urlParams.get('pdt_connected') === 'true' || hash.includes('pdt_connected=true');
+      const syncedCount = urlParams.get('synced_count') || '';
+      const pdtError =
+        urlParams.get('pdt_error') ||
+        (hash.includes('pdt_error') ? hash.split('pdt_error=')[1] : null);
+
+      if (isPdtConnected) {
+        const banner = document.getElementById('oauth-success-banner');
+        if (banner) {
+          banner.classList.remove('hidden');
+          if (syncedCount && syncedCount !== '0') {
+            document.getElementById('oauth-success-subtitle').textContent =
+              `Successfully imported and synchronized ${syncedCount} portfolio holdings from Portfolio Dividend Tracker via MCP.`;
+          }
+        }
+        showSettingsAlert(
+          `🎉 Successfully connected to PDT via OAuth! ${syncedCount ? syncedCount + ' holdings synchronized.' : ''}`
+        );
+        // Clean URL query parameters
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname + window.location.hash.split('?')[0]
+        );
+      } else if (pdtError) {
+        showSettingsAlert(`OAuth authorization error: ${decodeURIComponent(pdtError)}`, true);
+      }
+
       if (hash.includes('settings')) {
         switchTab('settings');
-        if (window.location.search.includes('pdt_connected=true') || hash.includes('pdt_connected=true')) {
-          showSettingsAlert('✓ Successfully connected to PDT via OAuth! You can now sync your holdings.');
-        } else if (window.location.search.includes('pdt_error') || hash.includes('pdt_error')) {
-          showSettingsAlert('OAuth login error. Please check your credentials.', true);
-        }
+      } else if (hash.includes('buckets')) {
+        switchTab('buckets');
+      } else if (hash.includes('ai')) {
+        switchTab('ai');
       }
     });
   </script>

@@ -56,7 +56,43 @@ class RebucketRequest(BaseModel):
 class AiAdviseRequest(BaseModel):
     provider: str = "gemini"
     api_key: str | None = None
+    model: str | None = None
     question: str | None = None
+
+
+class ManualAssetRequest(BaseModel):
+    id: str | None = None
+    name: str
+    symbol: str | None = ""
+    isin: str | None = None
+    asset_class: str = "REAL_ESTATE"
+    current_value: float
+    institution: str | None = "Manual"
+    currency: str = "EUR"
+
+
+class ManualLiabilityRequest(BaseModel):
+    id: str | None = None
+    name: str
+    loan_type: str = "MORTGAGE"
+    principal_balance: float
+    interest_rate_pct: float = 0.0
+    monthly_payment: float = 0.0
+    institution: str | None = "Manual"
+    account_reference: str | None = ""
+    currency: str = "EUR"
+
+
+class AssignAssetRequest(BaseModel):
+    bucket_id: str
+    symbol: str | None = None
+    isin: str | None = None
+    asset_id: str | None = None
+    asset_name: str | None = None
+
+
+class MilestonesUpdateRequest(BaseModel):
+    milestones: list[dict[str, Any]]
 
 
 class SettingsUpdateRequest(BaseModel):
@@ -226,6 +262,70 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
             for t in txs
         ]
 
+        asset_list = []
+        for a in bs.assets:
+            matched_b = next((b for b in buckets if b.matches(a)), None)
+            asset_list.append(
+                {
+                    "id": a.id,
+                    "name": a.name,
+                    "symbol": a.symbol,
+                    "isin": a.isin,
+                    "asset_class": (
+                        a.asset_class.value
+                        if hasattr(a.asset_class, "value")
+                        else str(a.asset_class)
+                    ),
+                    "current_value": float(a.current_value.amount),
+                    "current_value_formatted": a.current_value.format(),
+                    "institution": a.institution,
+                    "bucket_id": matched_b.id if matched_b else "unassigned",
+                    "bucket_name": matched_b.name if matched_b else "Unassigned",
+                    "bucket_color": matched_b.color if matched_b else "#64748B",
+                }
+            )
+
+        liability_list = [
+            {
+                "id": liab.id,
+                "name": liab.name,
+                "loan_type": (
+                    liab.loan_type.value
+                    if hasattr(liab.loan_type, "value")
+                    else str(liab.loan_type)
+                ),
+                "principal_balance": float(liab.principal_balance.amount),
+                "principal_balance_formatted": liab.principal_balance.format(),
+                "interest_rate_pct": float(liab.interest_rate_pct),
+                "monthly_payment": float(liab.monthly_payment.amount),
+                "monthly_payment_formatted": liab.monthly_payment.format(),
+                "institution": liab.institution,
+                "account_reference": liab.account_reference,
+                "is_high_interest": liab.is_high_interest(),
+            }
+            for liab in bs.liabilities
+        ]
+
+        configured_milestones = repo.load_milestones()
+        nw_val = float(bs.net_worth.amount)
+        milestone_data = []
+        for m in configured_milestones:
+            target = float(m.get("target_amount", 0.0))
+            cur = m.get("currency", "EUR")
+            pct = min(100.0, max(0.0, round((nw_val / target * 100.0), 1))) if target > 0 else 100.0
+            milestone_data.append(
+                {
+                    "id": m.get("id"),
+                    "name": m.get("name"),
+                    "target_amount": target,
+                    "target_formatted": (
+                        f"€ {target:,.2f}" if cur == "EUR" else f"{cur} {target:,.2f}"
+                    ),
+                    "progress_pct": pct,
+                    "is_reached": nw_val >= target,
+                }
+            )
+
         return {
             "net_worth_formatted": bs.net_worth.format(),
             "total_assets_formatted": bs.total_assets.format(),
@@ -269,6 +369,9 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
                 for t in trajectory
             ],
             "transactions": tx_data,
+            "assets": asset_list,
+            "liabilities": liability_list,
+            "milestones": milestone_data,
         }
 
     @app.post("/api/ingest/kbc")
@@ -368,6 +471,16 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
 
         return {"status": "success"}
 
+    @app.get("/api/ai/models")
+    async def get_ai_models(provider: str = "gemini", api_key: str | None = None):
+        if not api_key:
+            s = repo.load_settings()
+            api_key = s.get("ai", {}).get("api_key")
+        models = await UniversalAIAdvisorClient.fetch_available_models(
+            provider=provider, api_key=api_key
+        )
+        return {"models": models}
+
     @app.post("/api/ai/advise")
     async def run_ai_consultation(req: AiAdviseRequest):
         bs = _get_consolidated_balance_sheet()
@@ -377,18 +490,131 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
             liabilities=bs.liabilities, monthly_surplus=bs.free_monthly_cashflow
         )
 
+        effective_key = req.api_key
+        if not effective_key:
+            s = repo.load_settings()
+            effective_key = s.get("ai", {}).get("api_key")
+
+        effective_model = req.model
+        if not effective_model:
+            s = repo.load_settings()
+            effective_model = s.get("ai", {}).get("model")
+
         ai_client = UniversalAIAdvisorClient(
             provider=req.provider,
-            api_key=req.api_key,
+            api_key=effective_key,
+            model=effective_model,
         )
         ai_use_case = AdviseAiUseCase(ai_client=ai_client)
-        advice_text = await ai_use_case.execute(
-            balance_sheet=bs,
-            allocations=allocations,
-            deterministic_advices=advices,
-            user_question=req.question,
+        try:
+            advice_text = await ai_use_case.execute(
+                balance_sheet=bs,
+                allocations=allocations,
+                deterministic_advices=advices,
+                user_question=req.question,
+            )
+            return {"advice": advice_text}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+
+    # Manual Assets & Liabilities Endpoints
+    @app.post("/api/assets/manual")
+    async def save_manual_asset(req: ManualAssetRequest):
+        asset_dict = req.model_dump(exclude_unset=True)
+        repo.save_manual_asset(asset_dict)
+        return {"status": "success", "asset": asset_dict}
+
+    @app.delete("/api/assets/manual/{asset_id}")
+    async def delete_manual_asset(asset_id: str):
+        repo.delete_manual_asset(asset_id)
+        return {"status": "success"}
+
+    @app.post("/api/liabilities/manual")
+    async def save_manual_liability(req: ManualLiabilityRequest):
+        liab_dict = req.model_dump(exclude_unset=True)
+        repo.save_manual_liability(liab_dict)
+        return {"status": "success", "liability": liab_dict}
+
+    @app.delete("/api/liabilities/manual/{liability_id}")
+    async def delete_manual_liability(liability_id: str):
+        repo.delete_manual_liability(liability_id)
+        return {"status": "success"}
+
+    # Asset-to-Bucket Mapping
+    @app.post("/api/buckets/assign-asset")
+    async def assign_asset_to_bucket(req: AssignAssetRequest):
+        repo.assign_asset_to_bucket(
+            bucket_id=req.bucket_id,
+            symbol=req.symbol,
+            isin=req.isin,
+            asset_id=req.asset_id,
+            name=req.asset_name,
         )
-        return {"advice": advice_text}
+        bs = _get_consolidated_balance_sheet()
+        buckets = repo.load_buckets()
+        allocations = alloc_calc.execute(assets=bs.assets, buckets=buckets)
+        return {
+            "status": "success",
+            "allocations": [
+                {
+                    "bucket_id": a.bucket_id,
+                    "name": a.name,
+                    "current_value": float(a.current_value),
+                    "current_weight_pct": float(a.current_weight_pct),
+                    "target_weight_pct": float(a.target_weight_pct),
+                    "diff_value": float(a.diff_value),
+                    "diff_weight_pct": float(a.diff_weight_pct),
+                    "drift_status": a.drift_status.value,
+                    "drift_tolerance_pct": float(a.drift_tolerance_pct),
+                    "color": a.color,
+                }
+                for a in allocations
+            ],
+        }
+
+    # Projections & Milestones Endpoints
+    @app.get("/api/projection")
+    async def get_projection(
+        years: int = 30,
+        cagr: float = 7.0,
+        annual_savings: float | None = None,
+    ):
+        bs = _get_consolidated_balance_sheet()
+        savings_money = (
+            Money.from_val(annual_savings / 12.0)
+            if annual_savings is not None
+            else bs.free_monthly_cashflow
+        )
+        trajectory = net_worth_projector.execute(
+            initial_assets=bs.total_assets,
+            initial_debts=bs.total_liabilities,
+            monthly_savings=savings_money,
+            annual_return_pct=Decimal(str(cagr)),
+            years=years,
+        )
+        return {
+            "years": years,
+            "cagr": cagr,
+            "trajectory": [
+                {
+                    "year": t["year"],
+                    "assets": float(t["assets"]),
+                    "debts": float(t["debts"]),
+                    "net_worth": float(t["net_worth"]),
+                    "milestones": t["milestones"],
+                }
+                for t in trajectory
+            ],
+        }
+
+    @app.get("/api/milestones")
+    async def get_milestones():
+        return {"milestones": repo.load_milestones()}
+
+    @app.post("/api/milestones")
+    async def save_milestones(req: MilestonesUpdateRequest):
+        repo.save_milestones(req.milestones)
+        return {"status": "success", "milestones": req.milestones}
 
     # Settings & MCP Management Endpoints
     @app.get("/api/settings")
@@ -463,7 +689,25 @@ def create_app(config_repo: ConfigRepository | None = None) -> FastAPI:
                 redirect_uri=oauth_session["redirect_uri"],
             )
             repo.save_pdt_tokens(tokens)
-            return RedirectResponse(url="/#settings?pdt_connected=true")
+
+            # Auto-sync holdings immediately on callback!
+            synced_count = 0
+            try:
+                pdt_cfg = repo.load_settings().get("pdt", {})
+                gateway = PdtMcpGateway(
+                    mcp_url=pdt_cfg.get("mcp_url", "https://mcp.portfoliodividendtracker.com"),
+                    auth_token=tokens.get("access_token"),
+                )
+                assets = await gateway.fetch_portfolio_assets()
+                state["pdt_assets"] = assets
+                repo.update_pdt_sync_timestamp()
+                synced_count = len(assets)
+            except Exception:
+                pass
+
+            return RedirectResponse(
+                url=f"/#dashboard?pdt_connected=true&synced_count={synced_count}"
+            )
         except Exception as e:
             return RedirectResponse(url=f"/#settings?pdt_error={str(e)}")
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import uuid
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -391,3 +392,170 @@ class ConfigRepository:
         pdt = current.get("pdt", {})
         pdt["last_sync"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.save_settings({"pdt": pdt})
+
+    def save_manual_asset(self, asset_dict: dict[str, Any]) -> None:
+        """Saves or updates a manual asset in portfolio.yaml."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        manual_assets = data.get("manual_assets", [])
+        asset_id = str(asset_dict.get("id") or f"asset-{uuid.uuid4().hex[:8]}")
+        asset_dict["id"] = asset_id
+
+        existing = next((a for a in manual_assets if str(a.get("id")) == asset_id), None)
+        if existing:
+            existing.update(asset_dict)
+        else:
+            manual_assets.append(asset_dict)
+
+        data["manual_assets"] = manual_assets
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
+
+    def delete_manual_asset(self, asset_id: str) -> None:
+        """Deletes a manual asset by id."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        manual_assets = [
+            a for a in data.get("manual_assets", []) if str(a.get("id")) != str(asset_id)
+        ]
+        data["manual_assets"] = manual_assets
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
+
+    def save_manual_liability(self, liability_dict: dict[str, Any]) -> None:
+        """Saves or updates a manual liability (mortgage/loan) in portfolio.yaml."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        liabilities = data.get("manual_liabilities", [])
+        liability_id = str(liability_dict.get("id") or f"debt-{uuid.uuid4().hex[:8]}")
+        liability_dict["id"] = liability_id
+
+        existing = next((liab for liab in liabilities if str(liab.get("id")) == liability_id), None)
+        if existing:
+            existing.update(liability_dict)
+        else:
+            liabilities.append(liability_dict)
+
+        data["manual_liabilities"] = liabilities
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
+
+    def delete_manual_liability(self, liability_id: str) -> None:
+        """Deletes a manual liability by id."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        liabilities = [
+            liab
+            for liab in data.get("manual_liabilities", [])
+            if str(liab.get("id")) != str(liability_id)
+        ]
+        data["manual_liabilities"] = liabilities
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
+
+    def assign_asset_to_bucket(
+        self,
+        bucket_id: str,
+        symbol: str | None = None,
+        isin: str | None = None,
+        asset_id: str | None = None,
+        name: str | None = None,
+    ) -> None:
+        """Assigns an asset to a strategic bucket by updating symbol/isin mapping rules in portfolio.yaml."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        buckets = data.get("buckets", [])
+        target_sym = (symbol or "").strip()
+        target_isin = (isin or "").strip()
+
+        # Remove matching symbol or ISIN from all buckets to avoid duplicate/conflicting classification
+        for b in buckets:
+            for rule in b.get("rules", []):
+                if target_sym and "symbols" in rule:
+                    rule["symbols"] = [
+                        s for s in rule["symbols"] if s.upper() != target_sym.upper()
+                    ]
+                if target_isin and "isins" in rule:
+                    rule["isins"] = [i for i in rule["isins"] if i.upper() != target_isin.upper()]
+
+        # Assign to the target bucket if bucket_id is not empty or "unassigned"
+        if bucket_id and bucket_id != "unassigned":
+            target_bucket = next((b for b in buckets if b.get("id") == bucket_id), None)
+            if target_bucket:
+                rules = target_bucket.setdefault("rules", [])
+                if not rules:
+                    rules.append({})
+                first_rule = rules[0]
+                if target_sym:
+                    syms = first_rule.setdefault("symbols", [])
+                    if target_sym not in syms:
+                        syms.append(target_sym)
+                elif target_isin:
+                    isins = first_rule.setdefault("isins", [])
+                    if target_isin not in isins:
+                        isins.append(target_isin)
+                elif name:
+                    keywords = first_rule.setdefault("name_keywords", [])
+                    if name not in keywords:
+                        keywords.append(name)
+
+        data["buckets"] = buckets
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
+
+    def load_milestones(self) -> list[dict[str, Any]]:
+        """Loads configured wealth milestones."""
+        if not self.config_path.exists():
+            return []
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        milestones = data.get("milestones")
+        if milestones is None:
+            # Default milestone ladder
+            milestones = [
+                {
+                    "id": "m1",
+                    "name": "Financial Security",
+                    "target_amount": 100000.0,
+                    "currency": "EUR",
+                },
+                {
+                    "id": "m2",
+                    "name": "Quarter Million",
+                    "target_amount": 250000.0,
+                    "currency": "EUR",
+                },
+                {
+                    "id": "m3",
+                    "name": "Half Million",
+                    "target_amount": 500000.0,
+                    "currency": "EUR",
+                },
+                {
+                    "id": "m4",
+                    "name": "Financial Independence (€1M)",
+                    "target_amount": 1000000.0,
+                    "currency": "EUR",
+                },
+                {
+                    "id": "m5",
+                    "name": "Fat FIRE (€2M)",
+                    "target_amount": 2000000.0,
+                    "currency": "EUR",
+                },
+            ]
+        return milestones
+
+    def save_milestones(self, milestones: list[dict[str, Any]]) -> None:
+        """Saves wealth milestones in portfolio.yaml."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        data["milestones"] = milestones
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)

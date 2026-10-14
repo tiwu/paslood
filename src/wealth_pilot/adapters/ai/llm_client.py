@@ -50,7 +50,8 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
     async def _call_gemini(
         self, client: httpx.AsyncClient, prompt: str, system_prompt: str | None
     ) -> str:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+        clean_model = (self.model or "gemini-2.5-flash").removeprefix("models/")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={self.api_key}"
         contents: list[dict[str, Any]] = []
         if system_prompt:
             contents.append(
@@ -65,7 +66,14 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         contents.append({"role": "user", "parts": [{"text": prompt}]})
 
         resp = await client.post(url, json={"contents": contents})
-        resp.raise_for_status()
+        if resp.is_error:
+            try:
+                err_data = resp.json()
+                msg = err_data.get("error", {}).get("message", resp.text)
+            except Exception:
+                msg = resp.text
+            raise RuntimeError(f"Gemini API error ({resp.status_code}): {msg}")
+
         data = resp.json()
         candidates = data.get("candidates", [])
         if candidates:
@@ -73,6 +81,144 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             if parts:
                 return parts[0].get("text", "")
         return "No response generated from Gemini."
+
+    @classmethod
+    async def fetch_available_models(
+        cls, provider: str = "gemini", api_key: str | None = None
+    ) -> list[dict[str, Any]]:
+        """Queries or lists active models supported by the chosen AI provider."""
+        provider = (provider or "gemini").lower()
+        if provider == "gemini":
+            curated_gemini = [
+                {
+                    "id": "gemini-2.5-flash",
+                    "name": "Gemini 2.5 Flash",
+                    "description": "Fastest and most capable model (Recommended)",
+                    "recommended": True,
+                },
+                {
+                    "id": "gemini-2.5-pro",
+                    "name": "Gemini 2.5 Pro",
+                    "description": "Advanced reasoning model for complex financial planning",
+                    "recommended": False,
+                },
+                {
+                    "id": "gemini-2.0-flash",
+                    "name": "Gemini 2.0 Flash",
+                    "description": "Ultra fast next-gen model",
+                    "recommended": False,
+                },
+                {
+                    "id": "gemini-1.5-flash",
+                    "name": "Gemini 1.5 Flash",
+                    "description": "High throughput model",
+                    "recommended": False,
+                },
+                {
+                    "id": "gemini-1.5-pro",
+                    "name": "Gemini 1.5 Pro",
+                    "description": "Deep reasoning model",
+                    "recommended": False,
+                },
+            ]
+            if api_key:
+                try:
+                    async with httpx.AsyncClient(timeout=5.0) as client:
+                        resp = await client.get(
+                            f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+                        )
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            live_models = []
+                            for m in data.get("models", []):
+                                methods = m.get("supportedGenerationMethods", [])
+                                if "generateContent" in methods:
+                                    raw_id = m.get("name", "").removeprefix("models/")
+                                    if "gemini" in raw_id:
+                                        live_models.append(
+                                            {
+                                                "id": raw_id,
+                                                "name": m.get("displayName") or raw_id,
+                                                "description": m.get("description", ""),
+                                                "recommended": "2.5-flash" in raw_id
+                                                or "flash" in raw_id,
+                                            }
+                                        )
+                            if live_models:
+                                live_models.sort(key=lambda x: not x["recommended"])
+                                return live_models
+                except Exception:
+                    pass
+            return curated_gemini
+
+        elif provider == "openai":
+            return [
+                {
+                    "id": "gpt-4o-mini",
+                    "name": "GPT-4o Mini",
+                    "description": "Fast and intelligent multimodal model (Recommended)",
+                    "recommended": True,
+                },
+                {
+                    "id": "gpt-4o",
+                    "name": "GPT-4o",
+                    "description": "High-intelligence flagship model",
+                    "recommended": False,
+                },
+                {
+                    "id": "o3-mini",
+                    "name": "o3-mini",
+                    "description": "Advanced STEM and financial reasoning model",
+                    "recommended": False,
+                },
+            ]
+
+        elif provider == "anthropic":
+            return [
+                {
+                    "id": "claude-3-5-haiku-20241022",
+                    "name": "Claude 3.5 Haiku",
+                    "description": "Ultra fast and cost-effective (Recommended)",
+                    "recommended": True,
+                },
+                {
+                    "id": "claude-3-5-sonnet-20241022",
+                    "name": "Claude 3.5 Sonnet",
+                    "description": "State-of-the-art analytical intelligence",
+                    "recommended": False,
+                },
+            ]
+
+        elif provider == "ollama":
+            return [
+                {
+                    "id": "llama3.2",
+                    "name": "Llama 3.2",
+                    "description": "Local lightweight model (Recommended)",
+                    "recommended": True,
+                },
+                {
+                    "id": "llama3",
+                    "name": "Llama 3 (8B)",
+                    "description": "Local open source model",
+                    "recommended": False,
+                },
+                {
+                    "id": "mistral",
+                    "name": "Mistral 7B",
+                    "description": "Local general purpose model",
+                    "recommended": False,
+                },
+            ]
+
+        return [
+            {
+                "id": "algorithmic",
+                "name": "Algorithmic Advisor",
+                "description": "Local deterministic advice engine",
+                "recommended": True,
+            }
+        ]
 
     async def _call_openai(
         self, client: httpx.AsyncClient, prompt: str, system_prompt: str | None
