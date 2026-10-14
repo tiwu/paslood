@@ -1,0 +1,53 @@
+site_name: Wealth Pilot Documentation
+site_description: Strategic Wealth & Asset Allocation Guidance Platform
+site_author: Wealth Pilot Contributors
+site_url: https://tiwu.github.io/wealth-pilot/
+
+repo_name: wealth-pilot
+repo_url: https://github.com/tiwu/wealth-pilot
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: blue
+      accent: indigo
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Overview: index.md
+  - Getting Started: getting-started.md
+  - Core Concepts:
+      - Strategic Buckets: concepts/buckets.md
+      - Balance Sheet & Net Worth: concepts/balance-sheet.md
+      - Buy-Only Rebalancing: concepts/rebalancing.md
+  - Data Ingestion:
+      - KBC Bank Statements: ingestion/kbc-csv.md
+      - PDT MCP Integration: ingestion/pdt-mcp.md
+      - Generic CSV / Excel: ingestion/generic-csv.md
+      - Manual Accounts & Bunq: ingestion/manual-accounts.md
+  - Guidance Engine:
+      - Debt Payoff Strategy: guidance/debt-payoff.md
+      - Net Worth Projections: guidance/net-worth-projections.md
+      - Belgian Tax Optimization: guidance/tax-optimization.md
+  - AI Advisor:
+      - Setup & API Keys: ai-advisor/setup.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - attr_list

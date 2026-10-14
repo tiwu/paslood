@@ -1,0 +1,16 @@
+{
+  "short_name": "WealthPilot",
+  "name": "Wealth Pilot - Strategic Asset Allocation & Wealth Guidance",
+  "icons": [
+    {
+      "src": "https://cdn.jsdelivr.net/npm/@tabler/icons@3.2.0/icons/compass.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0F172A",
+  "theme_color": "#3B82F6",
+  "display": "standalone",
+  "orientation": "portrait"
+}

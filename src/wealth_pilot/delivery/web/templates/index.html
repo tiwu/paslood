@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wealth Pilot — Strategic Wealth & Asset Allocation</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+            slate: { 850: '#151e2e', 900: '#0f172a', 950: '#080d1a' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-9 w-9 bg-blue-600 rounded-lg flex items-center justify-center text-xl shadow-lg shadow-blue-500/30">🧭</div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            Wealth Pilot
+            <span class="text-xs font-medium px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">Local Core</span>
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Strategic Allocation & Wealth Guidance</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1 sm:space-x-2">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-600">📊 Overview</button>
+        <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800">🪣 Buckets</button>
+        <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800">💡 Guidance</button>
+        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800">💳 Cashflow & Ingest</button>
+        <button onclick="switchTab('ai')" id="nav-ai" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1">
+          <span>🤖 AI Advisor</span>
+        </button>
+      </nav>
+
+      <!-- Quick Actions & Docs -->
+      <div class="flex items-center space-x-2">
+        <a href="https://tiwu.github.io/wealth-pilot/" target="_blank" rel="noopener" class="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded border border-slate-700 bg-slate-800/60 flex items-center gap-1 hover:border-slate-500 transition">
+          <span>📖 Docs</span>
+          <span class="text-[10px]">↗</span>
+        </a>
+        <button onclick="openHelpModal()" class="text-slate-400 hover:text-white p-1.5 rounded hover:bg-slate-800" title="In-App Help Guide">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path stroke-width="2" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- TAB 1: OVERVIEW & DASHBOARD -->
+    <section id="tab-dashboard" class="tab-content active space-y-6">
+      <!-- KPI Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
+          <div class="text-xs font-medium text-slate-400">Total Net Worth</div>
+          <div id="kpi-net-worth" class="text-2xl font-bold text-white mt-1">€ 0,00</div>
+          <div class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+            <span>Assets minus Liabilities</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
+          <div class="text-xs font-medium text-slate-400">Total Assets</div>
+          <div id="kpi-total-assets" class="text-2xl font-bold text-white mt-1">€ 0,00</div>
+          <div id="kpi-asset-count" class="text-xs text-slate-500 mt-1">Across 0 holdings & cash</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
+          <div class="text-xs font-medium text-slate-400">Total Liabilities (Debts)</div>
+          <div id="kpi-total-debts" class="text-2xl font-bold text-white mt-1">€ 0,00</div>
+          <div id="kpi-debt-ratio" class="text-xs text-amber-400 mt-1">Debt ratio: 0.0%</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
+          <div class="text-xs font-medium text-slate-400">Monthly Free Cashflow</div>
+          <div id="kpi-surplus" class="text-2xl font-bold text-emerald-400 mt-1">€ 0,00</div>
+          <div id="kpi-savings-rate" class="text-xs text-slate-500 mt-1">Available for allocation</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Allocation Donut -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-white">Current Allocation vs Targets</h3>
+            <span class="text-xs text-slate-400">By Bucket</span>
+          </div>
+          <div class="relative flex-1 min-h-[240px] flex items-center justify-center">
+            <canvas id="allocationDonutChart"></canvas>
+          </div>
+          <div id="donut-legend" class="mt-4 space-y-1.5 text-xs text-slate-300"></div>
+        </div>
+
+        <!-- 30-Year Net Worth Projection -->
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-semibold text-white">30-Year Compound Wealth Trajectory</h3>
+              <p class="text-xs text-slate-400">Simulated growth at 7.0% CAGR + monthly cashflow</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-300 border border-slate-700">Milestones: €250k • €500k • €1M</span>
+            </div>
+          </div>
+          <div class="relative flex-1 min-h-[240px]">
+            <canvas id="projectionAreaChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Guidance Summary -->
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+        <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+          <span>⚡ Immediate Strategic Recommendations</span>
+          <span id="advice-count-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-blue-500/20 text-blue-400 font-normal">Active</span>
+        </h3>
+        <div id="dashboard-advice-list" class="space-y-2.5">
+          <div class="text-xs text-slate-400">Loading guidance recommendations...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BUCKETS & DRIFT -->
+    <section id="tab-buckets" class="tab-content space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white">Strategic Allocation Buckets</h2>
+          <p class="text-xs text-slate-400">Define macro pillars, set target percentages, and track portfolio drift.</p>
+        </div>
+        <button onclick="openAddBucketModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition">
+          + Add Bucket
+        </button>
+      </div>
+
+      <!-- Buckets Table -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-850 text-slate-400 text-xs font-semibold border-b border-slate-800">
+              <tr>
+                <th class="px-4 py-3">Bucket</th>
+                <th class="px-4 py-3">Current Value</th>
+                <th class="px-4 py-3">Current Weight</th>
+                <th class="px-4 py-3">Target Weight</th>
+                <th class="px-4 py-3">Difference (€)</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="buckets-table-body" class="divide-y divide-slate-800 text-slate-200">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Allocation Progress Meters -->
+      <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-4">
+        <h3 class="text-sm font-semibold text-white">Allocation Visualizer & Tolerances</h3>
+        <div id="bucket-meters-container" class="space-y-4">
+          <!-- Meters populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: GUIDANCE & REBALANCING -->
+    <section id="tab-advice" class="tab-content space-y-6">
+      <!-- Smart Cash Deposit Advisor -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>💡 Smart Buy-Only Rebalancing Calculator</span>
+              <span class="text-xs font-normal text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Zero Forced Sales</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Enter your monthly investable surplus. Wealth Pilot solves the optimal distribution to underweight buckets to minimize tracking error without selling assets or triggering tax.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
+          <div class="w-full sm:w-72">
+            <label class="block text-xs font-medium text-slate-300 mb-1">Planned Deposit Amount (€)</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">€</span>
+              <input type="number" id="input-deposit-amount" value="1500" step="50" min="50" onchange="recalculateContribution()" class="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+          <button onclick="recalculateContribution()" class="w-full sm:w-auto px-4 py-2 mt-auto text-sm font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition">
+            Calculate Optimal Buy Orders
+          </button>
+        </div>
+
+        <!-- Calculated Orders List -->
+        <div id="contribution-results-container" class="mt-4 pt-4 border-t border-slate-800">
+          <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Recommended Purchase Allocation:</h4>
+          <div id="contribution-orders-list" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- Debt vs Investing Strategy -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
+        <h3 class="text-base font-bold text-white">⚖️ Debt Payoff vs. Investing Advisor</h3>
+        <p class="text-xs text-slate-400">
+          Evaluates your active liabilities against the long-term expected portfolio CAGR (7.0%). Debts with APR above 5.0% are prioritized for accelerated avalanche payoff.
+        </p>
+        <div id="debt-advisor-list" class="space-y-3 pt-2"></div>
+      </div>
+
+      <!-- Belgian Tax Exemption Module -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-white">🇧🇪 Belgian Capital Gains Tax Reference</h3>
+          <span class="text-xs text-slate-400">Dec 31, 2025 Cost Basis</span>
+        </div>
+        <p class="text-xs text-slate-400">
+          If you ever rebalance by selling over-allocated shares (e.g., ASML), gains are calculated relative to the benchmark price (€912.00) and exempt up to €10,000 annually.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+            <div class="text-xs text-slate-400">Annual Exemption</div>
+            <div class="text-lg font-bold text-white mt-0.5">€ 10.000,00</div>
+            <div class="text-[11px] text-emerald-400 mt-1">100% Available</div>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+            <div class="text-xs text-slate-400">Fiscal Benchmark Price</div>
+            <div class="text-lg font-bold text-white mt-0.5">€ 912,00</div>
+            <div class="text-[11px] text-slate-400 mt-1">Per ASML Share (31-12-2025)</div>
+          </div>
+          <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
+            <div class="text-xs text-slate-400">Tax Rate Above Exemption</div>
+            <div class="text-lg font-bold text-white mt-0.5">10.0%</div>
+            <div class="text-[11px] text-slate-400 mt-1">Belgian Capital Gains Rate</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CASHFLOW & INGESTION -->
+    <section id="tab-cashflow" class="tab-content space-y-6">
+      <!-- File Ingestion Dropzone -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="text-base font-bold text-white">📂 Ingest Financial Statements</h3>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Upload your <strong>KBC Bank CSV export</strong> or a <strong>Generic CSV</strong> portfolio/ledger file.
+            </p>
+          </div>
+          <a href="/api/template/generic" download class="text-xs text-blue-400 hover:text-blue-300 border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 rounded-lg flex items-center gap-1 transition">
+            <span>📥 Download Template CSV</span>
+          </a>
+        </div>
+
+        <div id="dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-8 text-center bg-slate-950/50 cursor-pointer transition">
+          <input type="file" id="file-input" class="hidden" accept=".csv" onchange="handleFileUpload(event)">
+          <div class="space-y-2">
+            <div class="text-3xl">📄</div>
+            <div class="text-sm font-medium text-white">Click to select or drag and drop your CSV file</div>
+            <div class="text-xs text-slate-500">Supports KBC exports (semicolon delimited) and generic CSV format</div>
+          </div>
+        </div>
+        <div id="upload-status" class="hidden text-xs py-2 px-3 rounded-lg"></div>
+      </div>
+
+      <!-- Transactions & Interactive Re-Bucketing -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm space-y-3 p-5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-semibold text-white">Recent Transactions & Categorization</h3>
+            <p class="text-xs text-slate-400">Click any transaction category to re-bucket and persist rules for future imports.</p>
+          </div>
+          <span id="tx-count-badge" class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">0 Transactions</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-850 text-slate-400 font-semibold border-b border-slate-800">
+              <tr>
+                <th class="px-3 py-2.5">Date</th>
+                <th class="px-3 py-2.5">Description</th>
+                <th class="px-3 py-2.5">Counterparty</th>
+                <th class="px-3 py-2.5 text-right">Amount</th>
+                <th class="px-3 py-2.5">Category / Bucket</th>
+              </tr>
+            </thead>
+            <tbody id="tx-table-body" class="divide-y divide-slate-800 text-slate-300">
+              <tr>
+                <td colspan="5" class="px-3 py-6 text-center text-slate-500">No transactions loaded yet. Upload your KBC CSV above.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: AI ADVISOR -->
+    <section id="tab-ai" class="tab-content space-y-6">
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🤖 AI Strategic Financial Advisor</span>
+              <span class="text-xs font-normal text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">BYO API Key</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">
+              Your consolidated financial data (net worth, bucket drift, debts, cashflow) is synthesized into an anonymized prompt for qualitative strategic review.
+            </p>
+          </div>
+        </div>
+
+        <!-- Provider & Key Config -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Provider</label>
+            <select id="ai-provider-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+              <option value="gemini">Google Gemini (Recommended)</option>
+              <option value="openai">OpenAI (GPT-4o)</option>
+              <option value="anthropic">Anthropic (Claude 3.5)</option>
+              <option value="ollama">Local Ollama</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-slate-400 mb-1">API Key</label>
+            <div class="flex gap-2">
+              <input type="password" id="ai-api-key" placeholder="Enter API key (or set in environment variable)" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
+              <button onclick="runAiReview()" id="btn-run-ai" class="px-4 py-2 text-xs font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition flex items-center gap-1.5 whitespace-nowrap">
+                <span>⚡ Run Review</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Prompt Question (Optional) -->
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Specific Question or Scenario (Optional)</label>
+          <input type="text" id="ai-user-question" placeholder="e.g. 'Should I pay down my 1.85% mortgage early or increase my ETF contributions?'" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
+        </div>
+
+        <!-- AI Output Window -->
+        <div class="pt-4 border-t border-slate-800">
+          <div id="ai-loading" class="hidden text-center py-8 text-slate-400 text-sm animate-pulse">
+            Analyzing your consolidated balance sheet and generating strategic guidance...
+          </div>
+          <div id="ai-output" class="bg-slate-950 border border-slate-800 p-5 rounded-lg text-sm text-slate-200 prose prose-invert max-w-none leading-relaxed">
+            Click "Run Review" above to generate a comprehensive AI strategic wealth consultation based on your current financial metrics.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Re-Bucketing & Rule Modal -->
+  <div id="rebucket-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <h3 class="text-base font-bold text-white">Re-Bucket Transaction</h3>
+      <div id="rebucket-tx-info" class="text-xs text-slate-400 bg-slate-950 p-3 rounded-lg border border-slate-800"></div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Select New Category / Bucket</label>
+        <select id="modal-category-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+          <option value="GROCERIES">Groceries / Supermarket</option>
+          <option value="LIVING_EXPENSES">Living Expenses</option>
+          <option value="MORTGAGE">Mortgage Servicing</option>
+          <option value="DEBT_REPAYMENT">Debt Repayment</option>
+          <option value="INSURANCE">Insurance</option>
+          <option value="SUBSCRIPTION">Subscriptions</option>
+          <option value="INVESTMENTS">Investments (Brokerage Funding)</option>
+          <option value="SAVINGS">Savings (Bunq/Buffer)</option>
+          <option value="INCOME">Income / Salary</option>
+          <option value="OTHER">Other</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <input type="checkbox" id="modal-remember-rule" checked class="rounded border-slate-700 text-blue-600 focus:ring-0">
+        <label for="modal-remember-rule" class="text-xs text-slate-300 cursor-pointer">
+          Remember this rule: Always categorize matching transactions to this bucket
+        </label>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+        <button onclick="closeRebucketModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="commitRebucket()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white">Apply & Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-App Help Modal -->
+  <div id="help-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>ℹ️ Wealth Pilot Guidance & Help</span>
+        </h3>
+        <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+        <div>
+          <h4 class="font-semibold text-white">🪣 Strategic Allocation Buckets</h4>
+          <p class="text-slate-400 mt-0.5">Unlike budgeting apps that track individual coffees, Wealth Pilot organizes your wealth into macro allocation pillars (Core World ETFs, Tech, Gold, Cash Buffer). Each bucket has a target weight (%) and drift tolerance (e.g. ±3.0%).</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-white">💡 Smart Buy-Only Rebalancing</h4>
+          <p class="text-slate-400 mt-0.5">Instead of selling your winning shares (which incurs transaction costs and taxes), Wealth Pilot calculates how to allocate your monthly incoming cashflow to underweight buckets, gradually bringing your portfolio back to target.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-white">📂 Ingestion Channels</h4>
+          <p class="text-slate-400 mt-0.5">Upload your KBC CSV export directly in the Cashflow tab. The parser automatically detects your checking balance, mortgage payments, and recurring expenses. Investment positions can be ingested via PDT MCP or Generic CSV.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-white">📖 Online Documentation</h4>
+          <p class="text-slate-400 mt-0.5">For comprehensive guides, visit the documentation site at <a href="https://tiwu.github.io/wealth-pilot/" target="_blank" class="text-blue-400 underline">https://tiwu.github.io/wealth-pilot/</a>.</p>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button onclick="closeHelpModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let currentData = null;
+    let donutChartInstance = null;
+    let projectionChartInstance = null;
+    let activeRebucketTx = null;
+
+    // Navigation Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => {
+        el.classList.remove('bg-blue-600', 'text-white');
+        el.classList.add('text-slate-300', 'hover:bg-slate-800');
+      });
+      document.getElementById('tab-' + tabId).classList.add('active');
+      const activeBtn = document.getElementById('nav-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+        activeBtn.classList.add('bg-blue-600', 'text-white');
+      }
+    }
+
+    function openHelpModal() { document.getElementById('help-modal').classList.remove('hidden'); }
+    function closeHelpModal() { document.getElementById('help-modal').classList.add('hidden'); }
+
+    // Initial Data Fetch
+    async function loadOverview() {
+      try {
+        const res = await fetch('/api/overview');
+        if (!res.ok) return;
+        currentData = await res.json();
+        renderDashboard(currentData);
+        renderBuckets(currentData);
+        renderAdvice(currentData);
+        renderTransactions(currentData);
+      } catch (err) {
+        console.error('Failed to load overview:', err);
+      }
+    }
+
+    function renderDashboard(data) {
+      document.getElementById('kpi-net-worth').textContent = data.net_worth_formatted;
+      document.getElementById('kpi-total-assets').textContent = data.total_assets_formatted;
+      document.getElementById('kpi-total-debts').textContent = data.total_liabilities_formatted;
+      document.getElementById('kpi-surplus').textContent = data.free_cashflow_formatted;
+      document.getElementById('kpi-debt-ratio').textContent = `Debt ratio: ${data.debt_to_asset_ratio}%`;
+      document.getElementById('kpi-savings-rate').textContent = `Savings rate: ${data.savings_rate_pct}%`;
+      document.getElementById('kpi-asset-count').textContent = `Across ${data.asset_count} assets & cash`;
+
+      renderDonutChart(data.allocations);
+      renderProjectionChart(data.trajectory);
+
+      // Top recommendations
+      const adviceContainer = document.getElementById('dashboard-advice-list');
+      adviceContainer.innerHTML = '';
+      (data.advices || []).slice(0, 4).forEach(adv => {
+        const item = document.createElement('div');
+        item.className = 'p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs flex items-start gap-2.5';
+        const badgeColor = adv.priority === 'CRITICAL' ? 'bg-red-500/20 text-red-400 border-red-500/30' : (adv.priority === 'HIGH' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30');
+        item.innerHTML = `
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border ${badgeColor}">${adv.priority}</span>
+          <div>
+            <div class="font-semibold text-white">${adv.title}</div>
+            <div class="text-slate-400 mt-0.5">${adv.message}</div>
+          </div>
+        `;
+        adviceContainer.appendChild(item);
+      });
+      document.getElementById('advice-count-badge').textContent = `${(data.advices || []).length} Recommendations`;
+    }
+
+    function renderDonutChart(allocations) {
+      const ctx = document.getElementById('allocationDonutChart').getContext('2d');
+      if (donutChartInstance) donutChartInstance.destroy();
+
+      const labels = allocations.map(a => a.name);
+      const values = allocations.map(a => a.current_value);
+      const colors = allocations.map(a => a.color || '#3B82F6');
+
+      donutChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: colors,
+            borderColor: '#0f172a',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(c) {
+                  return ` ${c.label}: € ${c.raw.toLocaleString('de-DE', {minimumFractionDigits: 2})}`;
+                }
+              }
+            }
+          },
+          cutout: '68%'
+        }
+      });
+
+      // Legend
+      const legendContainer = document.getElementById('donut-legend');
+      legendContainer.innerHTML = '';
+      allocations.forEach(a => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between';
+        row.innerHTML = `
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${a.color}"></span>
+            <span class="text-slate-300">${a.name}</span>
+          </div>
+          <div class="font-medium text-white">${a.current_weight_pct}% <span class="text-slate-500 font-normal">(tgt ${a.target_weight_pct}%)</span></div>
+        `;
+        legendContainer.appendChild(row);
+      });
+    }
+
+    function renderProjectionChart(trajectory) {
+      const ctx = document.getElementById('projectionAreaChart').getContext('2d');
+      if (projectionChartInstance) projectionChartInstance.destroy();
+
+      const labels = trajectory.map(t => `Year ${t.year}`);
+      const netWorthData = trajectory.map(t => t.net_worth);
+      const assetsData = trajectory.map(t => t.assets);
+      const debtsData = trajectory.map(t => t.debts);
+
+      projectionChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Net Worth',
+              data: netWorthData,
+              borderColor: '#10B981',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Assets',
+              data: assetsData,
+              borderColor: '#3B82F6',
+              borderDash: [5, 5],
+              tension: 0.3
+            },
+            {
+              label: 'Debts',
+              data: debtsData,
+              borderColor: '#EF4444',
+              borderDash: [2, 2],
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                label: function(c) {
+                  return ` ${c.dataset.label}: € ${c.raw.toLocaleString('de-DE', {minimumFractionDigits: 0})}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } },
+            y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b', callback: v => `€ ${v/1000}k` } }
+          }
+        }
+      });
+    }
+
+    function renderBuckets(data) {
+      const tbody = document.getElementById('buckets-table-body');
+      tbody.innerHTML = '';
+      const meters = document.getElementById('bucket-meters-container');
+      meters.innerHTML = '';
+
+      data.allocations.forEach(a => {
+        // Table row
+        const tr = document.createElement('tr');
+        const statusBadge = a.drift_status === 'BALANCED' ? '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400">Balanced</span>' : (a.drift_status === 'UNDERWEIGHT' ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">Underweight</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Overweight</span>');
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-medium flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${a.color}"></span>
+            ${a.name}
+          </td>
+          <td class="px-4 py-3">€ ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
+          <td class="px-4 py-3 font-semibold">${a.current_weight_pct}%</td>
+          <td class="px-4 py-3">
+            <input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${a.bucket_id}', '${a.name}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white"> %
+          </td>
+          <td class="px-4 py-3 ${a.diff_value < 0 ? 'text-blue-400' : 'text-amber-400'}">
+            ${a.diff_value > 0 ? '+' : ''}€ ${a.diff_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}
+          </td>
+          <td class="px-4 py-3">${statusBadge}</td>
+          <td class="px-4 py-3 text-right">
+            <button onclick="rebalanceBucket('${a.bucket_id}')" class="text-xs text-blue-400 hover:text-blue-300">Rebalance</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+
+        // Progress meter
+        const meter = document.createElement('div');
+        meter.className = 'space-y-1';
+        meter.innerHTML = `
+          <div class="flex justify-between text-xs">
+            <span class="font-medium text-white">${a.name}</span>
+            <span class="text-slate-400">Current: ${a.current_weight_pct}% / Target: ${a.target_weight_pct}% (±${a.drift_tolerance_pct}%)</span>
+          </div>
+          <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 relative">
+            <div class="h-full rounded-full transition-all duration-500" style="width: ${Math.min(100, a.current_weight_pct)}%; background-color: ${a.color}"></div>
+          </div>
+        `;
+        meters.appendChild(meter);
+      });
+    }
+
+    function renderAdvice(data) {
+      // Debt items
+      const debtContainer = document.getElementById('debt-advisor-list');
+      debtContainer.innerHTML = '';
+      (data.advices || []).filter(a => a.advice_type.includes('DEBT')).forEach(adv => {
+        const item = document.createElement('div');
+        item.className = 'p-4 rounded-lg bg-slate-950 border border-slate-800 text-xs';
+        item.innerHTML = `
+          <div class="font-bold text-white text-sm mb-1">${adv.title}</div>
+          <div class="text-slate-300 leading-relaxed">${adv.message}</div>
+        `;
+        debtContainer.appendChild(item);
+      });
+
+      recalculateContribution();
+    }
+
+    function recalculateContribution() {
+      if (!currentData || !currentData.allocations) return;
+      const depositAmt = parseFloat(document.getElementById('input-deposit-amount').value || 0);
+      const underweight = currentData.allocations.filter(a => a.diff_value < 0);
+      const ordersContainer = document.getElementById('contribution-orders-list');
+      ordersContainer.innerHTML = '';
+
+      if (underweight.length === 0) {
+        ordersContainer.innerHTML = '<div class="text-xs text-slate-400">All buckets are balanced! You can distribute this deposit proportionally across your targets.</div>';
+        return;
+      }
+
+      const totalDeficit = underweight.reduce((acc, a) => acc + Math.abs(a.diff_value), 0);
+      underweight.forEach(a => {
+        const share = (depositAmt * (Math.abs(a.diff_value) / totalDeficit));
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs';
+        div.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${a.color}"></span>
+            <span class="font-semibold text-white">${a.name}</span>
+            <span class="text-slate-500">(Deficit: € ${Math.abs(a.diff_value).toLocaleString('de-DE', {minimumFractionDigits: 2})})</span>
+          </div>
+          <div class="text-emerald-400 font-bold text-sm">BUY € ${share.toLocaleString('de-DE', {minimumFractionDigits: 2})}</div>
+        `;
+        ordersContainer.appendChild(div);
+      });
+    }
+
+    function renderTransactions(data) {
+      const tbody = document.getElementById('tx-table-body');
+      tbody.innerHTML = '';
+      const txs = data.transactions || [];
+      document.getElementById('tx-count-badge').textContent = `${txs.length} Transactions`;
+
+      if (txs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">No transactions loaded yet. Upload your KBC CSV above.</td></tr>';
+        return;
+      }
+
+      txs.slice(0, 100).forEach(tx => {
+        const tr = document.createElement('tr');
+        const isPositive = tx.amount_value > 0;
+        tr.innerHTML = `
+          <td class="px-3 py-2 text-slate-400 whitespace-nowrap">${tx.date}</td>
+          <td class="px-3 py-2 font-medium text-white max-w-xs truncate" title="${tx.description}">${tx.description}</td>
+          <td class="px-3 py-2 text-slate-400 truncate max-w-[140px]">${tx.counterparty_name || '-'}</td>
+          <td class="px-3 py-2 text-right font-mono font-semibold ${isPositive ? 'text-emerald-400' : 'text-slate-200'}">
+            ${isPositive ? '+' : ''}${tx.amount_formatted}
+          </td>
+          <td class="px-3 py-2">
+            <button onclick="openRebucketModal('${tx.id}', '${tx.description.replace(/'/g, "\\'")}', '${tx.counterparty_name.replace(/'/g, "\\'")}', '${tx.category}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-blue-400 text-xs border border-slate-700">
+              ${tx.category} ▾
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // File Drag & Drop
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('click', () => document.getElementById('file-input').click());
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('border-blue-500'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('border-blue-500'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('border-blue-500');
+      if (e.dataTransfer.files.length > 0) uploadFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFileUpload(e) {
+      if (e.target.files.length > 0) uploadFile(e.target.files[0]);
+    }
+
+    async function uploadFile(file) {
+      const status = document.getElementById('upload-status');
+      status.className = 'text-xs py-2 px-3 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30';
+      status.textContent = `Uploading and parsing ${file.name}...`;
+      status.classList.remove('hidden');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const isKbc = file.name.toLowerCase().includes('kbc');
+        const endpoint = isKbc ? '/api/ingest/kbc' : '/api/ingest/generic';
+        const res = await fetch(endpoint, { method: 'POST', body: formData });
+        const result = await res.json();
+        if (res.ok) {
+          status.className = 'text-xs py-2 px-3 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+          status.textContent = `Successfully parsed ${file.name}! Loaded ${result.transaction_count || result.asset_count} records.`;
+          await loadOverview();
+        } else {
+          throw new Error(result.detail || 'Upload failed');
+        }
+      } catch (err) {
+        status.className = 'text-xs py-2 px-3 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30';
+        status.textContent = `Error parsing file: ${err.message}`;
+      }
+    }
+
+    // Re-Bucketing Modal
+    function openRebucketModal(txId, desc, counterparty, currentCat) {
+      activeRebucketTx = { id: txId, description: desc, counterparty: counterparty };
+      document.getElementById('rebucket-tx-info').innerHTML = `
+        <div class="font-semibold text-white">${desc}</div>
+        <div class="text-slate-400 mt-0.5">Counterparty: ${counterparty || 'N/A'}</div>
+      `;
+      document.getElementById('modal-category-select').value = currentCat || 'OTHER';
+      document.getElementById('rebucket-modal').classList.remove('hidden');
+    }
+
+    function closeRebucketModal() {
+      document.getElementById('rebucket-modal').classList.add('hidden');
+      activeRebucketTx = null;
+    }
+
+    async function commitRebucket() {
+      if (!activeRebucketTx) return;
+      const targetCat = document.getElementById('modal-category-select').value;
+      const remember = document.getElementById('modal-remember-rule').checked;
+
+      try {
+        await fetch('/api/transactions/rebucket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transaction_id: activeRebucketTx.id,
+            target_category: targetCat,
+            counterparty_name: activeRebucketTx.counterparty,
+            remember_rule: remember
+          })
+        });
+        closeRebucketModal();
+        await loadOverview();
+      } catch (err) {
+        alert('Failed to re-bucket transaction');
+      }
+    }
+
+    async function updateTarget(bucketId, name, val) {
+      try {
+        await fetch('/api/buckets/target', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bucket_id: bucketId, name: name, target_weight_pct: parseFloat(val) })
+        });
+        await loadOverview();
+      } catch (err) {
+        console.error('Failed to update bucket:', err);
+      }
+    }
+
+    // AI Review
+    async function runAiReview() {
+      const btn = document.getElementById('btn-run-ai');
+      const loader = document.getElementById('ai-loading');
+      const output = document.getElementById('ai-output');
+      const provider = document.getElementById('ai-provider-select').value;
+      const key = document.getElementById('ai-api-key').value;
+      const question = document.getElementById('ai-user-question').value;
+
+      btn.disabled = true;
+      loader.classList.remove('hidden');
+      output.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/ai/advise', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: provider, api_key: key, question: question })
+        });
+        const data = await res.json();
+        output.innerHTML = marked.parse(data.advice);
+      } catch (err) {
+        output.innerHTML = `<span class="text-red-400">Error generating AI review: ${err.message}</span>`;
+      } finally {
+        btn.disabled = false;
+        loader.classList.add('hidden');
+        output.classList.remove('hidden');
+      }
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', loadOverview);
+  </script>
+</body>
+</html>

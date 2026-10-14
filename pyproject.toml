@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wealth-pilot"
+version = "0.1.0"
+description = "Strategic Wealth & Asset Allocation Guidance Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Wealth Pilot Contributors" }
+]
+dependencies = [
+    "textual>=0.80.0",
+    "rich>=13.7.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.28.0",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27.0",
+    "pydantic>=2.6.0",
+    "typer>=0.12.0",
+    "pyyaml>=6.0.1",
+    "jinja2>=3.1.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "respx>=0.21.0",
+    "ruff>=0.5.0",
+    "mkdocs-material>=9.5.0",
+]
+
+[project.scripts]
+wealth-pilot = "wealth_pilot.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wealth_pilot"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+    "B008", # do not perform function calls in argument defaults (standard for Typer and FastAPI)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
