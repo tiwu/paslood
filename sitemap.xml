@@ -2,62 +2,66 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/getting-started/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/ai-advisor/setup/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/concepts/balance-sheet/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/concepts/buckets/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/concepts/rebalancing/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/guidance/debt-payoff/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/guidance/net-worth-projections/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/guidance/tax-optimization/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/ingestion/generic-csv/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/ingestion/kbc-csv/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/ingestion/manual-accounts/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/ingestion/pdt-mcp/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/plans/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
+    </url>
+    <url>
+         <loc>https://tiwu.github.io/wealth-pilot/plans/PLAN-3-option-to-exclude-bucket-from-weight-cal/</loc>
+         <lastmod>2026-10-15</lastmod>
     </url>
     <url>
          <loc>https://tiwu.github.io/wealth-pilot/plans/PLAN-TEMPLATE/</loc>
-         <lastmod>2026-10-14</lastmod>
+         <lastmod>2026-10-15</lastmod>
     </url>
 </urlset>
