@@ -203,8 +203,9 @@ class IssuePoller:
 """
 
     def process_planning_stage(self, issue: GitHubIssue) -> Path:
-        """Stage 1: Generate plan file, comment on issue, and mark agent:plan-review."""
+        """Stage 1: Generate plan file, commit & push to remote branch, comment on issue, and mark agent:plan-review."""
         plan_filename = f"PLAN-{issue.number}-{issue.slug}.md"
+        branch_name = f"feature/issue-{issue.number}-{issue.slug}"
         plans_dir = self.repo_root / "docs" / "plans"
         plans_dir.mkdir(parents=True, exist_ok=True)
         plan_path = plans_dir / plan_filename
@@ -213,14 +214,83 @@ class IssuePoller:
         if not self.dry_run:
             plan_path.write_text(content, encoding="utf-8")
             print(f"✓ Created architecture plan: {plan_path.relative_to(self.repo_root)}")
+
+            # Commit and push plan to remote branch so it is accessible on GitHub remotely
+            try:
+                # Ensure user identity is set
+                user_res = subprocess.run(
+                    ["git", "config", "user.name"],
+                    cwd=self.repo_root,
+                    capture_output=True,
+                    text=True,
+                )
+                if not user_res.stdout.strip():
+                    subprocess.run(
+                        ["git", "config", "user.name", "github-actions[bot]"],
+                        cwd=self.repo_root,
+                        check=True,
+                    )
+                    subprocess.run(
+                        [
+                            "git",
+                            "config",
+                            "user.email",
+                            "github-actions[bot]@users.noreply.github.com",
+                        ],
+                        cwd=self.repo_root,
+                        check=True,
+                    )
+
+                subprocess.run(
+                    ["git", "checkout", "-B", branch_name],
+                    cwd=self.repo_root,
+                    check=True,
+                    capture_output=True,
+                )
+                subprocess.run(
+                    ["git", "add", str(plan_path.relative_to(self.repo_root))],
+                    cwd=self.repo_root,
+                    check=True,
+                    capture_output=True,
+                )
+                status_res = subprocess.run(
+                    ["git", "status", "--porcelain"],
+                    cwd=self.repo_root,
+                    capture_output=True,
+                    text=True,
+                )
+                if status_res.stdout.strip():
+                    subprocess.run(
+                        [
+                            "git",
+                            "commit",
+                            "-m",
+                            f"docs: add architecture plan for issue #{issue.number}",
+                        ],
+                        cwd=self.repo_root,
+                        check=True,
+                        capture_output=True,
+                    )
+                subprocess.run(
+                    ["git", "push", "-u", "origin", branch_name],
+                    cwd=self.repo_root,
+                    check=True,
+                    capture_output=True,
+                )
+                print(f"✓ Committed and pushed plan to remote branch '{branch_name}'")
+            except Exception as e:
+                print(f"Warning: Failed to git push plan to remote: {e}", file=sys.stderr)
         else:
             print(f"[DRY-RUN] Would create architecture plan: {plan_path}")
 
-        # Post plan comment on issue
+        # Post plan comment on issue with direct link to the remote branch
+        plan_remote_url = (
+            f"https://github.com/{self.repo}/blob/{branch_name}/docs/plans/{plan_filename}"
+        )
         comment = (
             f"### 📋 Architecture Plan Ready for Review\n\n"
-            f"An initial architecture plan has been drafted and saved to "
-            f"[`docs/plans/{plan_filename}`](https://github.com/{self.repo}/blob/main/docs/plans/{plan_filename}).\n\n"
+            f"An initial architecture plan has been drafted and published to "
+            f"[`docs/plans/{plan_filename}`]({plan_remote_url}).\n\n"
             f"<details><summary>Click to preview full architecture plan</summary>\n\n"
             f"{content}\n\n"
             f"</details>\n\n"

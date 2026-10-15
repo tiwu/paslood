@@ -80,6 +80,105 @@ def test_calculate_bucket_allocation_and_drift():
     assert gold.drift_status == DriftStatus.BALANCED
 
 
+def test_calculate_bucket_allocation_with_excluded_bucket():
+    # 100k liquid assets + 400k primary residence (real estate)
+    assets = [
+        Asset(id="1", name="NVDA", symbol="NVDA", current_value=Money.from_val(60000.0)),
+        Asset(
+            id="2",
+            name="VWCE",
+            symbol="VWCE",
+            asset_class=AssetClass.ETF,
+            current_value=Money.from_val(30000.0),
+        ),
+        Asset(
+            id="3",
+            name="Physical Gold",
+            symbol="GOLD",
+            asset_class=AssetClass.COMMODITY,
+            current_value=Money.from_val(10000.0),
+        ),
+        Asset(
+            id="4",
+            name="Primary Residence",
+            symbol="HOUSE",
+            asset_class=AssetClass.REAL_ESTATE,
+            current_value=Money.from_val(400000.0),
+        ),
+    ]
+
+    buckets = [
+        Bucket(
+            id="b_tech",
+            name="Tech Equities",
+            target_weight_pct=Decimal("40.0"),
+            drift_tolerance_pct=Decimal("3.0"),
+            rules=[AllocationRule(symbols={"NVDA"})],
+            include_in_rebalancing=True,
+        ),
+        Bucket(
+            id="b_etf",
+            name="Broad Market ETF",
+            target_weight_pct=Decimal("50.0"),
+            drift_tolerance_pct=Decimal("3.0"),
+            rules=[AllocationRule(symbols={"VWCE"})],
+            include_in_rebalancing=True,
+        ),
+        Bucket(
+            id="b_gold",
+            name="Gold",
+            target_weight_pct=Decimal("10.0"),
+            drift_tolerance_pct=Decimal("2.0"),
+            rules=[AllocationRule(symbols={"GOLD"})],
+            include_in_rebalancing=True,
+        ),
+        Bucket(
+            id="b_real_estate",
+            name="Real Estate (House)",
+            target_weight_pct=Decimal("0.0"),
+            rules=[AllocationRule(symbols={"HOUSE"})],
+            include_in_rebalancing=False,  # Excluded from rebalancing
+        ),
+    ]
+
+    use_case = CalculateBucketAllocationUseCase()
+    results = use_case.execute(assets=assets, buckets=buckets)
+
+    assert len(results) == 4
+
+    tech = next(r for r in results if r.bucket_id == "b_tech")
+    etf = next(r for r in results if r.bucket_id == "b_etf")
+    gold = next(r for r in results if r.bucket_id == "b_gold")
+    house = next(r for r in results if r.bucket_id == "b_real_estate")
+
+    # Liquid rebalancing calculations should use 100k total (not 500k!)
+    assert tech.current_weight_pct == Decimal("60.00")
+    assert tech.diff_value == Decimal("20000.00")
+    assert tech.drift_status == DriftStatus.OVERWEIGHT
+
+    assert etf.current_weight_pct == Decimal("30.00")
+    assert etf.diff_value == Decimal("-20000.00")
+    assert etf.drift_status == DriftStatus.UNDERWEIGHT
+
+    assert gold.current_weight_pct == Decimal("10.00")
+    assert gold.drift_status == DriftStatus.BALANCED
+
+    # Excluded bucket should not create drift deficit/excess
+    assert house.include_in_rebalancing is False
+    assert house.current_value == Decimal("400000.00")
+    assert house.diff_value == Decimal("0.00")
+    assert house.drift_status == DriftStatus.BALANCED
+
+    # Deposit contribution should only be distributed to included underweight bucket (ETF)
+    contrib_use_case = AdviseContributionUseCase()
+    allocations = contrib_use_case.execute(
+        deposit=Money.from_val(10000.0), allocation_results=results
+    )
+    assert len(allocations) == 1
+    assert allocations[0].bucket_id == "b_etf"
+    assert allocations[0].amount.amount == Decimal("10000.00")
+
+
 def test_advise_contribution_buy_only():
     assets = [
         Asset(id="1", name="NVDA", symbol="NVDA", current_value=Money.from_val(60000.0)),

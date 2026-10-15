@@ -23,22 +23,30 @@ class AdviseContributionUseCase:
         if deposit_amt <= Decimal("0.00"):
             return []
 
-        # Find underweight buckets (diff_value < 0)
-        underweight = [r for r in allocation_results if r.diff_value < Decimal("0.00")]
+        # Find underweight buckets (diff_value < 0) that are included in rebalancing
+        underweight = [
+            r
+            for r in allocation_results
+            if r.diff_value < Decimal("0.00") and r.include_in_rebalancing
+        ]
 
         if not underweight:
-            # If all buckets balanced or overweight, distribute by target weights
+            # If all buckets balanced or overweight, distribute by target weights of included buckets
             total_target_pct = sum(
                 (
                     r.target_weight_pct
                     for r in allocation_results
-                    if r.target_weight_pct > Decimal("0")
+                    if r.target_weight_pct > Decimal("0") and r.include_in_rebalancing
                 ),
                 Decimal("0.00"),
             )
             allocations: list[ContributionAllocation] = []
             for r in allocation_results:
-                if r.target_weight_pct > Decimal("0") and total_target_pct > Decimal("0"):
+                if (
+                    r.include_in_rebalancing
+                    and r.target_weight_pct > Decimal("0")
+                    and total_target_pct > Decimal("0")
+                ):
                     ratio = r.target_weight_pct / total_target_pct
                     share = (deposit_amt * ratio).quantize(Decimal("0.01"))
                     pct = (ratio * Decimal("100.0")).quantize(Decimal("0.01"))

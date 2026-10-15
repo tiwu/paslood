@@ -57,6 +57,7 @@ class Bucket:
     rules: list[AllocationRule] = field(default_factory=list)
     description: str = ""
     color: str = "#3B82F6"  # Hex color for UI charts
+    include_in_rebalancing: bool = True
 
     @property
     def target_weight(self) -> Decimal:
@@ -85,3 +86,4 @@ class BucketAllocationResult:
     drift_status: DriftStatus
     drift_tolerance_pct: Decimal
     color: str = "#3B82F6"
+    include_in_rebalancing: bool = True

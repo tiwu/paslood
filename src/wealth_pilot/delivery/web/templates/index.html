@@ -998,6 +998,13 @@
           <label class="block font-medium text-slate-300 mb-1">Description (Optional)</label>
           <input type="text" id="bucket-modal-desc" placeholder="e.g. High cashflow rental properties or physical bullion" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
         </div>
+        <div class="pt-1">
+          <label class="flex items-center gap-2 cursor-pointer select-none text-slate-300">
+            <input type="checkbox" id="bucket-modal-include-rebalancing" class="rounded bg-slate-950 border-slate-700 text-blue-600 focus:ring-blue-500 w-4 h-4" checked>
+            <span class="font-medium">Include in portfolio rebalancing calculations</span>
+          </label>
+          <p class="text-[11px] text-slate-500 pl-6 mt-0.5">Uncheck for illiquid assets (like primary residence / house or locked pension) so they do not distort rebalancing weights or deposit recommendations.</p>
+        </div>
       </div>
 
       <div class="flex items-center justify-between pt-3 border-t border-slate-800">
@@ -1541,19 +1548,21 @@
       document.getElementById('bucket-modal-target').value = '10.0';
       document.getElementById('bucket-modal-tolerance').value = '3.0';
       document.getElementById('bucket-modal-desc').value = '';
+      document.getElementById('bucket-modal-include-rebalancing').checked = true;
       document.getElementById('bucket-modal-delete-btn').classList.add('hidden');
       const nextColor = BUCKET_PALETTE[(currentData?.allocations?.length || 0) % BUCKET_PALETTE.length];
       selectBucketColor(nextColor);
       document.getElementById('bucket-modal').classList.remove('hidden');
     }
 
-    function openEditBucketModal(bucketId, name, color, target, tolerance, desc) {
+    function openEditBucketModal(bucketId, name, color, target, tolerance, desc, includeInRebalancing) {
       document.getElementById('bucket-modal-title').innerHTML = `<span>✏️ Edit Bucket: ${name}</span>`;
       document.getElementById('bucket-modal-id').value = bucketId;
       document.getElementById('bucket-modal-name').value = name;
       document.getElementById('bucket-modal-target').value = target;
       document.getElementById('bucket-modal-tolerance').value = tolerance || 3.0;
       document.getElementById('bucket-modal-desc').value = desc || '';
+      document.getElementById('bucket-modal-include-rebalancing').checked = includeInRebalancing !== false;
       document.getElementById('bucket-modal-delete-btn').classList.remove('hidden');
       selectBucketColor(color || '#3B82F6');
       document.getElementById('bucket-modal').classList.remove('hidden');
@@ -1570,6 +1579,7 @@
       const tolerance = parseFloat(document.getElementById('bucket-modal-tolerance').value) || 3.0;
       const color = document.getElementById('bucket-modal-color').value;
       const desc = document.getElementById('bucket-modal-desc').value.trim();
+      const includeInRebalancing = document.getElementById('bucket-modal-include-rebalancing').checked;
 
       if (!name) {
         alert('Please enter a bucket name.');
@@ -1582,7 +1592,8 @@
         target_weight_pct: target,
         drift_tolerance_pct: tolerance,
         color: color,
-        description: desc
+        description: desc,
+        include_in_rebalancing: includeInRebalancing
       };
 
       try {
@@ -1630,24 +1641,29 @@
       data.allocations.forEach(a => {
         // Table row
         const tr = document.createElement('tr');
-        const statusBadge = a.drift_status === 'BALANCED' ? '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400">Balanced</span>' : (a.drift_status === 'UNDERWEIGHT' ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">Underweight</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Overweight</span>');
+        const isExcluded = a.include_in_rebalancing === false;
+        const excludedBadge = isExcluded ? '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-normal ml-1">Excluded</span>' : '';
+        const statusBadge = isExcluded ? '<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400 border border-slate-700">Excluded</span>' : (a.drift_status === 'BALANCED' ? '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400">Balanced</span>' : (a.drift_status === 'UNDERWEIGHT' ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">Underweight</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Overweight</span>'));
         const safeName = (a.name || '').replace(/'/g, "\\'");
+        const diffDisplay = isExcluded ? '—' : `${a.diff_value > 0 ? '+' : ''}€ ${a.diff_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}`;
+        const weightDisplay = isExcluded ? '—' : `${a.current_weight_pct}%`;
+        const targetDisplay = isExcluded ? '—' : `<input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${a.bucket_id}', '${safeName}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"> %`;
+
         tr.innerHTML = `
           <td class="px-4 py-3 font-medium flex items-center gap-2">
             <span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color: ${a.color}"></span>
             <span class="text-white font-semibold">${a.name}</span>
+            ${excludedBadge}
           </td>
           <td class="px-4 py-3 font-mono">€ ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
-          <td class="px-4 py-3 font-semibold font-mono">${a.current_weight_pct}%</td>
-          <td class="px-4 py-3">
-            <input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${a.bucket_id}', '${safeName}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"> %
-          </td>
+          <td class="px-4 py-3 font-semibold font-mono">${weightDisplay}</td>
+          <td class="px-4 py-3">${targetDisplay}</td>
           <td class="px-4 py-3 font-mono ${a.diff_value < 0 ? 'text-blue-400' : 'text-amber-400'}">
-            ${a.diff_value > 0 ? '+' : ''}€ ${a.diff_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}
+            ${diffDisplay}
           </td>
           <td class="px-4 py-3">${statusBadge}</td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
-            <button onclick="openEditBucketModal('${a.bucket_id}', '${safeName}', '${a.color}', ${a.target_weight_pct}, ${a.drift_tolerance_pct})" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit / Rename</button>
+            <button onclick="openEditBucketModal('${a.bucket_id}', '${safeName}', '${a.color}', ${a.target_weight_pct}, ${a.drift_tolerance_pct}, '', ${a.include_in_rebalancing !== false})" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit / Rename</button>
             <button onclick="deleteBucket('${a.bucket_id}', '${safeName}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
           </td>
         `;
@@ -1661,11 +1677,12 @@
             <span class="font-medium text-white flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${a.color}"></span>
               ${a.name}
+              ${excludedBadge}
             </span>
-            <span class="text-slate-400 font-mono text-[11px]">Current: ${a.current_weight_pct}% / Target: ${a.target_weight_pct}% (±${a.drift_tolerance_pct}%)</span>
+            <span class="text-slate-400 font-mono text-[11px]">${isExcluded ? 'Excluded from Rebalancing • € ' + a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2}) : 'Current: ' + a.current_weight_pct + '% / Target: ' + a.target_weight_pct + '% (±' + a.drift_tolerance_pct + '%)'}</span>
           </div>
           <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 relative">
-            <div class="h-full rounded-full transition-all duration-500 shadow-sm" style="width: ${Math.min(100, a.current_weight_pct)}%; background-color: ${a.color}"></div>
+            <div class="h-full rounded-full transition-all duration-500 shadow-sm" style="width: ${isExcluded ? 0 : Math.min(100, a.current_weight_pct)}%; background-color: ${a.color}"></div>
           </div>
         `;
         meters.appendChild(meter);
