@@ -51,7 +51,13 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         self, client: httpx.AsyncClient, prompt: str, system_prompt: str | None
     ) -> str:
         clean_model = (self.model or "gemini-2.5-flash").removeprefix("models/")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={self.api_key}"
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
+        )
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": self.api_key,
+        }
         contents: list[dict[str, Any]] = []
         if system_prompt:
             contents.append(
@@ -65,7 +71,7 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             )
         contents.append({"role": "user", "parts": [{"text": prompt}]})
 
-        resp = await client.post(url, json={"contents": contents})
+        resp = await client.post(url, headers=headers, json={"contents": contents})
         if resp.is_error:
             try:
                 err_data = resp.json()
@@ -123,9 +129,11 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             ]
             if api_key:
                 try:
+                    headers = {"x-goog-api-key": api_key}
                     async with httpx.AsyncClient(timeout=5.0) as client:
                         resp = await client.get(
-                            f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+                            "https://generativelanguage.googleapis.com/v1beta/models",
+                            headers=headers,
                         )
                         if resp.status_code == 200:
                             data = resp.json()

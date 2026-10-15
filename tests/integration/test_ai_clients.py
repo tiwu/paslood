@@ -17,7 +17,7 @@ async def test_ai_fallback_algorithmic():
 @pytest.mark.asyncio
 async def test_ai_call_gemini():
     async def gemini_mock(request: httpx.Request) -> httpx.Response:
-        assert "key=test-gemini-key" in str(request.url)
+        assert request.headers.get("x-goog-api-key") == "test-gemini-key"
         return httpx.Response(
             200,
             json={

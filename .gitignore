@@ -36,6 +36,7 @@ coverage.xml
 .pytest_cache/
 htmlcov/
 site/
+docs_dist/
 
 
 # Tooling
@@ -43,7 +44,14 @@ site/
 .ruff_cache/
 
 # User Data & Secrets
+.env.*
 pdt_auth.json
+portfolio.yaml
+rules.yaml
+wealth_pilot.db
+*.db
+*.sqlite
+*.sqlite3
 *.local.yaml
 *.local.json
 *.csv

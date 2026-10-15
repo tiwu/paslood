@@ -53,12 +53,16 @@ jobs:
       - name: Run Autonomous Issue Poller
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_ISSUE: ${{ github.event.inputs.issue }}
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO_NAME: ${{ github.repository }}
         run: |
-          ISSUE_PARAM=""
-          if [ -n "${{ github.event.inputs.issue }}" ]; then
-            ISSUE_PARAM="--issue ${{ github.event.inputs.issue }}"
-          elif [ "${{ github.event_name }}" = "issues" ]; then
-            ISSUE_PARAM="--issue ${{ github.event.issue.number }}"
+          ARGS=("--repo" "$REPO_NAME")
+          if [ -n "$INPUT_ISSUE" ]; then
+            ARGS+=("--issue" "$INPUT_ISSUE")
+          elif [ "$EVENT_NAME" = "issues" ] && [ -n "$ISSUE_NUMBER" ]; then
+            ARGS+=("--issue" "$ISSUE_NUMBER")
           fi
-          echo "Executing poll_issues with args: $ISSUE_PARAM"
-          uv run python scripts/poll_issues.py --repo "${{ github.repository }}" $ISSUE_PARAM
+          echo "Executing poll_issues with args: ${ARGS[*]}"
+          uv run python scripts/poll_issues.py "${ARGS[@]}"
