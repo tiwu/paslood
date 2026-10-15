@@ -149,3 +149,58 @@ async def test_kbc_detected_loans_have_zero_fake_balance_and_are_editable(app_wi
         )
         assert updated_mortgage["principal_balance"] == 175000.0
         assert updated_mortgage["interest_rate_pct"] == 1.95
+
+
+@pytest.mark.asyncio
+async def test_exclude_bucket_from_rebalancing_api(app_with_db):
+    transport = ASGITransport(app=app_with_db)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Create an excluded bucket (e.g., Real Estate)
+        add_resp = await client.post(
+            "/api/buckets",
+            json={
+                "id": "real-estate",
+                "name": "Real Estate / Primary Residence",
+                "target_weight_pct": 0.0,
+                "color": "#10B981",
+                "drift_tolerance_pct": 0.0,
+                "include_in_rebalancing": False,
+            },
+        )
+        assert add_resp.status_code == 200
+
+        # Add manual real estate asset
+        await client.post(
+            "/api/assets/manual",
+            json={
+                "name": "Family House",
+                "asset_class": "REAL_ESTATE",
+                "amount": 450000.0,
+                "currency": "EUR",
+                "institution": "Self",
+            },
+        )
+
+        # Overview should show real-estate bucket with include_in_rebalancing=False
+        ov = await client.get("/api/overview")
+        allocs = ov.json()["allocations"]
+        re_alloc = next(b for b in allocs if b["bucket_id"] == "real-estate")
+        assert re_alloc["include_in_rebalancing"] is False
+        assert re_alloc["diff_value"] == 0.0
+        assert re_alloc["drift_status"] == "BALANCED"
+
+        # Update bucket to be included
+        update_resp = await client.put(
+            "/api/buckets/real-estate",
+            json={
+                "name": "Real Estate / Primary Residence",
+                "target_weight_pct": 50.0,
+                "color": "#10B981",
+                "drift_tolerance_pct": 5.0,
+                "include_in_rebalancing": True,
+            },
+        )
+        assert update_resp.status_code == 200
+        ov2 = await client.get("/api/overview")
+        re_alloc2 = next(b for b in ov2.json()["allocations"] if b["bucket_id"] == "real-estate")
+        assert re_alloc2["include_in_rebalancing"] is True

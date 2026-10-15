@@ -1521,7 +1521,12 @@ dev = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "mkdocs-material" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "respx" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -1545,4 +1550,11 @@ requires-dist = [
 provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest-cov", specifier = ">=7.1.0" }]
+dev = [
+    { name = "mkdocs-material", specifier = ">=9.5.0" },
+    { name = "pytest", specifier = ">=8.0.0" },
+    { name = "pytest-asyncio", specifier = ">=0.23.0" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "respx", specifier = ">=0.21.0" },
+    { name = "ruff", specifier = ">=0.5.0" },
+]

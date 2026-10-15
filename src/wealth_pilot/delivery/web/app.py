@@ -48,6 +48,7 @@ class BucketCreateOrUpdateRequest(BaseModel):
     color: str | None = None
     drift_tolerance_pct: float | None = 3.0
     description: str | None = None
+    include_in_rebalancing: bool | None = True
 
 
 class TargetWeightRequest(BaseModel):
@@ -401,6 +402,7 @@ def create_app(
                     "drift_status": a.drift_status.value,
                     "drift_tolerance_pct": float(a.drift_tolerance_pct),
                     "color": a.color,
+                    "include_in_rebalancing": getattr(a, "include_in_rebalancing", True),
                 }
                 for a in allocations
             ],
@@ -659,6 +661,7 @@ def create_app(
                     "drift_status": a.drift_status.value,
                     "drift_tolerance_pct": float(a.drift_tolerance_pct),
                     "color": a.color,
+                    "include_in_rebalancing": getattr(a, "include_in_rebalancing", True),
                 }
                 for a in allocations
             ],

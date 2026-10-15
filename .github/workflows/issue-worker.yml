@@ -1,0 +1,64 @@
+name: Autonomous Issue Worker
+
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Target specific issue number (optional)"
+        required: false
+        type: string
+  schedule:
+    - cron: "0 * * * *"  # Run hourly
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  process-issue:
+    name: Process Issue Lifecycle
+    runs-on: ubuntu-24.04
+    if: |
+      github.event_name != 'issues' ||
+      contains(github.event.issue.labels.*.name, 'agent:plan') ||
+      contains(github.event.issue.labels.*.name, 'agent:approved')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Configure Git Identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run Autonomous Issue Poller
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_PARAM=""
+          if [ -n "${{ github.event.inputs.issue }}" ]; then
+            ISSUE_PARAM="--issue ${{ github.event.inputs.issue }}"
+          elif [ "${{ github.event_name }}" = "issues" ]; then
+            ISSUE_PARAM="--issue ${{ github.event.issue.number }}"
+          fi
+          echo "Executing poll_issues with args: $ISSUE_PARAM"
+          uv run python scripts/poll_issues.py --repo "${{ github.repository }}" $ISSUE_PARAM

@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Bucket Exclusion from Rebalancing Calculations (Issue #3)**:
+  - Added `include_in_rebalancing` flag on `Bucket` and `BucketAllocationResult` entities.
+  - Excluded buckets (e.g. Primary Residence / Real Estate) are omitted from liquid portfolio rebalancing target weights and contribution advice.
+  - Excluded buckets display "Excluded from Rebalancing" status badges in the UI without generating drift imbalances.
+  - Added checkbox in Add/Edit Bucket modal to toggle rebalancing inclusion.
+- **Remote Architecture Plan Publishing & Cloud Issue Worker**:
+  - Automatically commits and pushes architecture plans (`docs/plans/PLAN-<id>-<slug>.md`) to origin feature branches before posting issue review comments, resolving remote 404 links.
+  - Added expandable Markdown previews of architecture plans directly within GitHub issue comments for mobile/remote accessibility.
+  - Added GitHub Actions workflow (`.github/workflows/issue-worker.yml`) triggered by `issues: [opened, labeled]`, `workflow_dispatch`, and hourly schedule, enabling remote plan generation and lifecycle transitions in the cloud without requiring a local machine to be running.
 - **Two-Stage Autonomous Issue Queue**:
   - Implemented asynchronous issue poller (`scripts/poll_issues.py`) supporting the deterministic two-stage approval workflow (`agent:plan` -> `agent:plan-review` -> `agent:approved` -> `agent:in-progress` -> `agent:review-ready`).
   - Added GitHub issue templates for feature requests (`.github/ISSUE_TEMPLATE/feature_request.md`) and bug reports (`.github/ISSUE_TEMPLATE/bug_report.md`).

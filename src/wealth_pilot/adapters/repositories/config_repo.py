@@ -140,6 +140,7 @@ class ConfigRepository:
                     rules=rules,
                     color=str(b.get("color", "#3B82F6")),
                     description=str(b.get("description", "")),
+                    include_in_rebalancing=bool(b.get("include_in_rebalancing", True)),
                 )
             )
 
@@ -173,6 +174,11 @@ class ConfigRepository:
                 existing["drift_tolerance_pct"] = float(bucket_data["drift_tolerance_pct"])
             if "description" in bucket_data:
                 existing["description"] = bucket_data["description"]
+            if (
+                "include_in_rebalancing" in bucket_data
+                and bucket_data["include_in_rebalancing"] is not None
+            ):
+                existing["include_in_rebalancing"] = bool(bucket_data["include_in_rebalancing"])
         else:
             palette = [
                 "#3B82F6",
@@ -185,6 +191,7 @@ class ConfigRepository:
                 "#6366F1",
             ]
             chosen_color = bucket_data.get("color") or palette[len(buckets) % len(palette)]
+            include_reb = bool(bucket_data.get("include_in_rebalancing", True))
             buckets.append(
                 {
                     "id": bucket_id,
@@ -194,6 +201,7 @@ class ConfigRepository:
                     "color": chosen_color,
                     "description": bucket_data.get("description", ""),
                     "rules": bucket_data.get("rules", []),
+                    "include_in_rebalancing": include_reb,
                 }
             )
 
