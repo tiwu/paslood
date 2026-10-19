@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import uuid
 from decimal import Decimal
 from pathlib import Path
@@ -14,6 +15,21 @@ from wealth_pilot.domain.asset import Asset, AssetClass
 from wealth_pilot.domain.bucket import AllocationRule, Bucket
 from wealth_pilot.domain.liability import Liability, LoanType
 from wealth_pilot.domain.money import Money
+
+
+def _secure_file_perms(path: Path) -> None:
+    """Set restrictive 0o600 permissions on sensitive configuration and token files."""
+    if os.name != "nt" and path.exists():
+        with contextlib.suppress(Exception):
+            os.chmod(path, 0o600)
+
+
+def _secure_dir_perms(path: Path) -> None:
+    """Set restrictive 0o700 permissions on configuration directory."""
+    if os.name != "nt" and path.exists():
+        with contextlib.suppress(Exception):
+            os.chmod(path, 0o700)
+
 
 DEFAULT_BUCKETS_CONFIG: list[dict[str, Any]] = [
     {
@@ -75,8 +91,10 @@ class ConfigRepository:
         self._ensure_defaults()
 
     def _ensure_defaults(self) -> None:
+        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        _secure_dir_perms(self.config_path.parent)
+
         if not self.config_path.exists():
-            self.config_path.parent.mkdir(parents=True, exist_ok=True)
             default_data = {
                 "buckets": DEFAULT_BUCKETS_CONFIG,
                 "manual_assets": [
@@ -94,11 +112,12 @@ class ConfigRepository:
             }
             with open(self.config_path, "w", encoding="utf-8") as f:
                 yaml.dump(default_data, f, sort_keys=False, indent=2)
+            _secure_file_perms(self.config_path)
 
         if not self.rules_path.exists():
-            self.rules_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.rules_path, "w", encoding="utf-8") as f:
                 yaml.dump([], f, sort_keys=False)
+            _secure_file_perms(self.rules_path)
 
     def load_buckets(self) -> list[Bucket]:
         """Loads configured strategic buckets with allocation rules."""
@@ -404,6 +423,7 @@ class ConfigRepository:
             pdt_token_file = self.config_path.parent / "pdt_auth.json"
             with open(pdt_token_file, "w", encoding="utf-8") as f:
                 json.dump(tokens, f, indent=2)
+            _secure_file_perms(pdt_token_file)
         except Exception:
             pass
 

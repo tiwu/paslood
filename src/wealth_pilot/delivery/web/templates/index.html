@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -1290,6 +1291,17 @@
   </div>
 
   <script>
+    // Security Helper: HTML Entity Escaping to prevent XSS
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     // State
     let currentData = null;
     let donutChartInstance = null;
@@ -1297,6 +1309,7 @@
     let activeRebucketTx = null;
     let currentProjectionYears = 30;
     let currentProjectionCagr = 7.0;
+    let currentMcpServers = [];
 
     // Navigation Tab Switching
     function switchTab(tabId) {
@@ -1354,10 +1367,10 @@
         item.className = 'p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs flex items-start gap-2.5';
         const badgeColor = adv.priority === 'CRITICAL' ? 'bg-red-500/20 text-red-400 border-red-500/30' : (adv.priority === 'HIGH' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30');
         item.innerHTML = `
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border ${badgeColor}">${adv.priority}</span>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border ${badgeColor}">${escapeHtml(adv.priority)}</span>
           <div>
-            <div class="font-semibold text-white">${adv.title}</div>
-            <div class="text-slate-400 mt-0.5">${adv.message}</div>
+            <div class="font-semibold text-white">${escapeHtml(adv.title)}</div>
+            <div class="text-slate-400 mt-0.5">${escapeHtml(adv.message)}</div>
           </div>
         `;
         adviceContainer.appendChild(item);
@@ -1409,8 +1422,8 @@
         row.className = 'flex items-center justify-between';
         row.innerHTML = `
           <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${a.color}"></span>
-            <span class="text-slate-300">${a.name}</span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(a.color)}"></span>
+            <span class="text-slate-300">${escapeHtml(a.name)}</span>
           </div>
           <div class="font-medium text-white">${a.current_weight_pct}% <span class="text-slate-500 font-normal">(tgt ${a.target_weight_pct}%)</span></div>
         `;
@@ -1542,7 +1555,8 @@
     }
 
     function openAddBucketModal() {
-      document.getElementById('bucket-modal-title').innerHTML = '<span>🪣 Add Strategic Bucket</span>';
+      const titleElem = document.getElementById('bucket-modal-title');
+      titleElem.textContent = '🪣 Add Strategic Bucket';
       document.getElementById('bucket-modal-id').value = '';
       document.getElementById('bucket-modal-name').value = '';
       document.getElementById('bucket-modal-target').value = '10.0';
@@ -1556,7 +1570,8 @@
     }
 
     function openEditBucketModal(bucketId, name, color, target, tolerance, desc, includeInRebalancing) {
-      document.getElementById('bucket-modal-title').innerHTML = `<span>✏️ Edit Bucket: ${name}</span>`;
+      const titleElem = document.getElementById('bucket-modal-title');
+      titleElem.textContent = `✏️ Edit Bucket: ${name}`;
       document.getElementById('bucket-modal-id').value = bucketId;
       document.getElementById('bucket-modal-name').value = name;
       document.getElementById('bucket-modal-target').value = target;
@@ -1566,6 +1581,12 @@
       document.getElementById('bucket-modal-delete-btn').classList.remove('hidden');
       selectBucketColor(color || '#3B82F6');
       document.getElementById('bucket-modal').classList.remove('hidden');
+    }
+
+    function openEditBucketModalById(bucketId) {
+      const a = (currentData?.allocations || []).find(b => b.bucket_id === bucketId);
+      if (!a) return;
+      openEditBucketModal(a.bucket_id, a.name, a.color, a.target_weight_pct, a.drift_tolerance_pct, a.description || '', a.include_in_rebalancing !== false);
     }
 
     function closeBucketModal() {
@@ -1626,6 +1647,12 @@
       }
     }
 
+    function deleteBucketById(bucketId) {
+      const a = (currentData?.allocations || []).find(b => b.bucket_id === bucketId);
+      const name = a ? a.name : bucketId;
+      deleteBucket(bucketId, name);
+    }
+
     function deleteCurrentBucket() {
       const bucketId = document.getElementById('bucket-modal-id').value;
       const name = document.getElementById('bucket-modal-name').value;
@@ -1644,15 +1671,14 @@
         const isExcluded = a.include_in_rebalancing === false;
         const excludedBadge = isExcluded ? '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-normal ml-1">Excluded</span>' : '';
         const statusBadge = isExcluded ? '<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400 border border-slate-700">Excluded</span>' : (a.drift_status === 'BALANCED' ? '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400">Balanced</span>' : (a.drift_status === 'UNDERWEIGHT' ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">Underweight</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Overweight</span>'));
-        const safeName = (a.name || '').replace(/'/g, "\\'");
         const diffDisplay = isExcluded ? '—' : `${a.diff_value > 0 ? '+' : ''}€ ${a.diff_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}`;
         const weightDisplay = isExcluded ? '—' : `${a.current_weight_pct}%`;
-        const targetDisplay = isExcluded ? '—' : `<input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${a.bucket_id}', '${safeName}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"> %`;
+        const targetDisplay = isExcluded ? '—' : `<input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${escapeHtml(a.bucket_id)}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"> %`;
 
         tr.innerHTML = `
           <td class="px-4 py-3 font-medium flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color: ${a.color}"></span>
-            <span class="text-white font-semibold">${a.name}</span>
+            <span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color: ${escapeHtml(a.color)}"></span>
+            <span class="text-white font-semibold">${escapeHtml(a.name)}</span>
             ${excludedBadge}
           </td>
           <td class="px-4 py-3 font-mono">€ ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
@@ -1663,8 +1689,8 @@
           </td>
           <td class="px-4 py-3">${statusBadge}</td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
-            <button onclick="openEditBucketModal('${a.bucket_id}', '${safeName}', '${a.color}', ${a.target_weight_pct}, ${a.drift_tolerance_pct}, '', ${a.include_in_rebalancing !== false})" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit / Rename</button>
-            <button onclick="deleteBucket('${a.bucket_id}', '${safeName}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+            <button onclick="openEditBucketModalById('${escapeHtml(a.bucket_id)}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit / Rename</button>
+            <button onclick="deleteBucketById('${escapeHtml(a.bucket_id)}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1675,14 +1701,14 @@
         meter.innerHTML = `
           <div class="flex justify-between text-xs">
             <span class="font-medium text-white flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${a.color}"></span>
-              ${a.name}
+              <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(a.color)}"></span>
+              ${escapeHtml(a.name)}
               ${excludedBadge}
             </span>
             <span class="text-slate-400 font-mono text-[11px]">${isExcluded ? 'Excluded from Rebalancing • € ' + a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2}) : 'Current: ' + a.current_weight_pct + '% / Target: ' + a.target_weight_pct + '% (±' + a.drift_tolerance_pct + '%)'}</span>
           </div>
           <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 relative">
-            <div class="h-full rounded-full transition-all duration-500 shadow-sm" style="width: ${isExcluded ? 0 : Math.min(100, a.current_weight_pct)}%; background-color: ${a.color}"></div>
+            <div class="h-full rounded-full transition-all duration-500 shadow-sm" style="width: ${isExcluded ? 0 : Math.min(100, a.current_weight_pct)}%; background-color: ${escapeHtml(a.color)}"></div>
           </div>
         `;
         meters.appendChild(meter);
@@ -1697,8 +1723,8 @@
         const item = document.createElement('div');
         item.className = 'p-4 rounded-lg bg-slate-950 border border-slate-800 text-xs';
         item.innerHTML = `
-          <div class="font-bold text-white text-sm mb-1">${adv.title}</div>
-          <div class="text-slate-300 leading-relaxed">${adv.message}</div>
+          <div class="font-bold text-white text-sm mb-1">${escapeHtml(adv.title)}</div>
+          <div class="text-slate-300 leading-relaxed">${escapeHtml(adv.message)}</div>
         `;
         debtContainer.appendChild(item);
       });
@@ -1725,8 +1751,8 @@
         div.className = 'flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs';
         div.innerHTML = `
           <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${a.color}"></span>
-            <span class="font-semibold text-white">${a.name}</span>
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(a.color)}"></span>
+            <span class="font-semibold text-white">${escapeHtml(a.name)}</span>
             <span class="text-slate-500">(Deficit: € ${Math.abs(a.diff_value).toLocaleString('de-DE', {minimumFractionDigits: 2})})</span>
           </div>
           <div class="text-emerald-400 font-bold text-sm">BUY € ${share.toLocaleString('de-DE', {minimumFractionDigits: 2})}</div>
@@ -1749,22 +1775,30 @@
       txs.slice(0, 100).forEach(tx => {
         const tr = document.createElement('tr');
         const isPositive = tx.amount_value > 0;
+        const safeDesc = escapeHtml(tx.description);
+        const safeCounterparty = escapeHtml(tx.counterparty_name || '-');
+        const safeDate = escapeHtml(tx.date);
+        const safeAmount = escapeHtml(tx.amount_formatted);
+        const safeCat = escapeHtml(tx.category);
+        const safeId = escapeHtml(tx.id);
+
         tr.innerHTML = `
-          <td class="px-3 py-2 text-slate-400 whitespace-nowrap">${tx.date}</td>
-          <td class="px-3 py-2 font-medium text-white max-w-xs truncate" title="${tx.description}">${tx.description}</td>
-          <td class="px-3 py-2 text-slate-400 truncate max-w-[140px]">${tx.counterparty_name || '-'}</td>
+          <td class="px-3 py-2 text-slate-400 whitespace-nowrap">${safeDate}</td>
+          <td class="px-3 py-2 font-medium text-white max-w-xs truncate" title="${safeDesc}">${safeDesc}</td>
+          <td class="px-3 py-2 text-slate-400 truncate max-w-[140px]">${safeCounterparty}</td>
           <td class="px-3 py-2 text-right font-mono font-semibold ${isPositive ? 'text-emerald-400' : 'text-slate-200'}">
-            ${isPositive ? '+' : ''}${tx.amount_formatted}
+            ${isPositive ? '+' : ''}${safeAmount}
           </td>
           <td class="px-3 py-2">
-            <button onclick="openRebucketModal('${tx.id}', '${tx.description.replace(/'/g, "\\'")}', '${tx.counterparty_name.replace(/'/g, "\\'")}', '${tx.category}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-blue-400 text-xs border border-slate-700">
-              ${tx.category} ▾
+            <button onclick="openRebucketModalById('${safeId}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-blue-400 text-xs border border-slate-700">
+              ${safeCat} ▾
             </button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
+
 
     // File Drag & Drop
     const dropzone = document.getElementById('dropzone');
@@ -1810,15 +1844,23 @@
     }
 
     // Re-Bucketing Modal
+    function openRebucketModalById(txId) {
+      const tx = (currentData?.transactions || []).find(t => t.id === txId);
+      if (tx) {
+        openRebucketModal(tx.id, tx.description, tx.counterparty_name, tx.category);
+      }
+    }
+
     function openRebucketModal(txId, desc, counterparty, currentCat) {
       activeRebucketTx = { id: txId, description: desc, counterparty: counterparty };
       document.getElementById('rebucket-tx-info').innerHTML = `
-        <div class="font-semibold text-white">${desc}</div>
-        <div class="text-slate-400 mt-0.5">Counterparty: ${counterparty || 'N/A'}</div>
+        <div class="font-semibold text-white">${escapeHtml(desc)}</div>
+        <div class="text-slate-400 mt-0.5">Counterparty: ${escapeHtml(counterparty || 'N/A')}</div>
       `;
       document.getElementById('modal-category-select').value = currentCat || 'OTHER';
       document.getElementById('rebucket-modal').classList.remove('hidden');
     }
+
 
     function closeRebucketModal() {
       document.getElementById('rebucket-modal').classList.add('hidden');
@@ -1848,7 +1890,9 @@
       }
     }
 
-    async function updateTarget(bucketId, name, val) {
+    async function updateTarget(bucketId, val) {
+      const a = (currentData?.allocations || []).find(b => b.bucket_id === bucketId);
+      const name = a ? a.name : bucketId;
       try {
         await fetch('/api/buckets/target', {
           method: 'POST',
@@ -1876,8 +1920,9 @@
 
       try {
         const queryParams = new URLSearchParams({ provider });
-        if (key) queryParams.set('api_key', key);
-        const res = await fetch(`/api/ai/models?${queryParams.toString()}`);
+        const headers = {};
+        if (key) headers['X-AI-API-Key'] = key;
+        const res = await fetch(`/api/ai/models?${queryParams.toString()}`, { headers });
         if (!res.ok) throw new Error('Failed to query models');
         const data = await res.json();
         const models = data.models || [];
@@ -1933,19 +1978,23 @@
         }
 
         const data = await res.json();
-        output.innerHTML = marked.parse(data.advice || 'No advice generated.');
+        const rawAdvice = data.advice || 'No advice generated.';
+        output.innerHTML = typeof DOMPurify !== 'undefined'
+          ? DOMPurify.sanitize(marked.parse(rawAdvice))
+          : marked.parse(rawAdvice);
       } catch (err) {
         output.innerHTML = `
           <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-xl space-y-2">
             <div class="font-bold text-red-400 text-sm flex items-center gap-1.5">
               <span>⚠️ AI Advisory Error</span>
             </div>
-            <div class="text-xs text-red-300 font-mono leading-relaxed whitespace-pre-wrap">${err.message}</div>
+            <div class="text-xs text-red-300 font-mono leading-relaxed whitespace-pre-wrap">${escapeHtml(err.message)}</div>
             <div class="text-[11px] text-slate-400 pt-1">
               Tip: Verify that your API key is valid and has active quota, or select a different model in the dropdown above.
             </div>
           </div>
         `;
+
       } finally {
         btn.disabled = false;
         loader.classList.add('hidden');
@@ -1966,10 +2015,10 @@
         card.className = `p-3.5 rounded-xl border ${m.is_reached ? 'bg-emerald-950/20 border-emerald-500/30' : 'bg-slate-950 border-slate-800'} space-y-2`;
         card.innerHTML = `
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-white truncate" title="${m.name}">${m.name}</span>
+            <span class="text-xs font-semibold text-white truncate" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
             ${m.is_reached ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">✓ Reached</span>' : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${m.progress_pct}%</span>`}
           </div>
-          <div class="text-base font-bold text-white font-mono">${m.target_formatted}</div>
+          <div class="text-base font-bold text-white font-mono">${escapeHtml(m.target_formatted)}</div>
           <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
             <div class="h-full ${m.is_reached ? 'bg-emerald-500' : 'bg-blue-600'}" style="width: ${m.progress_pct}%"></div>
           </div>
@@ -2012,7 +2061,7 @@
       const div = document.createElement('div');
       div.className = 'milestone-edit-row flex items-center gap-2 bg-slate-950 p-2 rounded-lg border border-slate-800';
       div.innerHTML = `
-        <input type="text" placeholder="Milestone Name" value="${name}" class="ms-name flex-1 bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+        <input type="text" placeholder="Milestone Name" value="${escapeHtml(name)}" class="ms-name flex-1 bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
         <div class="flex items-center gap-1">
           <span class="text-slate-400 text-xs">€</span>
           <input type="number" step="5000" placeholder="Amount" value="${amount}" class="ms-amount w-28 bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white text-xs font-mono text-right">
@@ -2062,12 +2111,16 @@
         } else {
           manualOrRealEstate.forEach(a => {
             const tr = document.createElement('tr');
+            const safeName = escapeHtml(a.name);
+            const safeClass = escapeHtml(a.asset_class);
+            const safeVal = escapeHtml(a.current_value_formatted);
+            const safeId = escapeHtml(a.id);
             tr.innerHTML = `
-              <td class="py-2.5 font-medium text-white">${a.name}</td>
-              <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${a.asset_class}</span></td>
-              <td class="py-2.5 font-mono text-emerald-400">${a.current_value_formatted}</td>
+              <td class="py-2.5 font-medium text-white">${safeName}</td>
+              <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${safeClass}</span></td>
+              <td class="py-2.5 font-mono text-emerald-400">${safeVal}</td>
               <td class="py-2.5 text-right">
-                <button onclick="deleteManualAsset('${a.id}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+                <button onclick="deleteManualAsset('${safeId}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
               </td>
             `;
             assetsTbody.appendChild(tr);
@@ -2087,24 +2140,25 @@
             const isUnsetBalance = l.principal_balance <= 0;
             const balanceHtml = isUnsetBalance
               ? `<span class="text-amber-400 font-mono">Unset (€ 0,00)</span> <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30">Needs Balance</span>`
-              : `<span class="font-mono text-rose-400">${l.principal_balance_formatted}</span>`;
+              : `<span class="font-mono text-rose-400">${escapeHtml(l.principal_balance_formatted)}</span>`;
             const rateHtml = l.interest_rate_pct <= 0
               ? `<span class="text-slate-500 font-mono">—</span>`
-              : `<span class="font-mono text-slate-300">${l.interest_rate_pct}%</span>`;
+              : `<span class="font-mono text-slate-300">${escapeHtml(l.interest_rate_pct)}%</span>`;
 
-            const safeName = (l.name || '').replace(/'/g, "\\'");
-            const safeInst = (l.institution || '').replace(/'/g, "\\'");
-            const safeRef = (l.account_reference || '').replace(/'/g, "\\'");
+            const safeName = escapeHtml(l.name);
+            const safeType = escapeHtml(l.loan_type);
+            const safePmt = escapeHtml(l.monthly_payment_formatted);
+            const safeId = escapeHtml(l.id);
 
             tr.innerHTML = `
-              <td class="py-2.5 font-medium text-white">${l.name}</td>
-              <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">${l.loan_type}</span></td>
+              <td class="py-2.5 font-medium text-white">${safeName}</td>
+              <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">${safeType}</span></td>
               <td class="py-2.5">${balanceHtml}</td>
               <td class="py-2.5">${rateHtml}</td>
-              <td class="py-2.5 font-mono text-slate-300">${l.monthly_payment_formatted}</td>
+              <td class="py-2.5 font-mono text-slate-300">${safePmt}</td>
               <td class="py-2.5 text-right whitespace-nowrap">
-                <button onclick="openEditLiabilityModal('${l.id}', '${safeName}', '${l.loan_type}', ${l.principal_balance}, ${l.interest_rate_pct}, ${l.monthly_payment}, '${safeInst}', '${safeRef}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit</button>
-                <button onclick="deleteManualLiability('${l.id}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+                <button onclick="openEditLiabilityModalById('${safeId}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit</button>
+                <button onclick="deleteManualLiability('${safeId}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
               </td>
             `;
             liabTbody.appendChild(tr);
@@ -2112,6 +2166,14 @@
         }
       }
     }
+
+    function openEditLiabilityModalById(id) {
+      const l = (currentData?.liabilities || []).find(x => x.id === id);
+      if (l) {
+        openEditLiabilityModal(l.id, l.name, l.loan_type, l.principal_balance, l.interest_rate_pct, l.monthly_payment, l.institution, l.account_reference);
+      }
+    }
+
 
     function openAddAssetModal() { document.getElementById('add-asset-modal').classList.remove('hidden'); }
     function closeAddAssetModal() { document.getElementById('add-asset-modal').classList.add('hidden'); }
@@ -2273,13 +2335,15 @@
         let bucketOptions = `<option value="unassigned" ${a.bucket_id === 'unassigned' ? 'selected' : ''}>-- Unassigned --</option>`;
         buckets.forEach(b => {
           const isSelected = a.bucket_id === b.bucket_id;
-          bucketOptions += `<option value="${b.bucket_id}" ${isSelected ? 'selected' : ''}>${b.name}</option>`;
+          bucketOptions += `<option value="${escapeHtml(b.bucket_id)}" ${isSelected ? 'selected' : ''}>${escapeHtml(b.name)}</option>`;
         });
 
+        const safeColor = escapeHtml(a.bucket_color);
+        const safeBucketName = escapeHtml(a.bucket_name);
         const badgeHtml = a.bucket_id !== 'unassigned' ? `
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border shadow-sm" style="background-color: ${a.bucket_color}22; color: ${a.bucket_color}; border-color: ${a.bucket_color}55;">
-            <span class="w-2 h-2 rounded-full inline-block shadow-sm" style="background-color: ${a.bucket_color};"></span>
-            ${a.bucket_name}
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold border shadow-sm" style="background-color: ${safeColor}22; color: ${safeColor}; border-color: ${safeColor}55;">
+            <span class="w-2 h-2 rounded-full inline-block shadow-sm" style="background-color: ${safeColor};"></span>
+            ${safeBucketName}
           </span>
         ` : `
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700">
@@ -2288,17 +2352,17 @@
           </span>
         `;
 
-        const safeName = (a.name || '').replace(/'/g, "\\'");
+        const safeId = escapeHtml(a.id);
         tr.innerHTML = `
-          <td class="px-3 py-2.5 font-medium text-white">${a.name}</td>
-          <td class="px-3 py-2.5 font-mono text-slate-400">${a.symbol || a.isin || '—'}</td>
-          <td class="px-3 py-2.5 text-slate-400">${a.institution}</td>
-          <td class="px-3 py-2.5 font-mono font-semibold text-slate-200">${a.current_value_formatted}</td>
+          <td class="px-3 py-2.5 font-medium text-white">${escapeHtml(a.name)}</td>
+          <td class="px-3 py-2.5 font-mono text-slate-400">${escapeHtml(a.symbol || a.isin || '—')}</td>
+          <td class="px-3 py-2.5 text-slate-400">${escapeHtml(a.institution)}</td>
+          <td class="px-3 py-2.5 font-mono font-semibold text-slate-200">${escapeHtml(a.current_value_formatted)}</td>
           <td class="px-3 py-2.5">
             ${badgeHtml}
           </td>
           <td class="px-3 py-2.5">
-            <select class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-white text-xs focus:border-blue-500" onchange="assignAssetToBucket('${a.id}', '${a.symbol || ''}', '${a.isin || ''}', '${safeName}', this.value)">
+            <select class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-white text-xs focus:border-blue-500" onchange="assignAssetToBucketById('${safeId}', this.value)">
               ${bucketOptions}
             </select>
           </td>
@@ -2306,6 +2370,14 @@
         tbody.appendChild(tr);
       });
     }
+
+    function assignAssetToBucketById(assetId, bucketId) {
+      const a = (currentData?.assets || []).find(x => x.id === assetId);
+      if (a) {
+        assignAssetToBucket(a.id, a.symbol, a.isin, a.name, bucketId);
+      }
+    }
+
 
     async function assignAssetToBucket(assetId, symbol, isin, name, bucketId) {
       try {
@@ -2377,17 +2449,18 @@
         // Custom MCP Servers Table
         const tbody = document.getElementById('mcp-servers-tbody');
         tbody.innerHTML = '';
-        (s.mcp_servers || []).forEach(srv => {
+        currentMcpServers = s.mcp_servers || [];
+        currentMcpServers.forEach(srv => {
           const tr = document.createElement('tr');
           tr.className = 'hover:bg-slate-950/30';
           tr.innerHTML = `
-            <td class="py-2.5 px-3 font-medium text-white">${srv.name}</td>
-            <td class="py-2.5 px-3 font-mono text-slate-300 text-[11px]">${srv.url}</td>
-            <td class="py-2.5 px-3 uppercase text-[10px] text-slate-400">${srv.transport || 'HTTP'}</td>
-            <td class="py-2.5 px-3" id="ping-${srv.id}"><span class="text-slate-500">Ready</span></td>
+            <td class="py-2.5 px-3 font-medium text-white">${escapeHtml(srv.name)}</td>
+            <td class="py-2.5 px-3 font-mono text-slate-300 text-[11px]">${escapeHtml(srv.url)}</td>
+            <td class="py-2.5 px-3 uppercase text-[10px] text-slate-400">${escapeHtml(srv.transport || 'HTTP')}</td>
+            <td class="py-2.5 px-3" id="ping-${escapeHtml(srv.id)}"><span class="text-slate-500">Ready</span></td>
             <td class="py-2.5 px-3 text-right space-x-1.5">
-              <button onclick="testMcpServer('${srv.id}', '${srv.url}')" class="px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-300 text-[11px]">Ping</button>
-              <button onclick="deleteMcpServer('${srv.id}')" class="px-2 py-0.5 rounded border border-red-500/30 hover:bg-red-500/10 text-red-400 text-[11px]">Delete</button>
+              <button onclick="testMcpServerById('${escapeHtml(srv.id)}')" class="px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-300 text-[11px]">Ping</button>
+              <button onclick="deleteMcpServer('${escapeHtml(srv.id)}')" class="px-2 py-0.5 rounded border border-red-500/30 hover:bg-red-500/10 text-red-400 text-[11px]">Delete</button>
             </td>
           `;
           tbody.appendChild(tr);
@@ -2543,6 +2616,12 @@
       }
     }
 
+    async function testMcpServerById(id) {
+      const srv = (currentMcpServers || []).find(x => x.id === id);
+      if (!srv) return;
+      return testMcpServer(id, srv.url);
+    }
+
     async function testMcpServer(id, url) {
       const cell = document.getElementById(`ping-${id}`);
       if (cell) cell.innerHTML = '<span class="text-amber-400 animate-pulse">Pinging...</span>';
@@ -2556,9 +2635,10 @@
         const data = await res.json();
         if (cell) {
           if (data.status === 'success') {
-            cell.innerHTML = `<span class="text-emerald-400 font-semibold">Online (${data.latency_ms}ms)</span>`;
+            cell.innerHTML = `<span class="text-emerald-400 font-semibold">Online (${escapeHtml(String(data.latency_ms))}ms)</span>`;
           } else {
-            cell.innerHTML = `<span class="text-red-400">Error (${data.detail.substring(0, 20)}...)</span>`;
+            const detailText = data.detail ? String(data.detail).substring(0, 30) : 'Unknown error';
+            cell.innerHTML = `<span class="text-red-400">Error (${escapeHtml(detailText)}...)</span>`;
           }
         }
       } catch (err) {

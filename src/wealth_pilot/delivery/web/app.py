@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import copy
+import ipaddress
 import secrets
 import tempfile
 import time
@@ -14,7 +16,7 @@ from typing import Any
 
 import httpx
 from fastapi import FastAPI, HTTPException, Response, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -149,6 +151,50 @@ def create_app(
     app = FastAPI(
         title="Wealth Pilot", description="Strategic Wealth & Asset Allocation Guidance Platform"
     )
+
+    @app.middleware("http")
+    async def security_headers_middleware(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://cdn.jsdelivr.net https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "object-src 'none';"
+        )
+        return response
+
+    @app.middleware("http")
+    async def local_origin_protection_middleware(request: Request, call_next):
+        if request.method in ("POST", "PUT", "DELETE", "PATCH"):
+            origin = request.headers.get("origin")
+            if origin:
+                parsed_origin = urllib.parse.urlparse(origin)
+                origin_host = (parsed_origin.hostname or "").lower()
+                allowed_hosts = {
+                    "localhost",
+                    "127.0.0.1",
+                    "test",
+                    "testserver",
+                }
+                if request.url.hostname:
+                    allowed_hosts.add(request.url.hostname.lower())
+                if origin_host not in allowed_hosts:
+                    return JSONResponse(
+                        status_code=403,
+                        content={
+                            "detail": "Cross-origin request blocked: external origin not permitted."
+                        },
+                    )
+        return await call_next(request)
 
     base_dir = Path(__file__).parent
     static_dir = base_dir / "static"
@@ -555,12 +601,22 @@ def create_app(
         return {"status": "success", "message": "All ingested CSV cache cleared"}
 
     @app.get("/api/ai/models")
-    async def get_ai_models(provider: str = "gemini", api_key: str | None = None):
-        if not api_key:
+    async def get_ai_models(
+        request: Request,
+        provider: str = "gemini",
+        api_key: str | None = None,
+    ):
+        header_key = request.headers.get("X-AI-API-Key")
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            header_key = header_key or auth_header.removeprefix("Bearer ").strip()
+
+        effective_key = header_key or api_key
+        if not effective_key:
             s = repo.load_settings()
-            api_key = s.get("ai", {}).get("api_key")
+            effective_key = s.get("ai", {}).get("api_key")
         models = await UniversalAIAdvisorClient.fetch_available_models(
-            provider=provider, api_key=api_key
+            provider=provider, api_key=effective_key
         )
         return {"models": models}
 
@@ -733,9 +789,21 @@ def create_app(
     @app.get("/api/auth/pdt/connect")
     async def initiate_pdt_oauth(request: Request):
         redirect_uri = request.query_params.get("redirect_uri")
-        if not redirect_uri:
-            base_url = str(request.base_url).rstrip("/")
-            redirect_uri = f"{base_url}/api/auth/pdt/callback"
+        base_url = str(request.base_url).rstrip("/")
+        default_redirect = f"{base_url}/api/auth/pdt/callback"
+
+        if redirect_uri:
+            parsed = urllib.parse.urlparse(redirect_uri)
+            allowed_hosts = {"localhost", "127.0.0.1", "test", "testserver"}
+            if request.url.hostname:
+                allowed_hosts.add(request.url.hostname.lower())
+            if (parsed.hostname or "").lower() not in allowed_hosts:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid redirect_uri: only local origins matching the active dashboard are allowed.",
+                )
+        else:
+            redirect_uri = default_redirect
 
         # Dynamically register client for this redirect URI with localhost/127.0.0.1 variants
         parsed = urllib.parse.urlparse(redirect_uri)
@@ -804,7 +872,8 @@ def create_app(
                 url=f"/#dashboard?pdt_connected=true&synced_count={synced_count}"
             )
         except Exception as e:
-            return RedirectResponse(url=f"/#settings?pdt_error={str(e)}")
+            safe_err = urllib.parse.quote(str(e))
+            return RedirectResponse(url=f"/#settings?pdt_error={safe_err}")
 
     @app.post("/api/auth/pdt/manual")
     async def save_pdt_manual_token(req: PdtManualTokenRequest):
@@ -868,6 +937,26 @@ def create_app(
 
     @app.post("/api/settings/mcp/servers/test")
     async def test_mcp_server(req: McpTestRequest):
+        parsed = urllib.parse.urlparse(req.url)
+        if parsed.scheme not in ("http", "https"):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid URL scheme: only HTTP and HTTPS are permitted.",
+            )
+        hostname = (parsed.hostname or "").lower()
+        if hostname in ("169.254.169.254", "metadata.google.internal", "metadata.turing"):
+            raise HTTPException(
+                status_code=403,
+                detail="Access to cloud metadata endpoints is prohibited.",
+            )
+        with contextlib.suppress(ValueError):
+            ip = ipaddress.ip_address(hostname)
+            if ip.is_link_local:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Access to link-local metadata addresses is prohibited.",
+                )
+
         start_t = time.time()
         headers = {
             "Content-Type": "application/json",
@@ -889,7 +978,7 @@ def create_app(
         }
 
         try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
+            async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
                 resp = await client.post(req.url, json=payload, headers=headers)
                 latency_ms = int((time.time() - start_t) * 1000)
                 return {
