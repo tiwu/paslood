@@ -433,6 +433,7 @@ class ConfigRepository:
                 "benchmark_price": float(settings.get("tax", {}).get("benchmark_price", 900.0)),
                 "tax_rate_pct": float(settings.get("tax", {}).get("tax_rate_pct", 10.0)),
             },
+            "language": settings.get("language", "en"),
         }
 
     def save_settings(self, settings_dict: dict[str, Any]) -> None:

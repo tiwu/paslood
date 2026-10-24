@@ -18,6 +18,7 @@
   </script>
   <title>Wealth Pilot — Strategic Wealth & Asset Allocation</title>
   <link rel="manifest" href="/static/manifest.json">
+  <script src="/static/i18n.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -148,32 +149,44 @@
 
       <!-- Desktop Navigation Tabs: Explore vs Manage -->
       <nav class="hidden lg:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800" aria-label="Main Navigation">
-        <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-2 select-none">Explore</span>
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 whitespace-nowrap transition">📊 Overview</button>
-        <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">🪣 Buckets</button>
-        <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">💡 Guidance</button>
+        <span data-i18n="nav.explore" class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-2 select-none">Explore</span>
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 whitespace-nowrap transition" data-i18n="nav.overview">📊 Overview</button>
+        <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.buckets">🪣 Buckets</button>
+        <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.guidance">💡 Guidance</button>
         <button onclick="switchTab('ai')" id="nav-ai" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
-          <span>🤖 AI Advisor</span>
+          <span data-i18n="nav.ai">🤖 AI Advisor</span>
         </button>
         <div class="h-4 w-px bg-slate-800 mx-1"></div>
-        <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-1.5 select-none">Manage</span>
-        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">🏦 Data & Assets</button>
+        <span data-i18n="nav.manage" class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-1.5 select-none">Manage</span>
+        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.cashflow">🏦 Data & Assets</button>
         <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
-          <span>⚙️ Settings</span>
+          <span data-i18n="nav.settings">⚙️ Settings</span>
         </button>
       </nav>
 
-      <!-- Quick Actions, Theme Toggle & Mobile Hamburger -->
+      <!-- Quick Actions, Theme Toggle, Language Switcher & Mobile Hamburger -->
       <div class="flex items-center space-x-1.5 shrink-0">
+        <!-- Language Switcher Dropdown (Accessible select) -->
+        <div class="flex items-center bg-slate-800/60 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300" title="Select Language / Taal kiezen">
+          <span aria-hidden="true" class="text-xs mr-1">🌐</span>
+          <label for="header-lang-select" class="sr-only">Language</label>
+          <select id="header-lang-select" class="language-selector bg-transparent text-slate-200 border-0 focus:outline-none cursor-pointer text-xs font-semibold py-0.5" onchange="I18N.setLanguage(this.value)" aria-label="Select language">
+            <option value="en" class="bg-slate-900 text-white">EN</option>
+            <option value="nl" class="bg-slate-900 text-white">NL</option>
+            <option value="fr" class="bg-slate-900 text-white">FR</option>
+            <option value="de" class="bg-slate-900 text-white">DE</option>
+          </select>
+        </div>
+
         <button onclick="toggleThemeScheme()" id="btn-theme-toggle" class="p-2 rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:text-white transition text-xs flex items-center gap-1" title="Switch Light / Dark Theme" aria-label="Switch color theme">
           <span id="theme-toggle-icon">☀️</span>
           <span id="theme-toggle-label" class="hidden xl:inline">Light</span>
         </button>
         <button onclick="openSetupWizard()" class="hidden sm:flex text-xs text-amber-400 hover:text-amber-300 px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 items-center gap-1 hover:border-amber-500 transition font-medium" title="Launch Interactive Setup Wizard">
-          <span>🚀 Setup</span>
+          <span data-i18n="nav.setup">🚀 Setup</span>
         </button>
         <a href="/guide/index.html" target="_blank" rel="noopener" class="hidden md:flex text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 items-center gap-1 hover:border-slate-500 transition" title="Built-in Documentation">
-          <span>📖 Docs</span>
+          <span data-i18n="nav.docs">📖 Docs</span>
         </a>
         <button onclick="openHelpModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800" title="In-App Help Guide" aria-label="Help Guide">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path stroke-width="2" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01"></path></svg>
@@ -188,25 +201,34 @@
 
     <!-- Mobile Navigation Drawer -->
     <div id="mobile-nav-drawer" class="hidden lg:hidden border-t border-slate-800 bg-slate-900 px-4 pt-3 pb-4 space-y-3 shadow-xl">
+      <div class="flex items-center justify-between px-2 pb-1 border-b border-slate-800 text-xs">
+        <span class="text-slate-400 font-medium">Taal / Language:</span>
+        <select class="language-selector bg-slate-950 border border-slate-700 text-white rounded px-2.5 py-1 text-xs font-medium" onchange="I18N.setLanguage(this.value)">
+          <option value="en">English (EN)</option>
+          <option value="nl">Nederlands (NL)</option>
+          <option value="fr">Français (FR)</option>
+          <option value="de">Deutsch (DE)</option>
+        </select>
+      </div>
       <div>
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1">Frontend — Explore State</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1" data-i18n="nav.explore">Explore</div>
         <div class="grid grid-cols-2 gap-1.5">
-          <button onclick="switchTab('dashboard')" id="mnav-dashboard" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left bg-blue-600 text-white flex items-center gap-2">📊 Overview</button>
-          <button onclick="switchTab('buckets')" id="mnav-buckets" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🪣 Buckets & Drift</button>
-          <button onclick="switchTab('advice')" id="mnav-advice" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">💡 Guidance & Tax</button>
-          <button onclick="switchTab('ai')" id="mnav-ai" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🤖 AI Advisor</button>
+          <button onclick="switchTab('dashboard')" id="mnav-dashboard" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left bg-blue-600 text-white flex items-center gap-2" data-i18n="nav.overview">📊 Overview</button>
+          <button onclick="switchTab('buckets')" id="mnav-buckets" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.buckets">🪣 Buckets</button>
+          <button onclick="switchTab('advice')" id="mnav-advice" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.guidance">💡 Guidance</button>
+          <button onclick="switchTab('ai')" id="mnav-ai" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.ai">🤖 AI Advisor</button>
         </div>
       </div>
       <div class="border-t border-slate-800 pt-2">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1">Backend — Manage Data & Config</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1" data-i18n="nav.manage">Manage</div>
         <div class="grid grid-cols-2 gap-1.5">
-          <button onclick="switchTab('cashflow')" id="mnav-cashflow" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🏦 Data, Assets & Loans</button>
-          <button onclick="switchTab('settings')" id="mnav-settings" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">⚙️ Settings & MCP</button>
+          <button onclick="switchTab('cashflow')" id="mnav-cashflow" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.cashflow">🏦 Data & Assets</button>
+          <button onclick="switchTab('settings')" id="mnav-settings" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.settings">⚙️ Settings</button>
         </div>
       </div>
       <div class="border-t border-slate-800 pt-2 flex items-center justify-between gap-2">
-        <button onclick="openSetupWizard(); toggleMobileMenu(false);" class="flex-1 text-xs text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-center font-medium">🚀 Setup Wizard</button>
-        <a href="/guide/index.html" target="_blank" rel="noopener" class="flex-1 text-xs text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-center">📖 Offline Docs ↗</a>
+        <button onclick="openSetupWizard(); toggleMobileMenu(false);" class="flex-1 text-xs text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-center font-medium" data-i18n="nav.setup">🚀 Setup Wizard</button>
+        <a href="/guide/index.html" target="_blank" rel="noopener" class="flex-1 text-xs text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-center" data-i18n="nav.docs">📖 Offline Docs ↗</a>
       </div>
     </div>
   </header>
@@ -1001,6 +1023,36 @@
           <button onclick="saveTaxSettings()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">Save Tax Settings</button>
         </div>
       </div>
+
+      <!-- Section: Language & Localization Preferences -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
+        <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🌐</span>
+              <span data-i18n="settings.language_title">Language & Localization</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5" data-i18n="settings.language_desc">Choose your preferred interface language. Wealth Pilot provides native Dutch support for the Belgian market.</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-medium self-start sm:self-auto">Belgian Market (NL / EN / FR / DE)</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1" data-i18n="settings.language_label">Interface Language</label>
+            <select id="settings-language-select" class="language-selector w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" onchange="I18N.setLanguage(this.value)">
+              <option value="nl">Nederlands (België / Nederland) ★ Aanbevolen</option>
+              <option value="en">English (International)</option>
+              <option value="fr">Français (Belgique / France)</option>
+              <option value="de">Deutsch (Belgien / Deutschland)</option>
+            </select>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-400 space-y-1">
+            <div class="text-slate-200 font-medium">Taalkeuze & Lokalisatie</div>
+            <p>Wealth Pilot past zich direct aan naar uw voorkeurstaal. Alle macro-allocaties, grafieken, belastingkaders en adviezen worden naadloos gelokaliseerd.</p>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -1556,8 +1608,22 @@
       const iconEl = document.getElementById('theme-toggle-icon');
       const labelEl = document.getElementById('theme-toggle-label');
       if (iconEl) iconEl.textContent = isLight ? '🌙' : '☀️';
-      if (labelEl) labelEl.textContent = isLight ? 'Dark' : 'Light';
+      if (labelEl) {
+        labelEl.textContent = isLight
+          ? (typeof I18N !== 'undefined' ? I18N.t('common.theme_dark', 'Dark') : 'Dark')
+          : (typeof I18N !== 'undefined' ? I18N.t('common.theme_light', 'Light') : 'Light');
+      }
     }
+
+    // Language Change Listener to re-render localized UI
+    window.addEventListener('languageChanged', () => {
+      syncThemeToggleUI();
+      if (currentData) {
+        renderDashboard(currentData);
+        renderBuckets(currentData);
+        renderAdvice(currentData);
+      }
+    });
 
     function toggleThemeScheme() {
       const root = document.documentElement;
@@ -2969,6 +3035,16 @@
         document.getElementById('settings-tax-date').value = tax.benchmark_date || '2025-12-31';
         document.getElementById('settings-tax-price').value = tax.benchmark_price || 900;
         document.getElementById('settings-tax-rate').value = tax.tax_rate_pct || 10.0;
+
+        // Language & Localization Settings
+        if (s.language && typeof I18N !== 'undefined') {
+          const localLang = localStorage.getItem('wealth_pilot_language');
+          if (!localLang) {
+            I18N.setLanguage(s.language, false);
+          } else {
+            I18N.setLanguage(localLang, false);
+          }
+        }
 
       } catch (err) {
         console.error('Failed to load settings:', err);
