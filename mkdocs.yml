@@ -44,6 +44,7 @@ nav:
       - Overview & Standards: plans/README.md
       - Plan Template: plans/PLAN-TEMPLATE.md
       - "Issue #3 - Exclude Bucket from Rebalancing": plans/PLAN-3-option-to-exclude-bucket-from-weight-cal.md
+      - "Issue #7 - Dutch (NL) Translation and Localization": plans/PLAN-7-add-translation-to-nl.md
 
 
 markdown_extensions:

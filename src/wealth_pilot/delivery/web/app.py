@@ -29,6 +29,12 @@ from wealth_pilot.adapters.ingestion.pdt_auth import PdtAuthManager, generate_pk
 from wealth_pilot.adapters.ingestion.pdt_mcp import PdtMcpGateway
 from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
 from wealth_pilot.adapters.repositories.local_db import LocalDbRepository
+from wealth_pilot.delivery.web.i18n import (
+    DEFAULT_LANGUAGE,
+    SUPPORTED_LANGUAGES,
+    TRANSLATIONS,
+    get_translations_for_locale,
+)
 from wealth_pilot.domain.asset import Asset
 from wealth_pilot.domain.balance_sheet import BalanceSheet
 from wealth_pilot.domain.liability import Liability
@@ -118,6 +124,7 @@ class SettingsUpdateRequest(BaseModel):
     ai: dict[str, Any] | None = None
     tax: dict[str, Any] | None = None
     pdt: dict[str, Any] | None = None
+    language: str | None = None
 
 
 class PdtManualTokenRequest(BaseModel):
@@ -869,6 +876,24 @@ def create_app(
         data = req.model_dump(exclude_unset=True)
         repo.save_settings(data)
         return {"status": "success"}
+
+    @app.get("/api/i18n")
+    async def get_i18n_bundle():
+        return {
+            "supported_languages": SUPPORTED_LANGUAGES,
+            "default_language": DEFAULT_LANGUAGE,
+            "translations": TRANSLATIONS,
+        }
+
+    @app.get("/api/i18n/{lang}")
+    async def get_i18n_lang(lang: str):
+        normalized = lang.lower()[:2]
+        if normalized not in SUPPORTED_LANGUAGES:
+            raise HTTPException(status_code=404, detail=f"Language '{lang}' is not supported.")
+        return {
+            "language": normalized,
+            "translations": get_translations_for_locale(normalized),
+        }
 
     @app.get("/api/auth/pdt/connect")
     async def initiate_pdt_oauth(request: Request):

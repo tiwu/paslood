@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Belgian Multi-Language Internationalization & Dutch Translation (Issue #7)**:
+  - Added comprehensive Dutch (NL) translation for all core dashboard sections (Overview, Buckets, Guidance, AI Advisor, Data & Assets, Settings, and Setup Wizard).
+  - Added multi-language support framework covering Belgium's official languages: Dutch (`nl`), English (`en`), French (`fr`), and German (`de`).
+  - Added fast, accessible language switcher controls to the desktop navigation header, mobile drawer, and a dedicated Language & Localization card in the Settings tab.
+  - Added `GET /api/i18n` and `GET /api/i18n/{lang}` endpoints in `src/wealth_pilot/delivery/web/app.py`.
+  - Added offline-capable client-side internationalization module in `src/wealth_pilot/delivery/web/static/i18n.js` with instant local-storage persistence and reactive re-rendering on language switch.
+  - Updated `ConfigRepository` to persist language preference across sessions in `portfolio.yaml`.
+  - Added test suite in `tests/delivery/test_i18n.py` verifying endpoint contracts and language persistence.
 - **Bucket Exclusion from Rebalancing Calculations (Issue #3)**:
   - Added `include_in_rebalancing` flag on `Bucket` and `BucketAllocationResult` entities.
   - Excluded buckets (e.g. Primary Residence / Real Estate) are omitted from liquid portfolio rebalancing target weights and contribution advice.

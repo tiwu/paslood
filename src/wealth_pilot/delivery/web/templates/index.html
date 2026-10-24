@@ -18,6 +18,7 @@
   </script>
   <title>Wealth Pilot — Strategic Wealth & Asset Allocation</title>
   <link rel="manifest" href="/static/manifest.json">
+  <script src="/static/i18n.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -140,40 +141,52 @@
         <div class="truncate">
           <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
             <span>Wealth Pilot</span>
-            <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 hidden xs:inline-block">Local Core</span>
+            <span data-i18n="header.badge" class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 hidden xs:inline-block">Local Core</span>
           </h1>
-          <p class="text-[11px] text-slate-400 hidden xl:block truncate">Strategic Allocation & Wealth Guidance</p>
+          <p data-i18n="header.subtitle" class="text-[11px] text-slate-400 hidden xl:block truncate">Strategic Allocation & Wealth Guidance</p>
         </div>
       </div>
 
       <!-- Desktop Navigation Tabs: Explore vs Manage -->
       <nav class="hidden lg:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800" aria-label="Main Navigation">
-        <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-2 select-none">Explore</span>
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 whitespace-nowrap transition">📊 Overview</button>
-        <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">🪣 Buckets</button>
-        <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">💡 Guidance</button>
+        <span data-i18n="nav.explore" class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-2 select-none">Explore</span>
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 whitespace-nowrap transition" data-i18n="nav.overview">📊 Overview</button>
+        <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.buckets">🪣 Buckets</button>
+        <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.guidance">💡 Guidance</button>
         <button onclick="switchTab('ai')" id="nav-ai" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
-          <span>🤖 AI Advisor</span>
+          <span data-i18n="nav.ai">🤖 AI Advisor</span>
         </button>
         <div class="h-4 w-px bg-slate-800 mx-1"></div>
-        <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-1.5 select-none">Manage</span>
-        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">🏦 Data & Assets</button>
+        <span data-i18n="nav.manage" class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-1.5 select-none">Manage</span>
+        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.cashflow">🏦 Data & Assets</button>
         <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
-          <span>⚙️ Settings</span>
+          <span data-i18n="nav.settings">⚙️ Settings</span>
         </button>
       </nav>
 
-      <!-- Quick Actions, Theme Toggle & Mobile Hamburger -->
+      <!-- Quick Actions, Theme Toggle, Language Switcher & Mobile Hamburger -->
       <div class="flex items-center space-x-1.5 shrink-0">
+        <!-- Language Switcher Dropdown (Accessible select) -->
+        <div class="flex items-center bg-slate-800/60 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300" title="Select Language / Taal kiezen">
+          <span aria-hidden="true" class="text-xs mr-1">🌐</span>
+          <label for="header-lang-select" class="sr-only">Language</label>
+          <select id="header-lang-select" class="language-selector bg-transparent text-slate-200 border-0 focus:outline-none cursor-pointer text-xs font-semibold py-0.5" onchange="I18N.setLanguage(this.value)" aria-label="Select language">
+            <option value="en" class="bg-slate-900 text-white">EN</option>
+            <option value="nl" class="bg-slate-900 text-white">NL</option>
+            <option value="fr" class="bg-slate-900 text-white">FR</option>
+            <option value="de" class="bg-slate-900 text-white">DE</option>
+          </select>
+        </div>
+
         <button onclick="toggleThemeScheme()" id="btn-theme-toggle" class="p-2 rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:text-white transition text-xs flex items-center gap-1" title="Switch Light / Dark Theme" aria-label="Switch color theme">
           <span id="theme-toggle-icon">☀️</span>
           <span id="theme-toggle-label" class="hidden xl:inline">Light</span>
         </button>
         <button onclick="openSetupWizard()" class="hidden sm:flex text-xs text-amber-400 hover:text-amber-300 px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 items-center gap-1 hover:border-amber-500 transition font-medium" title="Launch Interactive Setup Wizard">
-          <span>🚀 Setup</span>
+          <span data-i18n="nav.setup">🚀 Setup</span>
         </button>
         <a href="/guide/index.html" target="_blank" rel="noopener" class="hidden md:flex text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 items-center gap-1 hover:border-slate-500 transition" title="Built-in Documentation">
-          <span>📖 Docs</span>
+          <span data-i18n="nav.docs">📖 Docs</span>
         </a>
         <button onclick="openHelpModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800" title="In-App Help Guide" aria-label="Help Guide">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path stroke-width="2" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01"></path></svg>
@@ -188,25 +201,34 @@
 
     <!-- Mobile Navigation Drawer -->
     <div id="mobile-nav-drawer" class="hidden lg:hidden border-t border-slate-800 bg-slate-900 px-4 pt-3 pb-4 space-y-3 shadow-xl">
+      <div class="flex items-center justify-between px-2 pb-1 border-b border-slate-800 text-xs">
+        <span class="text-slate-400 font-medium">Taal / Language:</span>
+        <select class="language-selector bg-slate-950 border border-slate-700 text-white rounded px-2.5 py-1 text-xs font-medium" onchange="I18N.setLanguage(this.value)">
+          <option value="en">English (EN)</option>
+          <option value="nl">Nederlands (NL)</option>
+          <option value="fr">Français (FR)</option>
+          <option value="de">Deutsch (DE)</option>
+        </select>
+      </div>
       <div>
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1">Frontend — Explore State</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1" data-i18n="nav.explore">Explore</div>
         <div class="grid grid-cols-2 gap-1.5">
-          <button onclick="switchTab('dashboard')" id="mnav-dashboard" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left bg-blue-600 text-white flex items-center gap-2">📊 Overview</button>
-          <button onclick="switchTab('buckets')" id="mnav-buckets" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🪣 Buckets & Drift</button>
-          <button onclick="switchTab('advice')" id="mnav-advice" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">💡 Guidance & Tax</button>
-          <button onclick="switchTab('ai')" id="mnav-ai" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🤖 AI Advisor</button>
+          <button onclick="switchTab('dashboard')" id="mnav-dashboard" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left bg-blue-600 text-white flex items-center gap-2" data-i18n="nav.overview">📊 Overview</button>
+          <button onclick="switchTab('buckets')" id="mnav-buckets" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.buckets">🪣 Buckets</button>
+          <button onclick="switchTab('advice')" id="mnav-advice" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.guidance">💡 Guidance</button>
+          <button onclick="switchTab('ai')" id="mnav-ai" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.ai">🤖 AI Advisor</button>
         </div>
       </div>
       <div class="border-t border-slate-800 pt-2">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1">Backend — Manage Data & Config</div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1" data-i18n="nav.manage">Manage</div>
         <div class="grid grid-cols-2 gap-1.5">
-          <button onclick="switchTab('cashflow')" id="mnav-cashflow" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🏦 Data, Assets & Loans</button>
-          <button onclick="switchTab('settings')" id="mnav-settings" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">⚙️ Settings & MCP</button>
+          <button onclick="switchTab('cashflow')" id="mnav-cashflow" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.cashflow">🏦 Data & Assets</button>
+          <button onclick="switchTab('settings')" id="mnav-settings" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.settings">⚙️ Settings</button>
         </div>
       </div>
       <div class="border-t border-slate-800 pt-2 flex items-center justify-between gap-2">
-        <button onclick="openSetupWizard(); toggleMobileMenu(false);" class="flex-1 text-xs text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-center font-medium">🚀 Setup Wizard</button>
-        <a href="/guide/index.html" target="_blank" rel="noopener" class="flex-1 text-xs text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-center">📖 Offline Docs ↗</a>
+        <button onclick="openSetupWizard(); toggleMobileMenu(false);" class="flex-1 text-xs text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-center font-medium" data-i18n="nav.setup">🚀 Setup Wizard</button>
+        <a href="/guide/index.html" target="_blank" rel="noopener" class="flex-1 text-xs text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-center" data-i18n="nav.docs">📖 Offline Docs ↗</a>
       </div>
     </div>
   </header>
@@ -219,8 +241,8 @@
       <div class="flex items-center gap-3">
         <span class="text-2xl">🎉</span>
         <div>
-          <div class="text-sm font-bold text-white">Successfully Connected with Portfolio Dividend Tracker!</div>
-          <div id="oauth-success-subtitle" class="text-xs text-emerald-300/80 mt-0.5">Your holdings have been imported and synchronized via MCP.</div>
+          <div data-i18n="header.oauth_title" class="text-sm font-bold text-white">Successfully Connected with Portfolio Dividend Tracker!</div>
+          <div id="oauth-success-subtitle" data-i18n="header.oauth_subtitle" class="text-xs text-emerald-300/80 mt-0.5">Your holdings have been imported and synchronized via MCP.</div>
         </div>
       </div>
       <button onclick="dismissOAuthBanner()" class="text-emerald-400 hover:text-white text-lg font-bold px-2 py-1">&times;</button>
@@ -231,14 +253,14 @@
       <!-- Top Filter Bar: Exclude Property / Illiquid Assets -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900 border border-slate-800 px-4 py-3 rounded-xl shadow-sm">
         <div class="flex items-center gap-2 text-xs text-slate-300">
-          <span>🧭 <strong>Explore State</strong> — High-level wealth telemetry & trajectory</span>
+          <span data-i18n-html="dashboard.explore_banner">🧭 <strong>Explore State</strong> — High-level wealth telemetry & trajectory</span>
         </div>
         <div class="flex items-center gap-3">
           <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg hover:border-blue-500/40 transition">
             <input type="checkbox" id="toggle-exclude-property" onchange="toggleExcludeProperty(this.checked)" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 w-3.5 h-3.5">
-            <span>Exclude Real Estate / Illiquid Buckets from Net Worth & Growth</span>
+            <span data-i18n="dashboard.exclude_property">Exclude Real Estate / Illiquid Buckets from Net Worth & Growth</span>
           </label>
-          <button onclick="switchTab('cashflow')" class="text-xs text-blue-400 hover:text-blue-300 font-medium whitespace-nowrap">
+          <button onclick="switchTab('cashflow')" data-i18n="dashboard.manage_assets_link" class="text-xs text-blue-400 hover:text-blue-300 font-medium whitespace-nowrap">
             Manage Assets & Loans →
           </button>
         </div>
@@ -247,29 +269,29 @@
       <!-- KPI Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-          <div class="text-xs font-medium text-slate-400">Total Net Worth</div>
+          <div data-i18n="dashboard.kpi_net_worth" class="text-xs font-medium text-slate-400">Total Net Worth</div>
           <div id="kpi-net-worth" class="text-2xl font-bold text-white mt-1">€ 0,00</div>
           <div class="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-            <span>Assets minus Liabilities</span>
+            <span data-i18n="dashboard.kpi_net_worth_sub">Assets minus Liabilities</span>
           </div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-          <div class="text-xs font-medium text-slate-400">Total Assets</div>
+          <div data-i18n="dashboard.kpi_total_assets" class="text-xs font-medium text-slate-400">Total Assets</div>
           <div id="kpi-total-assets" class="text-2xl font-bold text-white mt-1">€ 0,00</div>
-          <div id="kpi-asset-count" class="text-xs text-slate-500 mt-1">Across 0 holdings & cash</div>
+          <div id="kpi-asset-count" data-i18n="dashboard.kpi_asset_count_default" class="text-xs text-slate-500 mt-1">Across 0 holdings & cash</div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-          <div class="text-xs font-medium text-slate-400">Total Liabilities (Debts)</div>
+          <div data-i18n="dashboard.kpi_total_debts" class="text-xs font-medium text-slate-400">Total Liabilities (Debts)</div>
           <div id="kpi-total-debts" class="text-2xl font-bold text-white mt-1">€ 0,00</div>
-          <div id="kpi-debt-ratio" class="text-xs text-amber-400 mt-1">Debt ratio: 0.0%</div>
+          <div id="kpi-debt-ratio" data-i18n="dashboard.kpi_debt_ratio_default" class="text-xs text-amber-400 mt-1">Debt ratio: 0.0%</div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-          <div class="text-xs font-medium text-slate-400">Monthly Free Cashflow</div>
+          <div data-i18n="dashboard.kpi_monthly_cashflow" class="text-xs font-medium text-slate-400">Monthly Free Cashflow</div>
           <div id="kpi-surplus" class="text-2xl font-bold text-emerald-400 mt-1">€ 0,00</div>
-          <div id="kpi-savings-rate" class="text-xs text-slate-500 mt-1">Available for allocation</div>
+          <div id="kpi-savings-rate" data-i18n="dashboard.kpi_savings_rate_default" class="text-xs text-slate-500 mt-1">Available for allocation</div>
         </div>
       </div>
 
@@ -278,8 +300,8 @@
         <!-- Allocation Donut -->
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm flex flex-col">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-white">Current Allocation vs Targets</h3>
-            <span class="text-xs text-slate-400">By Bucket</span>
+            <h3 data-i18n="dashboard.chart_allocation_title" class="text-sm font-semibold text-white">Current Allocation vs Targets</h3>
+            <span data-i18n="dashboard.chart_by_bucket" class="text-xs text-slate-400">By Bucket</span>
           </div>
           <div class="relative flex-1 min-h-[240px] flex items-center justify-center">
             <canvas id="allocationDonutChart"></canvas>
@@ -291,8 +313,8 @@
         <div class="lg:col-span-2 bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm flex flex-col">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 class="text-sm font-semibold text-white">Compound Wealth Trajectory</h3>
-              <p class="text-xs text-slate-400">Simulated growth with monthly cashflow compounding</p>
+              <h3 data-i18n="dashboard.chart_trajectory_title" class="text-sm font-semibold text-white">Compound Wealth Trajectory</h3>
+              <p data-i18n="dashboard.chart_trajectory_sub" class="text-xs text-slate-400">Simulated growth with monthly cashflow compounding</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <div class="flex items-center rounded-lg bg-slate-950 border border-slate-800 p-0.5 text-xs">
@@ -319,12 +341,12 @@
         <div class="flex items-center justify-between">
           <div>
             <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-              <span>🎯 Financial Independence Milestones</span>
+              <span data-i18n="dashboard.milestones_title">🎯 Financial Independence Milestones</span>
               <span id="milestones-completed-badge" class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-medium">0 Reached</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-0.5">Track your net worth progression across long-term wealth targets.</p>
+            <p data-i18n="dashboard.milestones_sub" class="text-xs text-slate-400 mt-0.5">Track your net worth progression across long-term wealth targets.</p>
           </div>
-          <button onclick="openMilestonesModal()" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
+          <button onclick="openMilestonesModal()" data-i18n="dashboard.milestones_configure" class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
             ⚙️ Configure Targets
           </button>
         </div>
@@ -337,15 +359,15 @@
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-            <span>⚡ Immediate Strategic Recommendations</span>
+            <span data-i18n="dashboard.recommendations_title">⚡ Immediate Strategic Recommendations</span>
             <span id="advice-count-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-blue-500/20 text-blue-400 font-normal">Active</span>
           </h3>
-          <button onclick="switchTab('advice')" class="text-xs text-blue-400 hover:text-blue-300 font-medium">
+          <button onclick="switchTab('advice')" data-i18n="dashboard.recommendations_open_full" class="text-xs text-blue-400 hover:text-blue-300 font-medium">
             Open Full Guidance & Simulators →
           </button>
         </div>
         <div id="dashboard-advice-list" class="space-y-2.5">
-          <div class="text-xs text-slate-400">Loading guidance recommendations...</div>
+          <div data-i18n="dashboard.recommendations_loading" class="text-xs text-slate-400">Loading guidance recommendations...</div>
         </div>
       </div>
     </section>
@@ -354,10 +376,10 @@
     <section id="tab-buckets" class="tab-content space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-bold text-white">Strategic Allocation Buckets</h2>
-          <p class="text-xs text-slate-400">Define macro pillars, set target percentages, and track portfolio drift.</p>
+          <h2 data-i18n="buckets.title" class="text-lg font-bold text-white">Strategic Allocation Buckets</h2>
+          <p data-i18n="buckets.subtitle" class="text-xs text-slate-400">Define macro pillars, set target percentages, and track portfolio drift.</p>
         </div>
-        <button onclick="openAddBucketModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition">
+        <button onclick="openAddBucketModal()" data-i18n="buckets.add_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition">
           + Add Bucket
         </button>
       </div>
@@ -368,13 +390,13 @@
           <table class="w-full text-left text-sm">
             <thead class="bg-slate-850 text-slate-400 text-xs font-semibold border-b border-slate-800">
               <tr>
-                <th class="px-4 py-3">Bucket</th>
-                <th class="px-4 py-3">Current Value</th>
-                <th class="px-4 py-3">Current Weight</th>
-                <th class="px-4 py-3">Target Weight</th>
-                <th class="px-4 py-3">Difference (€)</th>
-                <th class="px-4 py-3">Status</th>
-                <th class="px-4 py-3 text-right">Actions</th>
+                <th data-i18n="buckets.th_bucket" class="px-4 py-3">Bucket</th>
+                <th data-i18n="buckets.th_current_val" class="px-4 py-3">Current Value</th>
+                <th data-i18n="buckets.th_current_weight" class="px-4 py-3">Current Weight</th>
+                <th data-i18n="buckets.th_target_weight" class="px-4 py-3">Target Weight</th>
+                <th data-i18n="buckets.th_diff" class="px-4 py-3">Difference (€)</th>
+                <th data-i18n="buckets.th_status" class="px-4 py-3">Status</th>
+                <th data-i18n="buckets.th_actions" class="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody id="buckets-table-body" class="divide-y divide-slate-800 text-slate-200">
@@ -386,7 +408,7 @@
 
       <!-- Allocation Progress Meters -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-4">
-        <h3 class="text-sm font-semibold text-white">Allocation Visualizer & Tolerances</h3>
+        <h3 data-i18n="buckets.visualizer_title" class="text-sm font-semibold text-white">Allocation Visualizer & Tolerances</h3>
         <div id="bucket-meters-container" class="space-y-4">
           <!-- Meters populated dynamically -->
         </div>
@@ -397,10 +419,10 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
             <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-              <span>📦 Portfolio Holdings & Bucket Assignment</span>
+              <span data-i18n="buckets.holdings_title">📦 Portfolio Holdings & Bucket Assignment</span>
               <span id="holdings-count-badge" class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700">0 Assets</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-0.5">
+            <p data-i18n="buckets.holdings_subtitle" class="text-xs text-slate-400 mt-0.5">
               Assign or change which bucket each holding maps to. Rebalancing calculations update automatically.
             </p>
           </div>
@@ -409,12 +431,12 @@
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-850 text-slate-400 border-b border-slate-800">
               <tr>
-                <th class="px-3 py-2.5">Holding Name</th>
-                <th class="px-3 py-2.5">Symbol / ISIN</th>
-                <th class="px-3 py-2.5">Institution</th>
-                <th class="px-3 py-2.5">Value</th>
-                <th class="px-3 py-2.5">Current Bucket</th>
-                <th class="px-3 py-2.5">Assign To Bucket</th>
+                <th data-i18n="buckets.th_holding_name" class="px-3 py-2.5">Holding Name</th>
+                <th data-i18n="buckets.th_symbol_isin" class="px-3 py-2.5">Symbol / ISIN</th>
+                <th data-i18n="buckets.th_institution" class="px-3 py-2.5">Institution</th>
+                <th data-i18n="buckets.th_value" class="px-3 py-2.5">Value</th>
+                <th data-i18n="buckets.th_current_bucket" class="px-3 py-2.5">Current Bucket</th>
+                <th data-i18n="buckets.th_assign_bucket" class="px-3 py-2.5">Assign To Bucket</th>
               </tr>
             </thead>
             <tbody id="holdings-mapping-tbody" class="divide-y divide-slate-800 text-slate-200">
@@ -432,10 +454,10 @@
         <div class="flex items-start justify-between">
           <div>
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span>💡 Smart Buy-Only Rebalancing Calculator</span>
-              <span class="text-xs font-normal text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Zero Forced Sales</span>
+              <span data-i18n="guidance.calc_title">💡 Smart Buy-Only Rebalancing Calculator</span>
+              <span data-i18n="guidance.zero_sales_badge" class="text-xs font-normal text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Zero Forced Sales</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-1">
+            <p data-i18n="guidance.calc_desc" class="text-xs text-slate-400 mt-1">
               Enter your monthly investable surplus. Wealth Pilot solves the optimal distribution to underweight buckets to minimize tracking error without selling assets or triggering tax.
             </p>
           </div>
@@ -443,20 +465,20 @@
 
         <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
           <div class="w-full sm:w-72">
-            <label class="block text-xs font-medium text-slate-300 mb-1">Planned Deposit Amount (€)</label>
+            <label data-i18n="guidance.deposit_label" class="block text-xs font-medium text-slate-300 mb-1">Planned Deposit Amount (€)</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-sm">€</span>
               <input type="number" id="input-deposit-amount" value="1500" step="50" min="50" onchange="recalculateContribution()" class="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
             </div>
           </div>
-          <button onclick="recalculateContribution()" class="w-full sm:w-auto px-4 py-2 mt-auto text-sm font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition">
+          <button onclick="recalculateContribution()" data-i18n="guidance.calculate_btn" class="w-full sm:w-auto px-4 py-2 mt-auto text-sm font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition">
             Calculate Optimal Buy Orders
           </button>
         </div>
 
         <!-- Calculated Orders List -->
         <div id="contribution-results-container" class="mt-4 pt-4 border-t border-slate-800">
-          <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Recommended Purchase Allocation:</h4>
+          <h4 data-i18n="guidance.recommended_heading" class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Recommended Purchase Allocation:</h4>
           <div id="contribution-orders-list" class="space-y-2"></div>
         </div>
       </div>
@@ -466,10 +488,10 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span>⚖️ Consolidated Debt Payoff & Portfolio Action Plan</span>
+              <span data-i18n="guidance.action_plan_title">⚖️ Consolidated Debt Payoff & Portfolio Action Plan</span>
               <span id="guidance-total-badge" class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">0 Active</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-0.5">
+            <p data-i18n="guidance.action_plan_desc" class="text-xs text-slate-400 mt-0.5">
               Unified priority queue comparing debt APRs against expected portfolio CAGR (7.0%) alongside active bucket drift alerts.
             </p>
           </div>
@@ -482,13 +504,13 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span>🇧🇪 Belgian Capital Gains Tax Optimizer & Historical Benchmark</span>
+              <span data-i18n="guidance.tax_title">🇧🇪 Belgian Capital Gains Tax Optimizer & Historical Benchmark</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-0.5">
+            <p data-i18n="guidance.tax_desc" class="text-xs text-slate-400 mt-0.5">
               Shares acquired on or before Dec 31, 2025 are taxed against the Dec 31, 2025 closing price (lookable via PDT timetravel). Buys after Dec 31, 2025 are taxed on their actual buying price. Annual capital gains exemption is € 10,000.
             </p>
           </div>
-          <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
+          <span data-i18n="guidance.tax_badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
             10% Tax Above Exemption
           </span>
         </div>
@@ -497,11 +519,11 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <!-- Ticker & PDT Lookup -->
           <div>
-            <label class="block text-slate-300 font-medium mb-1">Security Symbol / Ticker</label>
+            <label data-i18n="guidance.tax_symbol_label" class="block text-slate-300 font-medium mb-1">Security Symbol / Ticker</label>
             <div class="flex items-center gap-1.5">
               <input type="text" id="sim-tax-symbol" value="ASML" placeholder="e.g. ASML, NVDA, VWCE" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono uppercase">
               <button onclick="lookupTaxPrice()" id="btn-lookup-tax-price" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium whitespace-nowrap shadow flex items-center gap-1" title="Query PDT MCP timetravel for Dec 31, 2025 closing price">
-                <span>🔍 Lookup PDT</span>
+                <span data-i18n="guidance.tax_lookup_btn">🔍 Lookup PDT</span>
               </button>
             </div>
             <span id="tax-lookup-feedback" class="text-[10px] text-slate-400 mt-1 block"></span>
@@ -510,53 +532,53 @@
           <!-- Benchmark Price on Dec 31, 2025 -->
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="text-slate-300 font-medium">Dec 31, 2025 Benchmark Price (€)</label>
-              <span class="text-[10px] text-emerald-400">User Editable</span>
+              <label data-i18n="guidance.tax_bench_label" class="text-slate-300 font-medium">Dec 31, 2025 Benchmark Price (€)</label>
+              <span data-i18n="guidance.tax_user_editable" class="text-[10px] text-emerald-400">User Editable</span>
             </div>
             <input type="number" id="sim-tax-bench-price" value="912.00" step="0.01" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
-            <span class="text-[10px] text-slate-500 mt-1 block">Base cost for shares bought on or before Dec 31, 2025</span>
+            <span data-i18n="guidance.tax_bench_help" class="text-[10px] text-slate-500 mt-1 block">Base cost for shares bought on or before Dec 31, 2025</span>
           </div>
 
           <!-- Current Market Price -->
           <div>
-            <label class="block text-slate-300 font-medium mb-1">Current Sale Market Price (€)</label>
+            <label data-i18n="guidance.tax_current_price_label" class="block text-slate-300 font-medium mb-1">Current Sale Market Price (€)</label>
             <input type="number" id="sim-tax-current-price" value="1250.00" step="0.01" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
-            <span class="text-[10px] text-slate-500 mt-1 block">Expected execution price per share</span>
+            <span data-i18n="guidance.tax_current_price_help" class="text-[10px] text-slate-500 mt-1 block">Expected execution price per share</span>
           </div>
         </div>
 
         <!-- Lots Breakdown (Pre-2026 vs Post-2025) -->
         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 text-xs">
           <div class="font-semibold text-white flex items-center justify-between">
-            <span>Holding Lots Acquisition Breakdown</span>
-            <span class="text-[11px] text-slate-400">Pre vs Post Benchmark Date Allocation</span>
+            <span data-i18n="guidance.tax_lots_title">Holding Lots Acquisition Breakdown</span>
+            <span data-i18n="guidance.tax_lots_sub" class="text-[11px] text-slate-400">Pre vs Post Benchmark Date Allocation</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
-              <label class="block text-slate-400 mb-1">Pre-2026 Shares Held</label>
+              <label data-i18n="guidance.tax_pre_shares_label" class="block text-slate-400 mb-1">Pre-2026 Shares Held</label>
               <input type="number" id="sim-tax-shares-pre" value="15.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
-              <span class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs Dec 31, 2025 price</span>
+              <span data-i18n="guidance.tax_pre_shares_help" class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs Dec 31, 2025 price</span>
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Post-2025 Shares Held</label>
+              <label data-i18n="guidance.tax_post_shares_label" class="block text-slate-400 mb-1">Post-2025 Shares Held</label>
               <input type="number" id="sim-tax-shares-post" value="5.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
-              <span class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs actual buy price</span>
+              <span data-i18n="guidance.tax_post_shares_help" class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs actual buy price</span>
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Actual Purchase Price (Post-2025) (€)</label>
+              <label data-i18n="guidance.tax_post_price_label" class="block text-slate-400 mb-1">Actual Purchase Price (Post-2025) (€)</label>
               <input type="number" id="sim-tax-post-buy-price" value="1050.00" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
-              <span class="text-[10px] text-slate-500 mt-0.5 block">Cost basis for post-2025 buys</span>
+              <span data-i18n="guidance.tax_post_price_help" class="text-[10px] text-slate-500 mt-0.5 block">Cost basis for post-2025 buys</span>
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Planned Shares to Sell</label>
+              <label data-i18n="guidance.tax_sell_qty_label" class="block text-slate-400 mb-1">Planned Shares to Sell</label>
               <input type="number" id="sim-tax-sell-qty" value="10.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-bold text-blue-400">
-              <span class="text-[10px] text-slate-500 mt-0.5 block">Total rebalance quantity</span>
+              <span data-i18n="guidance.tax_sell_qty_help" class="text-[10px] text-slate-500 mt-0.5 block">Total rebalance quantity</span>
             </div>
           </div>
 
           <div class="flex justify-end pt-1">
             <button onclick="runTaxSimulation()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1.5 shadow">
-              <span>⚡ Calculate Realized Gain & Tax</span>
+              <span data-i18n="guidance.tax_calc_btn">⚡ Calculate Realized Gain & Tax</span>
             </button>
           </div>
         </div>
@@ -564,22 +586,22 @@
         <!-- Simulation Results Cards -->
         <div id="tax-sim-results" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 text-xs">
           <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
-            <div class="text-slate-400">Pre-2026 Gain (vs Benchmark)</div>
+            <div data-i18n="guidance.res_pre_gain_label" class="text-slate-400">Pre-2026 Gain (vs Benchmark)</div>
             <div id="res-gain-pre" class="text-base font-bold text-white mt-0.5">€ 3.380,00</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Dec 31, 2025 basis applied</div>
+            <div data-i18n="guidance.res_pre_gain_help" class="text-[10px] text-slate-500 mt-0.5">Dec 31, 2025 basis applied</div>
           </div>
           <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
-            <div class="text-slate-400">Post-2025 Gain (vs Buy Price)</div>
+            <div data-i18n="guidance.res_post_gain_label" class="text-slate-400">Post-2025 Gain (vs Buy Price)</div>
             <div id="res-gain-post" class="text-base font-bold text-white mt-0.5">€ 0,00</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Actual purchase price applied</div>
+            <div data-i18n="guidance.res_post_gain_help" class="text-[10px] text-slate-500 mt-0.5">Actual purchase price applied</div>
           </div>
           <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
-            <div class="text-slate-400">Total Realized Gain / Exemption</div>
+            <div data-i18n="guidance.res_total_gain_label" class="text-slate-400">Total Realized Gain / Exemption</div>
             <div id="res-taxable-gain" class="text-base font-bold text-emerald-400 mt-0.5">€ 3.380,00</div>
             <div id="res-remaining-exemption" class="text-[10px] text-emerald-400 mt-0.5">€ 6.620,00 exemption left</div>
           </div>
           <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
-            <div class="text-slate-400">Tax Due & Status</div>
+            <div data-i18n="guidance.res_tax_due_label" class="text-slate-400">Tax Due & Status</div>
             <div id="res-tax-due" class="text-base font-bold text-white mt-0.5">€ 0,00</div>
             <div id="res-tax-status" class="text-[10px] text-emerald-400 mt-0.5 font-semibold">🟢 100% Tax-Exempt</div>
           </div>
@@ -591,8 +613,8 @@
     <section id="tab-cashflow" class="tab-content space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 class="text-lg font-bold text-white">🏦 Data Management — Assets, Liabilities & Statement Ingestion</h2>
-          <p class="text-xs text-slate-400">Backend workspace to insert real estate/manual assets, configure loans/mortgages, and upload bank or broker CSVs.</p>
+          <h2 data-i18n="cashflow.title" class="text-lg font-bold text-white">🏦 Data Management — Assets, Liabilities & Statement Ingestion</h2>
+          <p data-i18n="cashflow.subtitle" class="text-xs text-slate-400">Backend workspace to insert real estate/manual assets, configure loans/mortgages, and upload bank or broker CSVs.</p>
         </div>
       </div>
 
@@ -603,11 +625,11 @@
           <div class="flex items-center justify-between gap-2">
             <div>
               <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                <span>🏠 Real Estate & Manual Assets</span>
+                <span data-i18n="cashflow.assets_card_title">🏠 Real Estate & Manual Assets</span>
               </h3>
-              <p class="text-xs text-slate-400 mt-0.5">Properties, savings accounts, private equity, or physical assets.</p>
+              <p data-i18n="cashflow.assets_card_sub" class="text-xs text-slate-400 mt-0.5">Properties, savings accounts, private equity, or physical assets.</p>
             </div>
-            <button onclick="openAddAssetModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition whitespace-nowrap">
+            <button onclick="openAddAssetModal()" data-i18n="cashflow.add_asset_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition whitespace-nowrap">
               + Add Asset / Property
             </button>
           </div>
@@ -615,10 +637,10 @@
             <table class="w-full text-left text-xs">
               <thead class="text-slate-400 border-b border-slate-800">
                 <tr>
-                  <th class="pb-2 pr-2">Asset</th>
-                  <th class="pb-2 pr-2">Category</th>
-                  <th class="pb-2 pr-2">Value</th>
-                  <th class="pb-2 text-right">Action</th>
+                  <th data-i18n="cashflow.th_asset" class="pb-2 pr-2">Asset</th>
+                  <th data-i18n="cashflow.th_category" class="pb-2 pr-2">Category</th>
+                  <th data-i18n="cashflow.th_value" class="pb-2 pr-2">Value</th>
+                  <th data-i18n="cashflow.th_action" class="pb-2 text-right">Action</th>
                 </tr>
               </thead>
               <tbody id="manual-assets-tbody" class="divide-y divide-slate-800 text-slate-300">
@@ -633,11 +655,11 @@
           <div class="flex items-center justify-between gap-2">
             <div>
               <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                <span>💳 Mortgages, Loans & Debts</span>
+                <span data-i18n="cashflow.liabilities_card_title">💳 Mortgages, Loans & Debts</span>
               </h3>
-              <p class="text-xs text-slate-400 mt-0.5">Insert remaining principal or auto-calculate from start capital & duration.</p>
+              <p data-i18n="cashflow.liabilities_card_sub" class="text-xs text-slate-400 mt-0.5">Insert remaining principal or auto-calculate from start capital & duration.</p>
             </div>
-            <button onclick="openAddLiabilityModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow transition whitespace-nowrap">
+            <button onclick="openAddLiabilityModal()" data-i18n="cashflow.add_liability_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow transition whitespace-nowrap">
               + Add Mortgage / Loan
             </button>
           </div>
@@ -645,12 +667,12 @@
             <table class="w-full text-left text-xs">
               <thead class="text-slate-400 border-b border-slate-800">
                 <tr>
-                  <th class="pb-2 pr-2">Liability</th>
-                  <th class="pb-2 pr-2">Type</th>
-                  <th class="pb-2 pr-2">Balance</th>
-                  <th class="pb-2 pr-2">APR</th>
-                  <th class="pb-2 pr-2">Monthly</th>
-                  <th class="pb-2 text-right">Action</th>
+                  <th data-i18n="cashflow.th_liability" class="pb-2 pr-2">Liability</th>
+                  <th data-i18n="cashflow.th_type" class="pb-2 pr-2">Type</th>
+                  <th data-i18n="cashflow.th_balance" class="pb-2 pr-2">Balance</th>
+                  <th data-i18n="cashflow.th_apr" class="pb-2 pr-2">APR</th>
+                  <th data-i18n="cashflow.th_monthly" class="pb-2 pr-2">Monthly</th>
+                  <th data-i18n="cashflow.th_action" class="pb-2 text-right">Action</th>
                 </tr>
               </thead>
               <tbody id="manual-liabilities-tbody" class="divide-y divide-slate-800 text-slate-300">
@@ -665,13 +687,13 @@
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
         <div class="flex items-start justify-between">
           <div>
-            <h3 class="text-base font-bold text-white">📂 Ingest Financial Statements</h3>
-            <p class="text-xs text-slate-400 mt-0.5">
+            <h3 data-i18n="cashflow.ingest_title" class="text-base font-bold text-white">📂 Ingest Financial Statements</h3>
+            <p data-i18n-html="cashflow.ingest_sub" class="text-xs text-slate-400 mt-0.5">
               Upload your <strong>KBC Bank CSV export</strong> or a <strong>Generic CSV</strong> portfolio/ledger file.
             </p>
           </div>
           <a href="/api/template/generic" download class="text-xs text-blue-400 hover:text-blue-300 border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 rounded-lg flex items-center gap-1 transition">
-            <span>📥 Download Template CSV</span>
+            <span data-i18n="cashflow.download_template_btn">📥 Download Template CSV</span>
           </a>
         </div>
 
@@ -679,8 +701,8 @@
           <input type="file" id="file-input" class="hidden" accept=".csv" onchange="handleFileUpload(event)">
           <div class="space-y-2">
             <div class="text-3xl">📄</div>
-            <div class="text-sm font-medium text-white">Click to select or drag and drop your CSV file</div>
-            <div class="text-xs text-slate-500">Supports KBC exports (semicolon delimited) and generic CSV format</div>
+            <div data-i18n="cashflow.dropzone_title" class="text-sm font-medium text-white">Click to select or drag and drop your CSV file</div>
+            <div data-i18n="cashflow.dropzone_sub" class="text-xs text-slate-500">Supports KBC exports (semicolon delimited) and generic CSV format</div>
           </div>
         </div>
         <div id="upload-status" class="hidden text-xs py-2 px-3 rounded-lg"></div>
@@ -690,8 +712,8 @@
       <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm space-y-3 p-5">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-semibold text-white">Recent Transactions & Categorization</h3>
-            <p class="text-xs text-slate-400">Click any transaction category to re-bucket and persist rules for future imports.</p>
+            <h3 data-i18n="cashflow.tx_title" class="text-sm font-semibold text-white">Recent Transactions & Categorization</h3>
+            <p data-i18n="cashflow.tx_sub" class="text-xs text-slate-400">Click any transaction category to re-bucket and persist rules for future imports.</p>
           </div>
           <span id="tx-count-badge" class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">0 Transactions</span>
         </div>
@@ -700,16 +722,16 @@
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-850 text-slate-400 font-semibold border-b border-slate-800">
               <tr>
-                <th class="px-3 py-2.5">Date</th>
-                <th class="px-3 py-2.5">Description</th>
-                <th class="px-3 py-2.5">Counterparty</th>
-                <th class="px-3 py-2.5 text-right">Amount</th>
-                <th class="px-3 py-2.5">Category / Bucket</th>
+                <th data-i18n="cashflow.th_date" class="px-3 py-2.5">Date</th>
+                <th data-i18n="cashflow.th_desc" class="px-3 py-2.5">Description</th>
+                <th data-i18n="cashflow.th_counterparty" class="px-3 py-2.5">Counterparty</th>
+                <th data-i18n="cashflow.th_amount" class="px-3 py-2.5 text-right">Amount</th>
+                <th data-i18n="cashflow.th_cat_bucket" class="px-3 py-2.5">Category / Bucket</th>
               </tr>
             </thead>
             <tbody id="tx-table-body" class="divide-y divide-slate-800 text-slate-300">
               <tr>
-                <td colspan="5" class="px-3 py-6 text-center text-slate-500">No transactions loaded yet. Upload your KBC CSV above.</td>
+                <td colspan="5" data-i18n="cashflow.empty_tx" class="px-3 py-6 text-center text-slate-500">No transactions loaded yet. Upload your KBC CSV above.</td>
               </tr>
             </tbody>
           </table>
@@ -723,40 +745,40 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span>🤖 AI Strategic Financial Advisor</span>
+              <span data-i18n="ai.title">🤖 AI Strategic Financial Advisor</span>
               <span id="ai-active-provider-badge" class="text-xs font-medium text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">Configured in Settings</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-1">
+            <p data-i18n="ai.subtitle" class="text-xs text-slate-400 mt-1">
               Your consolidated financial data (net worth, bucket drift, debts, cashflow) is synthesized into an anonymized prompt for qualitative strategic review.
             </p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <button onclick="switchTab('settings')" class="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
+            <button onclick="switchTab('settings')" data-i18n="ai.configure_btn" class="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
               ⚙️ Configure Provider / API Key
             </button>
             <button onclick="runAiReview()" id="btn-run-ai" class="px-4 py-2 font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs transition flex items-center gap-1.5 whitespace-nowrap shadow">
-              <span>⚡ Run Strategic Review</span>
+              <span data-i18n="ai.run_btn">⚡ Run Strategic Review</span>
             </button>
           </div>
         </div>
 
         <!-- Default Strategy Prompts / Quick Questions -->
         <div class="space-y-2">
-          <div class="text-xs font-medium text-slate-300">💡 Quick Strategy Prompts (Click to populate & analyze):</div>
+          <div data-i18n="ai.quick_prompts_label" class="text-xs font-medium text-slate-300">💡 Quick Strategy Prompts (Click to populate & analyze):</div>
           <div class="flex flex-wrap gap-2">
-            <button type="button" onclick="selectAiPrompt('Compare paying down my loans/mortgage early vs investing my monthly surplus into my underweight ETF buckets.')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_1_text', 'Compare paying down my loans/mortgage early vs investing my monthly surplus into my underweight ETF buckets.'))" data-i18n="ai.prompt_1_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
               ⚖️ Debt Payoff vs. Investing Surplus
             </button>
-            <button type="button" onclick="selectAiPrompt('Analyze my current bucket drift and recommend a tax-efficient buy-only rebalancing plan for the next 6 months.')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_2_text', 'Analyze my current bucket drift and recommend a tax-efficient buy-only rebalancing plan for the next 6 months.'))" data-i18n="ai.prompt_2_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
               🪣 Tax-Efficient Bucket Rebalancing
             </button>
-            <button type="button" onclick="selectAiPrompt('Evaluate my emergency cash buffer relative to my monthly expenses and debt obligations. Is my liquidity optimal?')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_3_text', 'Evaluate my emergency cash buffer relative to my monthly expenses and debt obligations. Is my liquidity optimal?'))" data-i18n="ai.prompt_3_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
               🛡️ Emergency Buffer & Risk Audit
             </button>
-            <button type="button" onclick="selectAiPrompt('How can I optimize my portfolio under the Belgian 2026 capital gains tax framework (€10,000 annual exemption)?')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_4_text', 'How can I optimize my portfolio under the Belgian 2026 capital gains tax framework (€10,000 annual exemption)?'))" data-i18n="ai.prompt_4_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
               🇧🇪 Belgian 2026 Capital Gains Strategy
             </button>
-            <button type="button" onclick="selectAiPrompt('Based on my current net worth, savings rate, and trajectory, what adjustments will accelerate my path to Financial Independence (FIRE)?')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_5_text', 'Based on my current net worth, savings rate, and trajectory, what adjustments will accelerate my path to Financial Independence (FIRE)?'))" data-i18n="ai.prompt_5_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
               🎯 Accelerate Financial Independence
             </button>
           </div>
@@ -764,18 +786,18 @@
 
         <!-- Custom Prompt Question (Optional) -->
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Specific Question or Scenario (Optional)</label>
+          <label data-i18n="ai.question_label" class="block text-xs font-medium text-slate-400 mb-1">Specific Question or Scenario (Optional)</label>
           <div class="flex flex-col sm:flex-row gap-2">
-            <input type="text" id="ai-user-question" placeholder="Select a prompt above or type your own financial strategy question..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
+            <input type="text" id="ai-user-question" data-i18n-placeholder="ai.question_placeholder" placeholder="Select a prompt above or type your own financial strategy question..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
           </div>
         </div>
 
         <!-- AI Output Window -->
         <div class="pt-4 border-t border-slate-800">
-          <div id="ai-loading" class="hidden text-center py-8 text-slate-400 text-sm animate-pulse">
+          <div id="ai-loading" data-i18n="ai.loading_text" class="hidden text-center py-8 text-slate-400 text-sm animate-pulse">
             Analyzing your consolidated balance sheet and generating strategic guidance...
           </div>
-          <div id="ai-output" class="bg-slate-950 border border-slate-800 p-5 rounded-lg text-sm text-slate-200 prose prose-invert max-w-none leading-relaxed">
+          <div id="ai-output" data-i18n-html="ai.initial_output" class="bg-slate-950 border border-slate-800 p-5 rounded-lg text-sm text-slate-200 prose prose-invert max-w-none leading-relaxed">
             Select one of the strategy prompts above or click <strong>"Run Strategic Review"</strong> to generate a customized consultation based on your current financial metrics.
           </div>
         </div>
@@ -794,19 +816,19 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
             <div class="flex items-center gap-2">
-              <h3 class="text-base font-bold text-white">📈 Portfolio Dividend Tracker (PDT) MCP</h3>
+              <h3 data-i18n="settings.pdt_title" class="text-base font-bold text-white">📈 Portfolio Dividend Tracker (PDT) MCP</h3>
               <span id="pdt-status-pill" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border bg-slate-800 text-slate-400 border-slate-700">Checking...</span>
             </div>
-            <p class="text-xs text-slate-400 mt-0.5">Connect to your PDT portfolio via the official Model Context Protocol (MCP) server for live holdings and dividend telemetry.</p>
+            <p data-i18n="settings.pdt_desc" class="text-xs text-slate-400 mt-0.5">Connect to your PDT portfolio via the official Model Context Protocol (MCP) server for live holdings and dividend telemetry.</p>
           </div>
           <div class="flex items-center gap-2">
             <button onclick="connectPdtOAuth()" id="btn-pdt-connect-oauth" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-1.5 shadow transition">
-              <span>🔗 Connect with PDT (OAuth PKCE)</span>
+              <span data-i18n="settings.pdt_connect_btn">🔗 Connect with PDT (OAuth PKCE)</span>
             </button>
             <button onclick="syncPdtHoldings()" id="btn-pdt-sync" class="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1.5 shadow transition">
-              <span>🔄 Sync Holdings</span>
+              <span data-i18n="settings.pdt_sync_btn">🔄 Sync Holdings</span>
             </button>
-            <button onclick="disconnectPdt()" id="btn-pdt-disconnect" class="hidden px-3 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium transition">
+            <button onclick="disconnectPdt()" id="btn-pdt-disconnect" data-i18n="settings.pdt_disconnect_btn" class="hidden px-3 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium transition">
               Disconnect
             </button>
           </div>
@@ -814,15 +836,15 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-            <div class="text-slate-400">MCP Server URL</div>
+            <div data-i18n="settings.pdt_url_label" class="text-slate-400">MCP Server URL</div>
             <div id="pdt-cfg-url" class="font-mono text-white mt-0.5 truncate">https://mcp.portfoliodividendtracker.com</div>
           </div>
           <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-            <div class="text-slate-400">Active Token</div>
+            <div data-i18n="settings.pdt_token_label" class="text-slate-400">Active Token</div>
             <div id="pdt-cfg-token" class="font-mono text-white mt-0.5">Not Connected</div>
           </div>
           <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-            <div class="text-slate-400">Last Synced</div>
+            <div data-i18n="settings.pdt_last_sync_label" class="text-slate-400">Last Synced</div>
             <div id="pdt-cfg-last-sync" class="text-white mt-0.5">Never</div>
           </div>
         </div>
@@ -830,22 +852,22 @@
         <!-- Manual Token Entry Dropdown / Accordion -->
         <details class="group bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-xs">
           <summary class="cursor-pointer text-slate-400 hover:text-white font-medium flex items-center justify-between">
-            <span>⚙️ Manual Token / Custom MCP URL Fallback (Optional)</span>
+            <span data-i18n="settings.pdt_manual_summary">⚙️ Manual Token / Custom MCP URL Fallback (Optional)</span>
             <span class="group-open:rotate-180 transition-transform">▾</span>
           </summary>
           <div class="pt-3 space-y-3 border-t border-slate-800 mt-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-slate-400 mb-1">PDT Bearer Token</label>
-                <input type="password" id="pdt-manual-token-input" placeholder="Paste PDT Bearer Token" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+                <label data-i18n="settings.pdt_manual_token_label" class="block text-slate-400 mb-1">PDT Bearer Token</label>
+                <input type="password" id="pdt-manual-token-input" data-i18n-placeholder="settings.pdt_manual_token_placeholder" placeholder="Paste PDT Bearer Token" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
               </div>
               <div>
-                <label class="block text-slate-400 mb-1">Custom PDT MCP Endpoint URL</label>
+                <label data-i18n="settings.pdt_manual_url_label" class="block text-slate-400 mb-1">Custom PDT MCP Endpoint URL</label>
                 <input type="text" id="pdt-manual-url-input" value="https://mcp.portfoliodividendtracker.com" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
               </div>
             </div>
             <div class="flex justify-end">
-              <button onclick="saveManualPdtToken()" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-white text-xs border border-slate-700 font-medium">Save Manual Settings</button>
+              <button onclick="saveManualPdtToken()" data-i18n="settings.pdt_manual_save_btn" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-white text-xs border border-slate-700 font-medium">Save Manual Settings</button>
             </div>
           </div>
         </details>
@@ -855,41 +877,41 @@
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
-            <h3 class="text-base font-bold text-white">🌐 Registered MCP Servers</h3>
-            <p class="text-xs text-slate-400 mt-0.5">Add other Model Context Protocol servers (banking, crypto, or private brokerages) to integrate assets into your buckets.</p>
+            <h3 data-i18n="settings.mcp_title" class="text-base font-bold text-white">🌐 Registered MCP Servers</h3>
+            <p data-i18n="settings.mcp_desc" class="text-xs text-slate-400 mt-0.5">Add other Model Context Protocol servers (banking, crypto, or private brokerages) to integrate assets into your buckets.</p>
           </div>
-          <button onclick="toggleAddMcpForm()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium">
+          <button onclick="toggleAddMcpForm()" data-i18n="settings.mcp_add_btn" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium">
             + Add MCP Server
           </button>
         </div>
 
         <!-- Add Server Form (collapsible) -->
         <div id="add-mcp-form" class="hidden bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3 text-xs">
-          <div class="font-semibold text-white">Register New MCP Server</div>
+          <div data-i18n="settings.mcp_form_title" class="font-semibold text-white">Register New MCP Server</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-slate-400 mb-1">Server Name</label>
+              <label data-i18n="settings.mcp_name_label" class="block text-slate-400 mb-1">Server Name</label>
               <input type="text" id="new-mcp-name" placeholder="e.g. Crypto Portfolio MCP" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Endpoint URL</label>
+              <label data-i18n="settings.mcp_url_label" class="block text-slate-400 mb-1">Endpoint URL</label>
               <input type="text" id="new-mcp-url" placeholder="e.g. http://localhost:4000/mcp" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs font-mono">
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Transport Protocol</label>
+              <label data-i18n="settings.mcp_transport_label" class="block text-slate-400 mb-1">Transport Protocol</label>
               <select id="new-mcp-transport" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
                 <option value="http">HTTP JSON-RPC 2.0</option>
                 <option value="sse">Server-Sent Events (SSE)</option>
               </select>
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Bearer Token / Auth Key (Optional)</label>
+              <label data-i18n="settings.mcp_token_label" class="block text-slate-400 mb-1">Bearer Token / Auth Key (Optional)</label>
               <input type="password" id="new-mcp-token" placeholder="Optional Authorization header" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
             </div>
           </div>
           <div class="flex justify-end gap-2 pt-2">
-            <button onclick="toggleAddMcpForm()" class="px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-400">Cancel</button>
-            <button onclick="submitNewMcpServer()" class="px-3.5 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-medium">Save Server</button>
+            <button onclick="toggleAddMcpForm()" data-i18n="common.cancel" class="px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-400">Cancel</button>
+            <button onclick="submitNewMcpServer()" data-i18n="settings.mcp_save_btn" class="px-3.5 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white font-medium">Save Server</button>
           </div>
         </div>
 
@@ -898,11 +920,11 @@
           <table class="w-full text-left text-xs">
             <thead class="text-slate-400 border-b border-slate-800 bg-slate-950/40">
               <tr>
-                <th class="py-2.5 px-3 font-medium">Server Name</th>
-                <th class="py-2.5 px-3 font-medium">Endpoint URL</th>
-                <th class="py-2.5 px-3 font-medium">Transport</th>
-                <th class="py-2.5 px-3 font-medium">Status / Ping</th>
-                <th class="py-2.5 px-3 font-medium text-right">Actions</th>
+                <th data-i18n="settings.mcp_th_name" class="py-2.5 px-3 font-medium">Server Name</th>
+                <th data-i18n="settings.mcp_th_url" class="py-2.5 px-3 font-medium">Endpoint URL</th>
+                <th data-i18n="settings.mcp_th_transport" class="py-2.5 px-3 font-medium">Transport</th>
+                <th data-i18n="settings.mcp_th_status" class="py-2.5 px-3 font-medium">Status / Ping</th>
+                <th data-i18n="settings.mcp_th_actions" class="py-2.5 px-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody id="mcp-servers-tbody" class="divide-y divide-slate-800/60">
@@ -916,20 +938,20 @@
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
-            <h3 class="text-base font-bold text-white">🤖 AI Financial Advisor Configuration (Single Source of Truth)</h3>
-            <p class="text-xs text-slate-400 mt-0.5">Configure your preferred LLM provider, model, and API key here. The AI Advisor tab uses these settings automatically.</p>
+            <h3 data-i18n="settings.ai_title" class="text-base font-bold text-white">🤖 AI Financial Advisor Configuration (Single Source of Truth)</h3>
+            <p data-i18n="settings.ai_desc" class="text-xs text-slate-400 mt-0.5">Configure your preferred LLM provider, model, and API key here. The AI Advisor tab uses these settings automatically.</p>
           </div>
           <!-- Quick One-Click Provider Key Links -->
           <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
-            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 font-medium transition">🔑 Get Free Gemini Key ↗</a>
-            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition">OpenAI Keys ↗</a>
-            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition">Anthropic Keys ↗</a>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" data-i18n="settings.ai_free_gemini_key" class="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 font-medium transition">🔑 Get Free Gemini Key ↗</a>
+            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" data-i18n="settings.ai_openai_keys" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition">OpenAI Keys ↗</a>
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" data-i18n="settings.ai_anthropic_keys" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition">Anthropic Keys ↗</a>
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div>
-            <label class="block text-slate-300 font-medium mb-1">AI Provider</label>
+            <label data-i18n="settings.ai_provider_label" class="block text-slate-300 font-medium mb-1">AI Provider</label>
             <select id="settings-ai-provider" onchange="refreshAiModels()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
               <option value="gemini">Google Gemini (Recommended)</option>
               <option value="openai">OpenAI (GPT-4o)</option>
@@ -940,8 +962,8 @@
           </div>
           <div>
             <label class="block text-slate-300 font-medium mb-1 flex items-center justify-between">
-              <span>Model Name</span>
-              <button type="button" onclick="refreshAiModels()" class="text-[10px] text-purple-400 hover:text-purple-300 font-mono">🔄 Discover Models</button>
+              <span data-i18n="settings.ai_model_label">Model Name</span>
+              <button type="button" onclick="refreshAiModels()" data-i18n="settings.ai_discover_btn" class="text-[10px] text-purple-400 hover:text-purple-300 font-mono">🔄 Discover Models</button>
             </label>
             <select id="settings-ai-model" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
               <option value="gemini-2.5-flash">Gemini 2.5 Flash ★ Recommended</option>
@@ -950,55 +972,85 @@
             </select>
           </div>
           <div>
-            <label class="block text-slate-300 font-medium mb-1">API Key</label>
-            <input type="password" id="settings-ai-key" placeholder="Paste API Key (stored locally in ~/.wealth_pilot)" onchange="refreshAiModels()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <label data-i18n="settings.ai_key_label" class="block text-slate-300 font-medium mb-1">API Key</label>
+            <input type="password" id="settings-ai-key" data-i18n-placeholder="settings.ai_key_placeholder" placeholder="Paste API Key (stored locally in ~/.wealth_pilot)" onchange="refreshAiModels()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
         </div>
 
         <div class="bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-xs text-slate-400 space-y-1">
-          <div class="font-semibold text-white">💡 Zero-Friction AI Setup Guide:</div>
-          <p>• <strong>Google Gemini (Free Tier)</strong>: Click <em>"Get Free Gemini Key"</em> above, sign in with your Google account, click <em>Create API Key</em>, and paste it here.</p>
-          <p>• <strong>100% Keyless Local AI</strong>: Select <strong>Ollama</strong> to run local open-source models (e.g. <code>llama3.2</code>) on your machine or <strong>Algorithmic</strong> for instant rule-based reviews with zero API keys.</p>
+          <div data-i18n="settings.ai_guide_title" class="font-semibold text-white">💡 Zero-Friction AI Setup Guide:</div>
+          <p data-i18n-html="settings.ai_guide_p1">• <strong>Google Gemini (Free Tier)</strong>: Click <em>"Get Free Gemini Key"</em> above, sign in with your Google account, click <em>Create API Key</em>, and paste it here.</p>
+          <p data-i18n-html="settings.ai_guide_p2">• <strong>100% Keyless Local AI</strong>: Select <strong>Ollama</strong> to run local open-source models (e.g. <code>llama3.2</code>) on your machine or <strong>Algorithmic</strong> for instant rule-based reviews with zero API keys.</p>
         </div>
 
         <div class="flex justify-end pt-1">
-          <button onclick="saveAiSettings()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">Save AI Configuration</button>
+          <button onclick="saveAiSettings()" data-i18n="settings.ai_save_btn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">Save AI Configuration</button>
         </div>
       </div>
 
       <!-- Section: Fiscal, Tax & Regional Settings -->
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
         <div class="border-b border-slate-800 pb-3">
-          <h3 class="text-base font-bold text-white">🇧🇪 Regional Tax & Benchmark Preferences</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Configure default fiscal parameters for the Capital Gains Tax Simulator on the Guidance tab.</p>
+          <h3 data-i18n="settings.tax_title" class="text-base font-bold text-white">🇧🇪 Regional Tax & Benchmark Preferences</h3>
+          <p data-i18n="settings.tax_desc" class="text-xs text-slate-400 mt-0.5">Configure default fiscal parameters for the Capital Gains Tax Simulator on the Guidance tab.</p>
         </div>
 
         <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-xs text-slate-300 space-y-1">
-          <div class="font-semibold text-blue-400">ℹ️ Why is this here & what does it add?</div>
-          <p>Under the <strong>Belgian 2026 Capital Gains Tax (Meerwaardebelasting)</strong> framework, historical gains accrued before <strong>Dec 31, 2025</strong> are tax-exempt: shares bought before 2026 use their Dec 31, 2025 closing price ("Foto-moment") as their fiscal cost basis rather than original purchase price. Realized gains above the <strong>€10,000 annual exemption</strong> are taxed at <strong>10%</strong>. Setting your defaults here pre-fills the Tax Simulator in the Guidance tab and informs the AI Advisor when planning tax-free rebalancing sales.</p>
+          <div data-i18n="settings.tax_info_title" class="font-semibold text-blue-400">ℹ️ Why is this here & what does it add?</div>
+          <p data-i18n-html="settings.tax_info_body">Under the <strong>Belgian 2026 Capital Gains Tax (Meerwaardebelasting)</strong> framework, historical gains accrued before <strong>Dec 31, 2025</strong> are tax-exempt: shares bought before 2026 use their Dec 31, 2025 closing price ("Foto-moment") as their fiscal cost basis rather than original purchase price. Realized gains above the <strong>€10,000 annual exemption</strong> are taxed at <strong>10%</strong>. Setting your defaults here pre-fills the Tax Simulator in the Guidance tab and informs the AI Advisor when planning tax-free rebalancing sales.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
           <div>
-            <label class="block text-slate-300 font-medium mb-1">Annual Exemption (€)</label>
+            <label data-i18n="settings.tax_exemption_label" class="block text-slate-300 font-medium mb-1">Annual Exemption (€)</label>
             <input type="number" id="settings-tax-exemption" value="10000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
           </div>
           <div>
-            <label class="block text-slate-300 font-medium mb-1">Benchmark Reference Date</label>
+            <label data-i18n="settings.tax_date_label" class="block text-slate-300 font-medium mb-1">Benchmark Reference Date</label>
             <input type="date" id="settings-tax-date" value="2025-12-31" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
           </div>
           <div>
-            <label class="block text-slate-300 font-medium mb-1">Default Benchmark Basis (€)</label>
+            <label data-i18n="settings.tax_basis_label" class="block text-slate-300 font-medium mb-1">Default Benchmark Basis (€)</label>
             <input type="number" id="settings-tax-price" value="900" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
           </div>
           <div>
-            <label class="block text-slate-300 font-medium mb-1">Tax Rate Above Exemption (%)</label>
+            <label data-i18n="settings.tax_rate_label" class="block text-slate-300 font-medium mb-1">Tax Rate Above Exemption (%)</label>
             <input type="number" id="settings-tax-rate" value="10.0" step="0.5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
           </div>
         </div>
 
         <div class="flex justify-end pt-1">
-          <button onclick="saveTaxSettings()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">Save Tax Settings</button>
+          <button onclick="saveTaxSettings()" data-i18n="settings.tax_save_btn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold">Save Tax Settings</button>
+        </div>
+      </div>
+
+      <!-- Section: Language & Localization Preferences -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
+        <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🌐</span>
+              <span data-i18n="settings.language_title">Language & Localization</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5" data-i18n="settings.language_desc">Choose your preferred interface language. Wealth Pilot provides native Dutch support for the Belgian market.</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 font-medium self-start sm:self-auto">Belgian Market (NL / EN / FR / DE)</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1" data-i18n="settings.language_label">Interface Language</label>
+            <select id="settings-language-select" class="language-selector w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" onchange="I18N.setLanguage(this.value)">
+              <option value="nl">Nederlands (België / Nederland) ★ Aanbevolen</option>
+              <option value="en">English (International)</option>
+              <option value="fr">Français (Belgique / France)</option>
+              <option value="de">Deutsch (Belgien / Deutschland)</option>
+            </select>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-400 space-y-1">
+            <div data-i18n="settings.language_info_title" class="text-slate-200 font-medium">Taalkeuze & Lokalisatie</div>
+            <p data-i18n="settings.language_info_body">Wealth Pilot past zich direct aan naar uw voorkeurstaal. Alle macro-allocaties, grafieken, belastingkaders en adviezen worden naadloos gelokaliseerd.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -1008,35 +1060,35 @@
   <!-- Re-Bucketing & Rule Modal -->
   <div id="rebucket-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
-      <h3 class="text-base font-bold text-white">Re-Bucket Transaction</h3>
+      <h3 data-i18n="modals.rebucket_title" class="text-base font-bold text-white">Re-Bucket Transaction</h3>
       <div id="rebucket-tx-info" class="text-xs text-slate-400 bg-slate-950 p-3 rounded-lg border border-slate-800"></div>
 
       <div>
-        <label class="block text-xs font-medium text-slate-300 mb-1">Select New Category / Bucket</label>
+        <label data-i18n="modals.rebucket_select_label" class="block text-xs font-medium text-slate-300 mb-1">Select New Category / Bucket</label>
         <select id="modal-category-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
-          <option value="GROCERIES">Groceries / Supermarket</option>
-          <option value="LIVING_EXPENSES">Living Expenses</option>
-          <option value="MORTGAGE">Mortgage Servicing</option>
-          <option value="DEBT_REPAYMENT">Debt Repayment</option>
-          <option value="INSURANCE">Insurance</option>
-          <option value="SUBSCRIPTION">Subscriptions</option>
-          <option value="INVESTMENTS">Investments (Brokerage Funding)</option>
-          <option value="SAVINGS">Savings (Bunq/Buffer)</option>
-          <option value="INCOME">Income / Salary</option>
-          <option value="OTHER">Other</option>
+          <option value="GROCERIES" data-i18n="modals.cat_groceries">Groceries / Supermarket</option>
+          <option value="LIVING_EXPENSES" data-i18n="modals.cat_living">Living Expenses</option>
+          <option value="MORTGAGE" data-i18n="modals.cat_mortgage">Mortgage Servicing</option>
+          <option value="DEBT_REPAYMENT" data-i18n="modals.cat_debt">Debt Repayment</option>
+          <option value="INSURANCE" data-i18n="modals.cat_insurance">Insurance</option>
+          <option value="SUBSCRIPTION" data-i18n="modals.cat_subscription">Subscriptions</option>
+          <option value="INVESTMENTS" data-i18n="modals.cat_investments">Investments (Brokerage Funding)</option>
+          <option value="SAVINGS" data-i18n="modals.cat_savings">Savings (Bunq/Buffer)</option>
+          <option value="INCOME" data-i18n="modals.cat_income">Income / Salary</option>
+          <option value="OTHER" data-i18n="modals.cat_other">Other</option>
         </select>
       </div>
 
       <div class="flex items-center gap-2 pt-1">
         <input type="checkbox" id="modal-remember-rule" checked class="rounded border-slate-700 text-blue-600 focus:ring-0">
-        <label for="modal-remember-rule" class="text-xs text-slate-300 cursor-pointer">
+        <label for="modal-remember-rule" data-i18n="modals.rebucket_remember_label" class="text-xs text-slate-300 cursor-pointer">
           Remember this rule: Always categorize matching transactions to this bucket
         </label>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-        <button onclick="closeRebucketModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
-        <button onclick="commitRebucket()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white">Apply & Save</button>
+        <button onclick="closeRebucketModal()" data-i18n="common.cancel" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="commitRebucket()" data-i18n="modals.rebucket_apply_btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white">Apply & Save</button>
       </div>
     </div>
   </div>
@@ -1046,49 +1098,49 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>🏠 Add Real Estate or Asset</span>
+          <span data-i18n="modals.asset_title">🏠 Add Real Estate or Asset</span>
         </h3>
         <button onclick="closeAddAssetModal()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block font-medium text-slate-300 mb-1">Asset Name</label>
-          <input type="text" id="manual-asset-name" placeholder="e.g. Family Residence (Leuven) or Physical Gold" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          <label data-i18n="modals.asset_name_label" class="block font-medium text-slate-300 mb-1">Asset Name</label>
+          <input type="text" id="manual-asset-name" data-i18n-placeholder="modals.asset_name_placeholder" placeholder="e.g. Family Residence (Leuven) or Physical Gold" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Category</label>
+            <label data-i18n="modals.asset_cat_label" class="block font-medium text-slate-300 mb-1">Category</label>
             <select id="manual-asset-class" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-              <option value="REAL_ESTATE">Real Estate (House/Property)</option>
-              <option value="CASH">Cash / High-Yield Savings</option>
-              <option value="COMMODITY">Commodity / Gold</option>
-              <option value="EQUITY">Individual Stock / Equity</option>
-              <option value="ETF">Index ETF / Mutual Fund</option>
-              <option value="CRYPTO">Crypto Assets</option>
-              <option value="OTHER">Other Tangible Asset</option>
+              <option value="REAL_ESTATE" data-i18n="modals.ac_real_estate">Real Estate (House/Property)</option>
+              <option value="CASH" data-i18n="modals.ac_cash">Cash / High-Yield Savings</option>
+              <option value="COMMODITY" data-i18n="modals.ac_commodity">Commodity / Gold</option>
+              <option value="EQUITY" data-i18n="modals.ac_equity">Individual Stock / Equity</option>
+              <option value="ETF" data-i18n="modals.ac_etf">Index ETF / Mutual Fund</option>
+              <option value="CRYPTO" data-i18n="modals.ac_crypto">Crypto Assets</option>
+              <option value="OTHER" data-i18n="modals.ac_other">Other Tangible Asset</option>
             </select>
           </div>
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Current Estimated Value (€)</label>
+            <label data-i18n="modals.asset_val_label" class="block font-medium text-slate-300 mb-1">Current Estimated Value (€)</label>
             <input type="number" id="manual-asset-val" step="1000" placeholder="e.g. 450000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Institution / Custodian</label>
+            <label data-i18n="modals.asset_inst_label" class="block font-medium text-slate-300 mb-1">Institution / Custodian</label>
             <input type="text" id="manual-asset-inst" placeholder="e.g. Private Property, Bunq, Saxo" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
           </div>
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Symbol / Ticker (Optional)</label>
+            <label data-i18n="modals.asset_sym_label" class="block font-medium text-slate-300 mb-1">Symbol / Ticker (Optional)</label>
             <input type="text" id="manual-asset-sym" placeholder="e.g. HOUSE, GOLD" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
           </div>
         </div>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-        <button onclick="closeAddAssetModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
-        <button onclick="saveManualAsset()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Asset</button>
+        <button onclick="closeAddAssetModal()" data-i18n="common.cancel" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="saveManualAsset()" data-i18n="modals.asset_save_btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Asset</button>
       </div>
     </div>
   </div>
@@ -1099,9 +1151,9 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
           <h3 id="liab-modal-title" class="text-base font-bold text-white flex items-center gap-2">
-            <span>💳 Add Mortgage or Loan</span>
+            <span data-i18n="modals.liab_add_title">💳 Add Mortgage or Loan</span>
           </h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Enter remaining principal directly, or provide start capital & duration to auto-calculate.</p>
+          <p data-i18n="modals.liab_subtitle" class="text-[11px] text-slate-400 mt-0.5">Enter remaining principal directly, or provide start capital & duration to auto-calculate.</p>
         </div>
         <button onclick="closeAddLiabilityModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
@@ -1112,18 +1164,18 @@
       <div class="space-y-3 text-xs">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Debt / Loan Name</label>
+            <label data-i18n="modals.liab_name_label" class="block font-medium text-slate-300 mb-1">Debt / Loan Name</label>
             <input type="text" id="manual-liab-name" placeholder="e.g. KBC Home Mortgage" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
           </div>
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Loan Type</label>
+            <label data-i18n="modals.liab_type_label" class="block font-medium text-slate-300 mb-1">Loan Type</label>
             <select id="manual-liab-type" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-              <option value="MORTGAGE">Home Mortgage</option>
-              <option value="CONSUMER_LOAN">Consumer / Car Loan</option>
-              <option value="STUDENT_LOAN">Student Loan</option>
-              <option value="MARGIN_LOAN">Margin / Broker Loan</option>
-              <option value="CREDIT_CARD">Credit Card / Flex Budget</option>
-              <option value="OTHER">Other Debt</option>
+              <option value="MORTGAGE" data-i18n="modals.lt_mortgage">Home Mortgage</option>
+              <option value="CONSUMER_LOAN" data-i18n="modals.lt_consumer">Consumer / Car Loan</option>
+              <option value="STUDENT_LOAN" data-i18n="modals.lt_student">Student Loan</option>
+              <option value="MARGIN_LOAN" data-i18n="modals.lt_margin">Margin / Broker Loan</option>
+              <option value="CREDIT_CARD" data-i18n="modals.lt_credit_card">Credit Card / Flex Budget</option>
+              <option value="OTHER" data-i18n="modals.lt_other">Other Debt</option>
             </select>
           </div>
         </div>
@@ -1131,24 +1183,24 @@
         <!-- Amortization / Start Capital Estimator Box -->
         <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2.5">
           <div class="flex items-center justify-between">
-            <span class="font-semibold text-white">📐 Loan Schedule (Optional — Auto-Estimates Balance)</span>
-            <button type="button" onclick="previewLoanAmortization()" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium">⚡ Estimate Balance</button>
+            <span data-i18n="modals.liab_schedule_title" class="font-semibold text-white">📐 Loan Schedule (Optional — Auto-Estimates Balance)</span>
+            <button type="button" onclick="previewLoanAmortization()" data-i18n="modals.liab_estimate_btn" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium">⚡ Estimate Balance</button>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Start Capital (€)</label>
+              <label data-i18n="modals.liab_start_cap_label" class="block text-[11px] text-slate-400 mb-1">Start Capital (€)</label>
               <input type="number" id="manual-liab-start-cap" step="1000" placeholder="e.g. 250000" oninput="previewLoanAmortization()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white font-mono">
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Start Date</label>
+              <label data-i18n="modals.liab_start_date_label" class="block text-[11px] text-slate-400 mb-1">Start Date</label>
               <input type="date" id="manual-liab-start-date" onchange="previewLoanAmortization()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white">
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Duration (Mos)</label>
+              <label data-i18n="modals.liab_duration_label" class="block text-[11px] text-slate-400 mb-1">Duration (Mos)</label>
               <input type="number" id="manual-liab-duration" step="12" placeholder="e.g. 240" oninput="previewLoanAmortization()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white font-mono">
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Or End Date</label>
+              <label data-i18n="modals.liab_end_date_label" class="block text-[11px] text-slate-400 mb-1">Or End Date</label>
               <input type="date" id="manual-liab-end-date" onchange="previewLoanAmortization()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white">
             </div>
           </div>
@@ -1156,11 +1208,11 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Remaining Principal (€)</label>
+            <label data-i18n="modals.liab_balance_label" class="block font-medium text-slate-300 mb-1">Remaining Principal (€)</label>
             <input type="number" id="manual-liab-balance" step="100" placeholder="Leave 0 to auto-estimate" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Interest Rate (APR %)</label>
+            <label data-i18n="modals.liab_rate_label" class="block font-medium text-slate-300 mb-1">Interest Rate (APR %)</label>
             <input type="number" id="manual-liab-rate" step="0.05" placeholder="e.g. 1.85" oninput="previewLoanAmortization()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
         </div>
@@ -1168,24 +1220,24 @@
         <!-- Monthly Payment: Fixed EUR or Percentage of Balance -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Monthly Fixed Payment (€/mo)</label>
+            <label data-i18n="modals.liab_payment_label" class="block font-medium text-slate-300 mb-1">Monthly Fixed Payment (€/mo)</label>
             <input type="number" id="manual-liab-payment" step="25" placeholder="e.g. 1150" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Or Monthly % (Flex / Card)</label>
+            <label data-i18n="modals.liab_payment_pct_label" class="block font-medium text-slate-300 mb-1">Or Monthly % (Flex / Card)</label>
             <input type="number" id="manual-liab-payment-pct" step="0.5" placeholder="e.g. 5.0% of balance" oninput="previewPctPayment()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
         </div>
 
         <div>
-          <label class="block font-medium text-slate-300 mb-1">Lending Institution</label>
+          <label data-i18n="modals.liab_inst_label" class="block font-medium text-slate-300 mb-1">Lending Institution</label>
           <input type="text" id="manual-liab-inst" placeholder="e.g. KBC, BNP Paribas Fortis, ING" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
         </div>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-        <button onclick="closeAddLiabilityModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
-        <button onclick="saveManualLiability()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow">Save Liability</button>
+        <button onclick="closeAddLiabilityModal()" data-i18n="common.cancel" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="saveManualLiability()" data-i18n="modals.liab_save_btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow">Save Liability</button>
       </div>
     </div>
   </div>
@@ -1195,7 +1247,7 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 id="bucket-modal-title" class="text-base font-bold text-white flex items-center gap-2">
-          <span>🪣 Strategic Allocation Bucket</span>
+          <span data-i18n="modals.bucket_add_title">🪣 Strategic Allocation Bucket</span>
         </h3>
         <button onclick="closeBucketModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
@@ -1204,53 +1256,53 @@
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block font-medium text-slate-300 mb-1">Bucket Name</label>
+          <label data-i18n="modals.bucket_name_label" class="block font-medium text-slate-300 mb-1">Bucket Name</label>
           <input type="text" id="bucket-modal-name" placeholder="e.g. Real Estate & Alternatives" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Target Weight (%)</label>
+            <label data-i18n="modals.bucket_target_label" class="block font-medium text-slate-300 mb-1">Target Weight (%)</label>
             <input type="number" id="bucket-modal-target" step="0.5" min="0" max="100" placeholder="e.g. 15.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Drift Tolerance (±%)</label>
+            <label data-i18n="modals.bucket_tolerance_label" class="block font-medium text-slate-300 mb-1">Drift Tolerance (±%)</label>
             <input type="number" id="bucket-modal-tolerance" step="0.5" min="0.5" max="20" value="3.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
         </div>
         <div>
-          <label class="block font-medium text-slate-300 mb-1.5">Color Palette</label>
+          <label data-i18n="modals.bucket_color_label" class="block font-medium text-slate-300 mb-1.5">Color Palette</label>
           <div id="bucket-color-picker" class="flex items-center gap-2 pt-1 flex-wrap">
             <!-- Rendered dynamically -->
           </div>
           <input type="hidden" id="bucket-modal-color" value="#3B82F6">
         </div>
         <div>
-          <label class="block font-medium text-slate-300 mb-1">Description (Optional)</label>
+          <label data-i18n="modals.bucket_desc_label" class="block font-medium text-slate-300 mb-1">Description (Optional)</label>
           <input type="text" id="bucket-modal-desc" placeholder="e.g. High cashflow rental properties or physical bullion" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
         </div>
         <div class="pt-1 space-y-2">
           <div>
             <label class="flex items-center gap-2 cursor-pointer select-none text-slate-300">
               <input type="checkbox" id="bucket-modal-include-rebalancing" class="rounded bg-slate-950 border-slate-700 text-blue-600 focus:ring-blue-500 w-4 h-4" checked>
-              <span class="font-medium">Include in portfolio rebalancing calculations</span>
+              <span data-i18n="modals.bucket_rebalance_check" class="font-medium">Include in portfolio rebalancing calculations</span>
             </label>
-            <p class="text-[11px] text-slate-500 pl-6 mt-0.5">Uncheck for illiquid assets (like primary residence / house) so they do not distort buy/sell rebalancing weights.</p>
+            <p data-i18n="modals.bucket_rebalance_help" class="text-[11px] text-slate-500 pl-6 mt-0.5">Uncheck for illiquid assets (like primary residence / house) so they do not distort buy/sell rebalancing weights.</p>
           </div>
           <div>
             <label class="flex items-center gap-2 cursor-pointer select-none text-slate-300">
               <input type="checkbox" id="bucket-modal-include-net-worth" class="rounded bg-slate-950 border-slate-700 text-blue-600 focus:ring-blue-500 w-4 h-4" checked>
-              <span class="font-medium">Include in Net Worth & Compound Growth when property filter is active</span>
+              <span data-i18n="modals.bucket_networth_check" class="font-medium">Include in Net Worth & Compound Growth when property filter is active</span>
             </label>
-            <p class="text-[11px] text-slate-500 pl-6 mt-0.5">Uncheck to exclude this bucket's assets when toggling "Exclude Real Estate / Illiquid Buckets" on the Overview page.</p>
+            <p data-i18n="modals.bucket_networth_help" class="text-[11px] text-slate-500 pl-6 mt-0.5">Uncheck to exclude this bucket's assets when toggling "Exclude Real Estate / Illiquid Buckets" on the Overview page.</p>
           </div>
         </div>
       </div>
 
       <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-        <button id="bucket-modal-delete-btn" onclick="deleteCurrentBucket()" class="px-3 py-1.5 text-xs rounded-lg text-rose-400 hover:bg-rose-500/10 hidden">Delete Bucket</button>
+        <button id="bucket-modal-delete-btn" onclick="deleteCurrentBucket()" data-i18n="modals.bucket_delete_btn" class="px-3 py-1.5 text-xs rounded-lg text-rose-400 hover:bg-rose-500/10 hidden">Delete Bucket</button>
         <div class="flex items-center gap-2 ml-auto">
-          <button onclick="closeBucketModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
-          <button onclick="saveBucketFromModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Bucket</button>
+          <button onclick="closeBucketModal()" data-i18n="common.cancel" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+          <button onclick="saveBucketFromModal()" data-i18n="modals.bucket_save_btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Bucket</button>
         </div>
       </div>
     </div>
@@ -1261,26 +1313,26 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>🎯 Configure Wealth Milestones</span>
+          <span data-i18n="modals.milestones_title">🎯 Configure Wealth Milestones</span>
         </h3>
         <button onclick="closeMilestonesModal()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
 
-      <p class="text-xs text-slate-400">Set key net worth targets to visually benchmark your journey to financial independence.</p>
+      <p data-i18n="modals.milestones_sub" class="text-xs text-slate-400">Set key net worth targets to visually benchmark your journey to financial independence.</p>
 
       <div id="modal-milestones-list" class="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1">
         <!-- Milestone rows -->
       </div>
 
       <div class="pt-2">
-        <button onclick="addMilestoneRow()" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-dashed border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white w-full text-center">
+        <button onclick="addMilestoneRow()" data-i18n="modals.milestones_add_btn" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-dashed border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white w-full text-center">
           + Add New Milestone
         </button>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-        <button onclick="closeMilestonesModal()" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
-        <button onclick="saveMilestonesConfig()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Targets</button>
+        <button onclick="closeMilestonesModal()" data-i18n="common.cancel" class="px-3 py-1.5 text-xs rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300">Cancel</button>
+        <button onclick="saveMilestonesConfig()" data-i18n="modals.milestones_save_btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow">Save Targets</button>
       </div>
     </div>
   </div>
@@ -1290,32 +1342,32 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>ℹ️ Wealth Pilot Guidance & Help</span>
+          <span data-i18n="modals.help_title">ℹ️ Wealth Pilot Guidance & Help</span>
         </h3>
         <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
 
       <div class="space-y-3 text-xs text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
         <div>
-          <h4 class="font-semibold text-white">🪣 Strategic Allocation Buckets</h4>
-          <p class="text-slate-400 mt-0.5">Unlike budgeting apps that track individual coffees, Wealth Pilot organizes your wealth into macro allocation pillars (Core World ETFs, Tech, Gold, Cash Buffer). Each bucket has a target weight (%) and drift tolerance (e.g. ±3.0%).</p>
+          <h4 data-i18n="modals.help_s1_title" class="font-semibold text-white">🪣 Strategic Allocation Buckets</h4>
+          <p data-i18n="modals.help_s1_body" class="text-slate-400 mt-0.5">Unlike budgeting apps that track individual coffees, Wealth Pilot organizes your wealth into macro allocation pillars (Core World ETFs, Tech, Gold, Cash Buffer). Each bucket has a target weight (%) and drift tolerance (e.g. ±3.0%).</p>
         </div>
         <div>
-          <h4 class="font-semibold text-white">💡 Smart Buy-Only Rebalancing</h4>
-          <p class="text-slate-400 mt-0.5">Instead of selling your winning shares (which incurs transaction costs and taxes), Wealth Pilot calculates how to allocate your monthly incoming cashflow to underweight buckets, gradually bringing your portfolio back to target.</p>
+          <h4 data-i18n="modals.help_s2_title" class="font-semibold text-white">💡 Smart Buy-Only Rebalancing</h4>
+          <p data-i18n="modals.help_s2_body" class="text-slate-400 mt-0.5">Instead of selling your winning shares (which incurs transaction costs and taxes), Wealth Pilot calculates how to allocate your monthly incoming cashflow to underweight buckets, gradually bringing your portfolio back to target.</p>
         </div>
         <div>
-          <h4 class="font-semibold text-white">📂 Ingestion Channels</h4>
-          <p class="text-slate-400 mt-0.5">Upload your KBC CSV export directly in the Cashflow tab. The parser automatically detects your checking balance, mortgage payments, and recurring expenses. Investment positions can be ingested via PDT MCP or Generic CSV.</p>
+          <h4 data-i18n="modals.help_s3_title" class="font-semibold text-white">📂 Ingestion Channels</h4>
+          <p data-i18n="modals.help_s3_body" class="text-slate-400 mt-0.5">Upload your KBC CSV export directly in the Cashflow tab. The parser automatically detects your checking balance, mortgage payments, and recurring expenses. Investment positions can be ingested via PDT MCP or Generic CSV.</p>
         </div>
         <div>
-          <h4 class="font-semibold text-white">📖 Online Documentation</h4>
-          <p class="text-slate-400 mt-0.5">For comprehensive guides, visit the documentation site at <a href="https://tiwu.github.io/wealth-pilot/" target="_blank" class="text-blue-400 underline">https://tiwu.github.io/wealth-pilot/</a>.</p>
+          <h4 data-i18n="modals.help_s4_title" class="font-semibold text-white">📖 Online Documentation</h4>
+          <p data-i18n-html="modals.help_s4_body" class="text-slate-400 mt-0.5">For comprehensive guides, visit the documentation site at <a href="https://tiwu.github.io/wealth-pilot/" target="_blank" class="text-blue-400 underline">https://tiwu.github.io/wealth-pilot/</a>.</p>
         </div>
       </div>
 
       <div class="pt-3 border-t border-slate-800 flex justify-end">
-        <button onclick="closeHelpModal()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white">Got it</button>
+        <button onclick="closeHelpModal()" data-i18n="modals.help_got_it_btn" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white">Got it</button>
       </div>
     </div>
   </div>
@@ -1328,36 +1380,36 @@
         <div>
           <div class="flex items-center gap-2">
             <span class="text-2xl">🚀</span>
-            <h2 class="text-lg font-bold text-white">Welcome to Wealth Pilot</h2>
-            <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">Quick Setup</span>
+            <h2 data-i18n="modals.wiz_title" class="text-lg font-bold text-white">Welcome to Wealth Pilot</h2>
+            <span data-i18n="modals.wiz_badge" class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">Quick Setup</span>
           </div>
-          <p class="text-xs text-slate-400 mt-1">Let's configure your strategic wealth buckets, ingestion sources, and tax preferences in 3 simple steps.</p>
+          <p data-i18n="modals.wiz_subtitle" class="text-xs text-slate-400 mt-1">Let's configure your strategic wealth buckets, ingestion sources, and tax preferences in 3 simple steps.</p>
         </div>
-        <button onclick="skipSetupWizard()" class="text-slate-500 hover:text-slate-300 text-xs px-2 py-1 rounded hover:bg-slate-800">Skip for now &times;</button>
+        <button onclick="skipSetupWizard()" data-i18n="modals.wiz_skip_top" class="text-slate-500 hover:text-slate-300 text-xs px-2 py-1 rounded hover:bg-slate-800">Skip for now &times;</button>
       </div>
 
       <!-- Step Indicator -->
       <div class="flex items-center justify-between text-xs font-medium border-b border-slate-800/80 pb-3">
         <div id="wizard-indicator-1" class="flex items-center gap-2 text-blue-400 font-semibold">
           <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">1</span>
-          <span>Data Ingestion</span>
+          <span data-i18n="modals.wiz_step1_ind">Data Ingestion</span>
         </div>
         <div class="h-0.5 w-12 bg-slate-800"></div>
         <div id="wizard-indicator-2" class="flex items-center gap-2 text-slate-500">
           <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs">2</span>
-          <span>Strategic Buckets</span>
+          <span data-i18n="modals.wiz_step2_ind">Strategic Buckets</span>
         </div>
         <div class="h-0.5 w-12 bg-slate-800"></div>
         <div id="wizard-indicator-3" class="flex items-center gap-2 text-slate-500">
           <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-xs">3</span>
-          <span>Tax & AI Preferences</span>
+          <span data-i18n="modals.wiz_step3_ind">Tax & AI Preferences</span>
         </div>
       </div>
 
       <!-- Step 1: Ingestion -->
       <div id="wizard-step-1" class="wizard-step space-y-4 text-xs">
-        <h3 class="font-bold text-white text-sm">Step 1: Choose Your Primary Data Ingestion Source</h3>
-        <p class="text-slate-400">Wealth Pilot consolidates your brokerage and banking statements so you can track net worth and macro allocation drift.</p>
+        <h3 data-i18n="modals.wiz_s1_title" class="font-bold text-white text-sm">Step 1: Choose Your Primary Data Ingestion Source</h3>
+        <p data-i18n="modals.wiz_s1_desc" class="text-slate-400">Wealth Pilot consolidates your brokerage and banking statements so you can track net worth and macro allocation drift.</p>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <!-- PDT Option -->
@@ -1366,9 +1418,9 @@
               <div class="font-semibold text-white text-sm flex items-center gap-1.5">
                 <span>📈</span> Portfolio Dividend Tracker (PDT)
               </div>
-              <p class="text-slate-400 text-xs mt-1">Connect your PDT portfolio via Model Context Protocol (MCP) to live-stream holdings and dividends.</p>
+              <p data-i18n="modals.wiz_s1_pdt_desc" class="text-slate-400 text-xs mt-1">Connect your PDT portfolio via Model Context Protocol (MCP) to live-stream holdings and dividends.</p>
             </div>
-            <button onclick="connectPdtOAuth()" class="mt-4 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs">
+            <button onclick="connectPdtOAuth()" data-i18n="modals.wiz_s1_pdt_btn" class="mt-4 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs">
               Connect via OAuth 2.0 PKCE
             </button>
           </div>
@@ -1377,12 +1429,12 @@
           <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-blue-500/50 transition flex flex-col justify-between">
             <div>
               <div class="font-semibold text-white text-sm flex items-center gap-1.5">
-                <span>🏦</span> Bank Statement / CSV
+                <span>🏦</span> <span data-i18n="modals.wiz_s1_csv_title">Bank Statement / CSV</span>
               </div>
-              <p class="text-slate-400 text-xs mt-1">Upload a KBC bank export or generic CSV ledger to populate checking, mortgage, and expenses.</p>
+              <p data-i18n="modals.wiz_s1_csv_desc" class="text-slate-400 text-xs mt-1">Upload a KBC bank export or generic CSV ledger to populate checking, mortgage, and expenses.</p>
             </div>
             <label class="mt-4 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs text-center cursor-pointer">
-              <span>Select Statement CSV</span>
+              <span data-i18n="modals.wiz_s1_csv_btn">Select Statement CSV</span>
               <input type="file" accept=".csv" class="hidden" onchange="handleWizardFileUpload(event)">
             </label>
           </div>
@@ -1394,8 +1446,8 @@
       <div id="wizard-step-2" class="wizard-step hidden space-y-4 text-xs">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="font-bold text-white text-sm">Step 2: Customize Your Strategic Asset Buckets</h3>
-            <p class="text-slate-400">Set target percentages for your core pillars. Target total must equal 100%.</p>
+            <h3 data-i18n="modals.wiz_s2_title" class="font-bold text-white text-sm">Step 2: Customize Your Strategic Asset Buckets</h3>
+            <p data-i18n="modals.wiz_s2_desc" class="text-slate-400">Set target percentages for your core pillars. Target total must equal 100%.</p>
           </div>
           <div id="wizard-total-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
             Total: 100%
@@ -1407,8 +1459,8 @@
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-blue-500"></span>
               <div>
-                <div class="font-medium text-white">Global Core Equities & ETFs</div>
-                <div class="text-[10px] text-slate-500">Broad-market index funds (e.g. VWCE, IWDA)</div>
+                <div data-i18n="modals.wiz_b1_title" class="font-medium text-white">Global Core Equities & ETFs</div>
+                <div data-i18n="modals.wiz_b1_desc" class="text-[10px] text-slate-500">Broad-market index funds (e.g. VWCE, IWDA)</div>
               </div>
             </div>
             <div class="flex items-center gap-1">
@@ -1421,8 +1473,8 @@
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-purple-500"></span>
               <div>
-                <div class="font-medium text-white">High Growth & Conviction Tech</div>
-                <div class="text-[10px] text-slate-500">Specific stock picks and conviction growth bets</div>
+                <div data-i18n="modals.wiz_b2_title" class="font-medium text-white">High Growth & Conviction Tech</div>
+                <div data-i18n="modals.wiz_b2_desc" class="text-[10px] text-slate-500">Specific stock picks and conviction growth bets</div>
               </div>
             </div>
             <div class="flex items-center gap-1">
@@ -1435,8 +1487,8 @@
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-amber-500"></span>
               <div>
-                <div class="font-medium text-white">Precious Metals & Gold</div>
-                <div class="text-[10px] text-slate-500">Inflation hedge and wealth preserver</div>
+                <div data-i18n="modals.wiz_b3_title" class="font-medium text-white">Precious Metals & Gold</div>
+                <div data-i18n="modals.wiz_b3_desc" class="text-[10px] text-slate-500">Inflation hedge and wealth preserver</div>
               </div>
             </div>
             <div class="flex items-center gap-1">
@@ -1449,8 +1501,8 @@
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
               <div>
-                <div class="font-medium text-white">Cash & Liquidity Buffer</div>
-                <div class="text-[10px] text-slate-500">Emergency fund and dry powder for dips</div>
+                <div data-i18n="modals.wiz_b4_title" class="font-medium text-white">Cash & Liquidity Buffer</div>
+                <div data-i18n="modals.wiz_b4_desc" class="text-[10px] text-slate-500">Emergency fund and dry powder for dips</div>
               </div>
             </div>
             <div class="flex items-center gap-1">
@@ -1463,22 +1515,22 @@
 
       <!-- Step 3: Tax & AI Preferences -->
       <div id="wizard-step-3" class="wizard-step hidden space-y-4 text-xs">
-        <h3 class="font-bold text-white text-sm">Step 3: Regional Tax & AI Preferences</h3>
-        <p class="text-slate-400">Configure your regional capital gains benchmark and optional AI advisor credentials.</p>
+        <h3 data-i18n="modals.wiz_s3_title" class="font-bold text-white text-sm">Step 3: Regional Tax & AI Preferences</h3>
+        <p data-i18n="modals.wiz_s3_desc" class="text-slate-400">Configure your regional capital gains benchmark and optional AI advisor credentials.</p>
 
         <div class="space-y-3 pt-2">
           <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
             <div class="font-medium text-white flex items-center justify-between">
-              <span>🇧🇪 Belgian Capital Gains Tax Preferences</span>
+              <span data-i18n="modals.wiz_s3_tax_title">🇧🇪 Belgian Capital Gains Tax Preferences</span>
               <span class="text-[10px] text-blue-400">Reference: Dec 31, 2025</span>
             </div>
             <div class="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <label class="block text-slate-400 text-[11px] mb-1">Annual Exemption (€)</label>
+                <label data-i18n="settings.tax_exemption_label" class="block text-slate-400 text-[11px] mb-1">Annual Exemption (€)</label>
                 <input type="number" id="wiz-tax-exemption" value="10000" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
               </div>
               <div>
-                <label class="block text-slate-400 text-[11px] mb-1">Tax Rate Above Exemption (%)</label>
+                <label data-i18n="settings.tax_rate_label" class="block text-slate-400 text-[11px] mb-1">Tax Rate Above Exemption (%)</label>
                 <input type="number" id="wiz-tax-rate" value="10.0" step="0.5" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
               </div>
             </div>
@@ -1486,12 +1538,12 @@
 
           <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
             <div class="font-medium text-white flex items-center justify-between">
-              <span>🤖 AI Strategic Wealth Advisor (Optional)</span>
+              <span data-i18n="modals.wiz_s3_ai_title">🤖 AI Strategic Wealth Advisor (Optional)</span>
               <span class="text-[10px] text-purple-400">Private & Local</span>
             </div>
             <div class="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <label class="block text-slate-400 text-[11px] mb-1">Provider</label>
+                <label data-i18n="settings.ai_provider_label" class="block text-slate-400 text-[11px] mb-1">Provider</label>
                 <select id="wiz-ai-provider" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
                   <option value="gemini">Google Gemini (Recommended)</option>
                   <option value="openai">OpenAI</option>
@@ -1500,8 +1552,8 @@
                 </select>
               </div>
               <div>
-                <label class="block text-slate-400 text-[11px] mb-1">API Key (Optional)</label>
-                <input type="password" id="wiz-ai-key" placeholder="Paste API key" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
+                <label data-i18n="settings.ai_key_label" class="block text-slate-400 text-[11px] mb-1">API Key (Optional)</label>
+                <input type="password" id="wiz-ai-key" data-i18n-placeholder="settings.ai_key_placeholder" placeholder="Paste API key" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
               </div>
             </div>
           </div>
@@ -1510,17 +1562,17 @@
 
       <!-- Wizard Navigation Footer -->
       <div class="flex items-center justify-between border-t border-slate-800 pt-4">
-        <button id="wiz-btn-prev" onclick="wizardStepPrev()" class="hidden px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium">
+        <button id="wiz-btn-prev" onclick="wizardStepPrev()" data-i18n="modals.wiz_prev_btn" class="hidden px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium">
           ← Previous
         </button>
         <div class="flex items-center gap-2 ml-auto">
-          <button onclick="skipSetupWizard()" class="px-3 py-2 text-slate-400 hover:text-white text-xs">
+          <button onclick="skipSetupWizard()" data-i18n="modals.wiz_skip_btn" class="px-3 py-2 text-slate-400 hover:text-white text-xs">
             Skip Setup
           </button>
-          <button id="wiz-btn-next" onclick="wizardStepNext()" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow">
+          <button id="wiz-btn-next" onclick="wizardStepNext()" data-i18n="modals.wiz_next_buckets" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow">
             Next: Buckets →
           </button>
-          <button id="wiz-btn-finish" onclick="wizardFinish()" class="hidden px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow">
+          <button id="wiz-btn-finish" onclick="wizardFinish()" data-i18n="modals.wiz_finish_btn" class="hidden px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow">
             ✓ Complete Setup & Launch
           </button>
         </div>
@@ -1556,8 +1608,28 @@
       const iconEl = document.getElementById('theme-toggle-icon');
       const labelEl = document.getElementById('theme-toggle-label');
       if (iconEl) iconEl.textContent = isLight ? '🌙' : '☀️';
-      if (labelEl) labelEl.textContent = isLight ? 'Dark' : 'Light';
+      if (labelEl) {
+        labelEl.textContent = isLight
+          ? (typeof I18N !== 'undefined' ? I18N.t('common.theme_dark', 'Dark') : 'Dark')
+          : (typeof I18N !== 'undefined' ? I18N.t('common.theme_light', 'Light') : 'Light');
+      }
     }
+
+    // Language Change Listener to re-render localized UI
+    window.addEventListener('languageChanged', () => {
+      syncThemeToggleUI();
+      if (currentData) {
+        renderDashboard(currentData);
+        renderBuckets(currentData);
+        renderHoldingsMapping(currentData);
+        renderMilestones(currentData.milestones || []);
+        renderManualAssetsAndDebts(currentData);
+        renderAdvice(currentData);
+        renderTransactions(currentData);
+      }
+      runTaxSimulation();
+      updateWizardStepUI();
+    });
 
     function toggleThemeScheme() {
       const root = document.documentElement;
@@ -1664,11 +1736,11 @@
       document.getElementById('kpi-total-assets').textContent = data.total_assets_formatted;
       document.getElementById('kpi-total-debts').textContent = data.total_liabilities_formatted;
       document.getElementById('kpi-surplus').textContent = data.free_cashflow_formatted;
-      document.getElementById('kpi-debt-ratio').textContent = `Debt ratio: ${data.debt_to_asset_ratio}%`;
-      document.getElementById('kpi-savings-rate').textContent = `Savings rate: ${data.savings_rate_pct}%`;
+      document.getElementById('kpi-debt-ratio').textContent = I18N.t('dashboard.debt_ratio', { ratio: data.debt_to_asset_ratio, _fallback: `Debt ratio: ${data.debt_to_asset_ratio}%` });
+      document.getElementById('kpi-savings-rate').textContent = I18N.t('dashboard.savings_rate', { rate: data.savings_rate_pct, _fallback: `Savings rate: ${data.savings_rate_pct}%` });
       document.getElementById('kpi-asset-count').textContent = data.exclude_property
-        ? `Liquid assets (${data.asset_count} total in portfolio)`
-        : `Across ${data.asset_count} assets & cash`;
+        ? I18N.t('dashboard.liquid_assets_count', { count: data.asset_count, _fallback: `Liquid assets (${data.asset_count} total in portfolio)` })
+        : I18N.t('dashboard.across_assets_count', { count: data.asset_count, _fallback: `Across ${data.asset_count} assets & cash` });
 
       renderDonutChart(data.allocations);
       renderProjectionChart(data.trajectory);
@@ -1677,7 +1749,8 @@
       const adviceContainer = document.getElementById('dashboard-advice-list');
       adviceContainer.innerHTML = '';
       const advices = data.advices || [];
-      advices.forEach(adv => {
+      advices.forEach(rawAdv => {
+        const adv = I18N.localizeAdvice(rawAdv);
         const item = document.createElement('div');
         item.className = 'p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs flex items-start gap-2.5';
         const badgeColor = adv.priority === 'CRITICAL'
@@ -1686,7 +1759,7 @@
             ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
             : 'bg-blue-500/20 text-blue-400 border-blue-500/30');
         item.innerHTML = `
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border shrink-0 ${badgeColor}">${escapeHtml(adv.priority)}</span>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border shrink-0 ${badgeColor}">${escapeHtml(adv.priorityLabel || adv.priority)}</span>
           <div class="min-w-0">
             <div class="font-semibold text-white">${escapeHtml(adv.title)}</div>
             <div class="text-slate-400 mt-0.5 leading-relaxed">${escapeHtml(adv.message)}</div>
@@ -1694,7 +1767,9 @@
         `;
         adviceContainer.appendChild(item);
       });
-      document.getElementById('advice-count-badge').textContent = `${advices.length} Recommendation${advices.length === 1 ? '' : 's'}`;
+      document.getElementById('advice-count-badge').textContent = advices.length === 1
+        ? I18N.t('dashboard.recommendation_count_one', { count: 1, _fallback: '1 Recommendation' })
+        : I18N.t('dashboard.recommendation_count_many', { count: advices.length, _fallback: `${advices.length} Recommendations` });
     }
 
     function renderDonutChart(allocations) {
@@ -1736,6 +1811,7 @@
       // Legend
       const legendContainer = document.getElementById('donut-legend');
       legendContainer.innerHTML = '';
+      const tgtShort = I18N.t('dashboard.tgt_short', 'tgt');
       allocations.forEach(a => {
         const row = document.createElement('div');
         row.className = 'flex items-center justify-between';
@@ -1744,7 +1820,7 @@
             <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(a.color)}"></span>
             <span class="text-slate-300">${escapeHtml(a.name)}</span>
           </div>
-          <div class="font-medium text-white">${a.current_weight_pct}% <span class="text-slate-500 font-normal">(tgt ${a.target_weight_pct}%)</span></div>
+          <div class="font-medium text-white">${a.current_weight_pct}% <span class="text-slate-500 font-normal">(${escapeHtml(tgtShort)} ${a.target_weight_pct}%)</span></div>
         `;
         legendContainer.appendChild(row);
       });
@@ -1754,7 +1830,7 @@
       const ctx = document.getElementById('projectionAreaChart').getContext('2d');
       if (projectionChartInstance) projectionChartInstance.destroy();
 
-      const labels = trajectory.map(t => `Year ${t.year}`);
+      const labels = trajectory.map(t => I18N.t('dashboard.year_label', { year: t.year, _fallback: `Year ${t.year}` }));
       const netWorthData = trajectory.map(t => t.net_worth);
       const assetsData = trajectory.map(t => t.assets);
       const debtsData = trajectory.map(t => t.debts);
@@ -1765,7 +1841,7 @@
           labels: labels,
           datasets: [
             {
-              label: 'Net Worth',
+              label: I18N.t('dashboard.chart_label_net_worth', 'Net Worth'),
               data: netWorthData,
               borderColor: '#10B981',
               backgroundColor: 'rgba(16, 185, 129, 0.15)',
@@ -1773,14 +1849,14 @@
               tension: 0.3
             },
             {
-              label: 'Assets',
+              label: I18N.t('dashboard.chart_label_assets', 'Assets'),
               data: assetsData,
               borderColor: '#3B82F6',
               borderDash: [5, 5],
               tension: 0.3
             },
             {
-              label: 'Debts',
+              label: I18N.t('dashboard.chart_label_debts', 'Debts'),
               data: debtsData,
               borderColor: '#EF4444',
               borderDash: [2, 2],
@@ -1875,7 +1951,7 @@
 
     function openAddBucketModal() {
       const titleElem = document.getElementById('bucket-modal-title');
-      titleElem.textContent = '🪣 Add Strategic Bucket';
+      titleElem.textContent = I18N.t('modals.bucket_add_title', '🪣 Add Strategic Bucket');
       document.getElementById('bucket-modal-id').value = '';
       document.getElementById('bucket-modal-name').value = '';
       document.getElementById('bucket-modal-target').value = '10.0';
@@ -1892,7 +1968,7 @@
 
     function openEditBucketModal(bucketId, name, color, target, tolerance, desc, includeInRebalancing, includeInNetWorth = true) {
       const titleElem = document.getElementById('bucket-modal-title');
-      titleElem.textContent = `✏️ Edit Bucket: ${name}`;
+      titleElem.textContent = I18N.t('modals.bucket_edit_title', { name, _fallback: `✏️ Edit Bucket: ${name}` });
       document.getElementById('bucket-modal-id').value = bucketId;
       document.getElementById('bucket-modal-name').value = name;
       document.getElementById('bucket-modal-target').value = target;
@@ -2005,9 +2081,15 @@
         const tr = document.createElement('tr');
         const isExcluded = a.include_in_rebalancing === false;
         const isNetWorthExcluded = a.include_in_net_worth === false;
-        const excludedBadge = isExcluded ? '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-normal ml-1">No Rebalance</span>' : '';
-        const nwExcludedBadge = isNetWorthExcluded ? '<span class="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded font-normal ml-1">Illiquid / Prop</span>' : '';
-        const statusBadge = isExcluded ? '<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400 border border-slate-700">Excluded</span>' : (a.drift_status === 'BALANCED' ? '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400">Balanced</span>' : (a.drift_status === 'UNDERWEIGHT' ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">Underweight</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Overweight</span>'));
+        const excludedBadge = isExcluded ? `<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-normal ml-1">${escapeHtml(I18N.t('buckets.badge_no_rebalance', 'No Rebalance'))}</span>` : '';
+        const nwExcludedBadge = isNetWorthExcluded ? `<span class="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded font-normal ml-1">${escapeHtml(I18N.t('buckets.badge_illiquid', 'Illiquid / Prop'))}</span>` : '';
+        const statusBadge = isExcluded
+          ? `<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400 border border-slate-700">${escapeHtml(I18N.t('buckets.status_excluded', 'Excluded'))}</span>`
+          : (a.drift_status === 'BALANCED'
+            ? `<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400">${escapeHtml(I18N.t('buckets.status_balanced', 'Balanced'))}</span>`
+            : (a.drift_status === 'UNDERWEIGHT'
+              ? `<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">${escapeHtml(I18N.t('buckets.status_underweight', 'Underweight'))}</span>`
+              : `<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">${escapeHtml(I18N.t('buckets.status_overweight', 'Overweight'))}</span>`));
         const diffDisplay = isExcluded ? '—' : `${a.diff_value > 0 ? '+' : ''}€ ${a.diff_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}`;
         const weightDisplay = isExcluded ? '—' : `${a.current_weight_pct}%`;
         const targetDisplay = isExcluded ? '—' : `<input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${escapeHtml(a.bucket_id)}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"> %`;
@@ -2027,8 +2109,8 @@
           </td>
           <td class="px-4 py-3">${statusBadge}</td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
-            <button onclick="openEditBucketModalById('${escapeHtml(a.bucket_id)}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit / Rename</button>
-            <button onclick="deleteBucketById('${escapeHtml(a.bucket_id)}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+            <button onclick="openEditBucketModalById('${escapeHtml(a.bucket_id)}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">${escapeHtml(I18N.t('buckets.btn_edit_rename', 'Edit / Rename'))}</button>
+            <button onclick="deleteBucketById('${escapeHtml(a.bucket_id)}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">${escapeHtml(I18N.t('buckets.btn_delete', 'Delete'))}</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -2036,6 +2118,9 @@
         // Progress meter
         const meter = document.createElement('div');
         meter.className = 'space-y-1';
+        const meterText = isExcluded
+          ? `${I18N.t('buckets.meter_excluded', 'Excluded from Rebalancing')} • € ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}`
+          : I18N.t('buckets.meter_current_target', { current: a.current_weight_pct, target: a.target_weight_pct, tolerance: a.drift_tolerance_pct, _fallback: `Current: ${a.current_weight_pct}% / Target: ${a.target_weight_pct}% (±${a.drift_tolerance_pct}%)` });
         meter.innerHTML = `
           <div class="flex justify-between text-xs">
             <span class="font-medium text-white flex items-center gap-1.5">
@@ -2044,7 +2129,7 @@
               ${excludedBadge}
               ${nwExcludedBadge}
             </span>
-            <span class="text-slate-400 font-mono text-[11px]">${isExcluded ? 'Excluded from Rebalancing • € ' + a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2}) : 'Current: ' + a.current_weight_pct + '% / Target: ' + a.target_weight_pct + '% (±' + a.drift_tolerance_pct + '%)'}</span>
+            <span class="text-slate-400 font-mono text-[11px]">${escapeHtml(meterText)}</span>
           </div>
           <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 relative">
             <div class="h-full rounded-full transition-all duration-500 shadow-sm" style="width: ${isExcluded ? 0 : Math.min(100, a.current_weight_pct)}%; background-color: ${escapeHtml(a.color)}"></div>
@@ -2061,9 +2146,10 @@
         debtContainer.innerHTML = '';
         const advices = data.advices || [];
         const totalBadge = document.getElementById('guidance-total-badge');
-        if (totalBadge) totalBadge.textContent = `${advices.length} Active`;
+        if (totalBadge) totalBadge.textContent = I18N.t('guidance.active_badge', { count: advices.length, _fallback: `${advices.length} Active` });
 
-        advices.forEach(adv => {
+        advices.forEach(rawAdv => {
+          const adv = I18N.localizeAdvice(rawAdv);
           const item = document.createElement('div');
           item.className = 'p-4 rounded-lg bg-slate-950 border border-slate-800 text-xs space-y-1.5';
           const badgeColor = adv.priority === 'CRITICAL'
@@ -2071,13 +2157,15 @@
             : (adv.priority === 'HIGH'
               ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
               : 'bg-blue-500/20 text-blue-400 border-blue-500/30');
-          const typeLabel = (adv.advice_type || '').includes('DEBT') ? 'Debt Avalanche' : 'Portfolio Drift';
+          const typeLabel = (adv.advice_type || '').includes('DEBT')
+            ? I18N.t('guidance.type_debt', 'Debt Avalanche')
+            : I18N.t('guidance.type_drift', 'Portfolio Drift');
           item.innerHTML = `
             <div class="flex items-center justify-between gap-2">
               <div class="font-bold text-white text-sm">${escapeHtml(adv.title)}</div>
               <div class="flex items-center gap-1.5 shrink-0">
                 <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700">${escapeHtml(typeLabel)}</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border ${badgeColor}">${escapeHtml(adv.priority)}</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border ${badgeColor}">${escapeHtml(adv.priorityLabel || adv.priority)}</span>
               </div>
             </div>
             <div class="text-slate-300 leading-relaxed">${escapeHtml(adv.message)}</div>
@@ -2097,7 +2185,7 @@
       ordersContainer.innerHTML = '';
 
       if (underweight.length === 0) {
-        ordersContainer.innerHTML = '<div class="text-xs text-slate-400">All buckets are balanced! You can distribute this deposit proportionally across your targets.</div>';
+        ordersContainer.innerHTML = `<div class="text-xs text-slate-400">${escapeHtml(I18N.t('guidance.all_balanced', 'All buckets are balanced! You can distribute this deposit proportionally across your targets.'))}</div>`;
         return;
       }
 
@@ -2106,13 +2194,15 @@
         const share = (depositAmt * (Math.abs(a.diff_value) / totalDeficit));
         const div = document.createElement('div');
         div.className = 'flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs';
+        const deficitFmt = Math.abs(a.diff_value).toLocaleString('de-DE', {minimumFractionDigits: 2});
+        const shareFmt = share.toLocaleString('de-DE', {minimumFractionDigits: 2});
         div.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(a.color)}"></span>
             <span class="font-semibold text-white">${escapeHtml(a.name)}</span>
-            <span class="text-slate-500">(Deficit: € ${Math.abs(a.diff_value).toLocaleString('de-DE', {minimumFractionDigits: 2})})</span>
+            <span class="text-slate-500">${escapeHtml(I18N.t('guidance.deficit_label', { amount: deficitFmt, _fallback: `(Deficit: € ${deficitFmt})` }))}</span>
           </div>
-          <div class="text-emerald-400 font-bold text-sm">BUY € ${share.toLocaleString('de-DE', {minimumFractionDigits: 2})}</div>
+          <div class="text-emerald-400 font-bold text-sm">${escapeHtml(I18N.t('guidance.buy_action', { amount: shareFmt, _fallback: `BUY € ${shareFmt}` }))}</div>
         `;
         ordersContainer.appendChild(div);
       });
@@ -2122,10 +2212,10 @@
       const tbody = document.getElementById('tx-table-body');
       tbody.innerHTML = '';
       const txs = data.transactions || [];
-      document.getElementById('tx-count-badge').textContent = `${txs.length} Transactions`;
+      document.getElementById('tx-count-badge').textContent = I18N.t('cashflow.tx_count_badge', { count: txs.length, _fallback: `${txs.length} Transactions` });
 
       if (txs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">No transactions loaded yet. Upload your KBC CSV above.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">${escapeHtml(I18N.t('cashflow.empty_tx', 'No transactions loaded yet. Upload your KBC CSV above.'))}</td></tr>`;
         return;
       }
 
@@ -2393,6 +2483,7 @@
       if (!container) return;
       container.innerHTML = '';
       let reachedCount = 0;
+      const reachedLabel = I18N.t('dashboard.milestone_reached', '✓ Reached');
 
       milestones.forEach(m => {
         if (m.is_reached) reachedCount++;
@@ -2401,7 +2492,7 @@
         card.innerHTML = `
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-white truncate" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
-            ${m.is_reached ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">✓ Reached</span>' : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${m.progress_pct}%</span>`}
+            ${m.is_reached ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">${escapeHtml(reachedLabel)}</span>` : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${m.progress_pct}%</span>`}
           </div>
           <div class="text-base font-bold text-white font-mono">${escapeHtml(m.target_formatted)}</div>
           <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
@@ -2413,7 +2504,7 @@
 
       const badge = document.getElementById('milestones-completed-badge');
       if (badge) {
-        badge.textContent = `${reachedCount} / ${milestones.length} Reached`;
+        badge.textContent = I18N.t('dashboard.milestones_reached_badge', { reached: reachedCount, total: milestones.length, _fallback: `${reachedCount} / ${milestones.length} Reached` });
         if (reachedCount > 0) {
           badge.className = 'px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 font-medium';
         } else {
@@ -2492,7 +2583,7 @@
           a.asset_class === 'REAL_ESTATE' || a.id.startsWith('asset-') || a.id === 'bunq-savings' || a.institution === 'Manual'
         );
         if (manualOrRealEstate.length === 0) {
-          assetsTbody.innerHTML = '<tr><td colspan="4" class="py-3 text-slate-500 text-center">No manual real estate or private assets added yet.</td></tr>';
+          assetsTbody.innerHTML = `<tr><td colspan="4" class="py-3 text-slate-500 text-center">${escapeHtml(I18N.t('cashflow.empty_assets', 'No manual real estate or private assets added yet.'))}</td></tr>`;
         } else {
           manualOrRealEstate.forEach(a => {
             const tr = document.createElement('tr');
@@ -2505,7 +2596,7 @@
               <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${safeClass}</span></td>
               <td class="py-2.5 font-mono text-emerald-400">${safeVal}</td>
               <td class="py-2.5 text-right">
-                <button onclick="deleteManualAsset('${safeId}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+                <button onclick="deleteManualAsset('${safeId}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">${escapeHtml(I18N.t('common.delete', 'Delete'))}</button>
               </td>
             `;
             assetsTbody.appendChild(tr);
@@ -2518,13 +2609,13 @@
         liabTbody.innerHTML = '';
         const liabilities = data.liabilities || [];
         if (liabilities.length === 0) {
-          liabTbody.innerHTML = '<tr><td colspan="6" class="py-3 text-slate-500 text-center">No debt or mortgage balances recorded.</td></tr>';
+          liabTbody.innerHTML = `<tr><td colspan="6" class="py-3 text-slate-500 text-center">${escapeHtml(I18N.t('cashflow.empty_liabilities', 'No debt or mortgage balances recorded.'))}</td></tr>`;
         } else {
           liabilities.forEach(l => {
             const tr = document.createElement('tr');
             const isUnsetBalance = l.principal_balance <= 0;
             const balanceHtml = isUnsetBalance
-              ? `<span class="text-amber-400 font-mono">Unset (€ 0,00)</span> <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30">Needs Balance</span>`
+              ? `<span class="text-amber-400 font-mono">${escapeHtml(I18N.t('cashflow.unset_balance', 'Unset (€ 0,00)'))}</span> <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30">${escapeHtml(I18N.t('cashflow.needs_balance', 'Needs Balance'))}</span>`
               : `<span class="font-mono text-rose-400">${escapeHtml(l.principal_balance_formatted)}</span>`;
             const rateHtml = l.interest_rate_pct <= 0
               ? `<span class="text-slate-500 font-mono">—</span>`
@@ -2543,8 +2634,8 @@
               <td class="py-2.5">${rateHtml}</td>
               <td class="py-2.5 font-mono text-slate-300">${safePmt}</td>
               <td class="py-2.5 text-right whitespace-nowrap">
-                <button onclick="openEditLiabilityModalById('${safeId}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">Edit</button>
-                <button onclick="deleteManualLiability('${safeId}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">Delete</button>
+                <button onclick="openEditLiabilityModalById('${safeId}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">${escapeHtml(I18N.t('common.edit', 'Edit'))}</button>
+                <button onclick="deleteManualLiability('${safeId}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">${escapeHtml(I18N.t('common.delete', 'Delete'))}</button>
               </td>
             `;
             liabTbody.appendChild(tr);
@@ -2628,7 +2719,7 @@
     }
 
     function openAddLiabilityModal() {
-      document.getElementById('liab-modal-title').textContent = '💳 Add Mortgage or Loan';
+      document.getElementById('liab-modal-title').textContent = I18N.t('modals.liab_add_title', '💳 Add Mortgage or Loan');
       document.getElementById('manual-liab-id').value = '';
       document.getElementById('manual-liab-name').value = '';
       document.getElementById('manual-liab-type').value = 'MORTGAGE';
@@ -2646,7 +2737,7 @@
     }
 
     function openEditLiabilityModal(id, name, type, balance, rate, payment, inst, ref, paymentPct = 0, startCap = null, startDate = null, durationMos = null, endDate = null) {
-      document.getElementById('liab-modal-title').textContent = '✏️ Edit Loan / Mortgage Details';
+      document.getElementById('liab-modal-title').textContent = I18N.t('modals.liab_edit_title', '✏️ Edit Loan / Mortgage Details');
       document.getElementById('manual-liab-id').value = id;
       document.getElementById('manual-liab-name').value = name;
       document.getElementById('manual-liab-type').value = type;
@@ -2800,18 +2891,20 @@
 
       // Leave out 0 value items from the assignment list (as requested)
       const nonZeroAssets = allAssets.filter(a => a.current_value > 0);
-      if (countBadge) countBadge.textContent = `${nonZeroAssets.length} Active Holdings`;
+      if (countBadge) countBadge.textContent = I18N.t('buckets.active_holdings_badge', { count: nonZeroAssets.length, _fallback: `${nonZeroAssets.length} Active Holdings` });
 
       if (nonZeroAssets.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-slate-500 text-center">No active holdings with positive value found. Connect PDT in Settings or import a CSV statement.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-slate-500 text-center">${escapeHtml(I18N.t('buckets.empty_holdings', 'No active holdings with positive value found. Connect PDT in Settings or import a CSV statement.'))}</td></tr>`;
         return;
       }
 
       const buckets = data.allocations || [];
+      const unassignedOptLabel = escapeHtml(I18N.t('buckets.unassigned_option', '-- Unassigned --'));
+      const unassignedBadgeLabel = escapeHtml(I18N.t('buckets.unassigned_badge', 'Unassigned'));
 
       nonZeroAssets.forEach(a => {
         const tr = document.createElement('tr');
-        let bucketOptions = `<option value="unassigned" ${a.bucket_id === 'unassigned' ? 'selected' : ''}>-- Unassigned --</option>`;
+        let bucketOptions = `<option value="unassigned" ${a.bucket_id === 'unassigned' ? 'selected' : ''}>${unassignedOptLabel}</option>`;
         buckets.forEach(b => {
           const isSelected = a.bucket_id === b.bucket_id;
           bucketOptions += `<option value="${escapeHtml(b.bucket_id)}" ${isSelected ? 'selected' : ''}>${escapeHtml(b.name)}</option>`;
@@ -2827,7 +2920,7 @@
         ` : `
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-400 border border-slate-700">
             <span class="w-1.5 h-1.5 rounded-full bg-slate-500 inline-block"></span>
-            Unassigned
+            ${unassignedBadgeLabel}
           </span>
         `;
 
@@ -2910,20 +3003,20 @@
 
         if (pdt.connected) {
           pill.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-semibold border bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-          pill.textContent = 'Connected (Active)';
+          pill.textContent = I18N.t('settings.status_connected', 'Connected (Active)');
           tokenDisplay.textContent = pdt.auth_token || 'Active Session';
           btnDisconnect.classList.remove('hidden');
-          btnConnect.textContent = '🔗 Re-authenticate (OAuth)';
+          btnConnect.textContent = I18N.t('settings.pdt_reauth_btn', '🔗 Re-authenticate (OAuth)');
         } else {
           pill.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-semibold border bg-slate-800 text-slate-400 border-slate-700';
-          pill.textContent = 'Disconnected';
-          tokenDisplay.textContent = 'Not Connected';
+          pill.textContent = I18N.t('settings.status_disconnected', 'Disconnected');
+          tokenDisplay.textContent = I18N.t('settings.status_not_connected', 'Not Connected');
           btnDisconnect.classList.add('hidden');
-          btnConnect.textContent = '🔗 Connect with PDT (OAuth PKCE)';
+          btnConnect.textContent = I18N.t('settings.pdt_connect_btn', '🔗 Connect with PDT (OAuth PKCE)');
         }
 
         document.getElementById('pdt-cfg-url').textContent = pdt.mcp_url || 'https://mcp.portfoliodividendtracker.com';
-        document.getElementById('pdt-cfg-last-sync').textContent = pdt.last_sync || 'Never';
+        document.getElementById('pdt-cfg-last-sync').textContent = pdt.last_sync || I18N.t('settings.status_never', 'Never');
 
         // Custom MCP Servers Table
         const tbody = document.getElementById('mcp-servers-tbody');
@@ -2936,10 +3029,10 @@
             <td class="py-2.5 px-3 font-medium text-white">${escapeHtml(srv.name)}</td>
             <td class="py-2.5 px-3 font-mono text-slate-300 text-[11px]">${escapeHtml(srv.url)}</td>
             <td class="py-2.5 px-3 uppercase text-[10px] text-slate-400">${escapeHtml(srv.transport || 'HTTP')}</td>
-            <td class="py-2.5 px-3" id="ping-${escapeHtml(srv.id)}"><span class="text-slate-500">Ready</span></td>
+            <td class="py-2.5 px-3" id="ping-${escapeHtml(srv.id)}"><span class="text-slate-500">${escapeHtml(I18N.t('settings.status_ready', 'Ready'))}</span></td>
             <td class="py-2.5 px-3 text-right space-x-1.5">
-              <button onclick="testMcpServerById('${escapeHtml(srv.id)}')" class="px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-300 text-[11px]">Ping</button>
-              <button onclick="deleteMcpServer('${escapeHtml(srv.id)}')" class="px-2 py-0.5 rounded border border-red-500/30 hover:bg-red-500/10 text-red-400 text-[11px]">Delete</button>
+              <button onclick="testMcpServerById('${escapeHtml(srv.id)}')" class="px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-300 text-[11px]">${escapeHtml(I18N.t('settings.btn_ping', 'Ping'))}</button>
+              <button onclick="deleteMcpServer('${escapeHtml(srv.id)}')" class="px-2 py-0.5 rounded border border-red-500/30 hover:bg-red-500/10 text-red-400 text-[11px]">${escapeHtml(I18N.t('common.delete', 'Delete'))}</button>
             </td>
           `;
           tbody.appendChild(tr);
@@ -2969,6 +3062,16 @@
         document.getElementById('settings-tax-date').value = tax.benchmark_date || '2025-12-31';
         document.getElementById('settings-tax-price').value = tax.benchmark_price || 900;
         document.getElementById('settings-tax-rate').value = tax.tax_rate_pct || 10.0;
+
+        // Language & Localization Settings
+        if (s.language && typeof I18N !== 'undefined') {
+          const localLang = localStorage.getItem('wealth_pilot_language');
+          if (!localLang) {
+            I18N.setLanguage(s.language, false);
+          } else {
+            I18N.setLanguage(localLang, false);
+          }
+        }
 
       } catch (err) {
         console.error('Failed to load settings:', err);
@@ -3249,20 +3352,22 @@
           
           const remBadge = document.getElementById('res-remaining-exemption');
           if (d.remaining_exemption > 0) {
-            remBadge.textContent = `€ ${d.remaining_exemption.toLocaleString('nl-BE', {minimumFractionDigits: 2})} exemption left`;
+            const remAmt = d.remaining_exemption.toLocaleString('nl-BE', {minimumFractionDigits: 2});
+            remBadge.textContent = I18N.t('guidance.exemption_left', { amount: remAmt, _fallback: `€ ${remAmt} exemption left` });
             remBadge.className = 'text-[10px] text-emerald-400 mt-0.5';
           } else {
-            remBadge.textContent = `Exemption exhausted`;
+            remBadge.textContent = I18N.t('guidance.exemption_exhausted', 'Exemption exhausted');
             remBadge.className = 'text-[10px] text-amber-400 mt-0.5';
           }
 
           document.getElementById('res-tax-due').textContent = `€ ${d.tax_due.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
           const statusBadge = document.getElementById('res-tax-status');
           if (d.tax_due > 0) {
-            statusBadge.textContent = `⚠️ Tax Due (€ ${d.tax_due.toLocaleString('nl-BE', {minimumFractionDigits: 2})})`;
+            const taxAmt = d.tax_due.toLocaleString('nl-BE', {minimumFractionDigits: 2});
+            statusBadge.textContent = I18N.t('guidance.tax_due_status', { amount: taxAmt, _fallback: `⚠️ Tax Due (€ ${taxAmt})` });
             statusBadge.className = 'text-[10px] text-amber-400 mt-0.5 font-semibold';
           } else {
-            statusBadge.textContent = '🟢 100% Tax-Exempt';
+            statusBadge.textContent = I18N.t('guidance.tax_exempt_status', '🟢 100% Tax-Exempt');
             statusBadge.className = 'text-[10px] text-emerald-400 mt-0.5 font-semibold';
           }
         }
@@ -3324,12 +3429,12 @@
         prevBtn.classList.add('hidden');
         nextBtn.classList.remove('hidden');
         finishBtn.classList.add('hidden');
-        nextBtn.textContent = 'Next: Buckets →';
+        nextBtn.textContent = I18N.t('modals.wiz_next_buckets', 'Next: Buckets →');
       } else if (currentWizardStep === 2) {
         prevBtn.classList.remove('hidden');
         nextBtn.classList.remove('hidden');
         finishBtn.classList.add('hidden');
-        nextBtn.textContent = 'Next: Tax & AI →';
+        nextBtn.textContent = I18N.t('modals.wiz_next_tax', 'Next: Tax & AI →');
       } else if (currentWizardStep === 3) {
         prevBtn.classList.remove('hidden');
         nextBtn.classList.add('hidden');
@@ -3466,6 +3571,9 @@
 
     // Initialize on page load
     window.addEventListener('DOMContentLoaded', async () => {
+      if (typeof I18N !== 'undefined' && typeof I18N.init === 'function') {
+        await I18N.init();
+      }
       syncThemeToggleUI();
       await loadOverview();
       await loadSettings();
