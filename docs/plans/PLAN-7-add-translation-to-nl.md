@@ -1,88 +1,83 @@
-# Architecture Plan: [Issue #7] feat: add translation to NL
+# Architecture Plan: [Issue #7] Full UI Localization & Per-Language Translation Files
 
 - **Issue**: [#7](https://github.com/tiwu/wealth-pilot/issues/7)
-- **Status**: Completed
+- **Status**: Completed (Phase 2 — Full Page Content & Isolated Locale Files)
 - **Author**: Autonomous Issue Worker
-- **Date**: 2026-10-24
+- **Date**: 2026-10-25
 - **Target Branch**: `feature/issue-7-add-translation-to-nl`
 
 ---
 
-## 1. Problem Statement & Motivation
-Wealth Pilot is designed to run locally with complete privacy. While originally drafted with an English user interface, its primary target user base includes Belgian investors managing Belgian-specific financial frameworks (e.g., Belgian 2026 Capital Gains Tax "Meerwaardebelasting", local banks such as KBC, and European macro allocation).
-
-To make the platform accessible, intuitive, and native to the Belgian market, Wealth Pilot requires comprehensive Dutch (Nederlands - NL) internationalization, while also laying the foundation for Belgium's other national languages (French - FR and German - DE), alongside international English (EN).
-
----
-
-## 2. Requirements & Acceptance Criteria
-
-### Functional Requirements
-- **Complete Dutch Translation (NL)**: Comprehensive localization of navigation tabs, overview cards, macro allocation tables, debt payoff guidance, loan amortization simulators, Belgian tax tools, and settings.
-- **Belgian Multi-Language Support**: Support for `nl` (Dutch), `en` (English), `fr` (French), and `de` (German).
-- **Instant Language Switching in UI**:
-  - Accessible language selector dropdown in the desktop header next to the theme toggle.
-  - Dedicated language selector in the mobile drawer for phone/tablet users.
-  - Dedicated "Language & Localization" card in the Settings tab.
-- **Persistence**:
-  - Immediate client-side persistence in `localStorage` (`wealth_pilot_language`) to avoid layout flashes on reload.
-  - Backend configuration persistence via `ConfigRepository` and `portfolio.yaml` settings (`language: "nl"`).
-- **Backend API**:
-  - `GET /api/i18n` endpoint providing all available locales, supported languages, and dictionary payloads.
-  - `GET /api/i18n/{lang}` endpoint returning locale-specific translation bundles.
-  - `POST /api/settings` and `GET /api/settings` updated to support `language`.
-
-### Non-Functional Requirements
-- **Local-First & Offline**: Translations bundled in `src/wealth_pilot/delivery/web/static/i18n.js` ensuring 100% offline availability via PWA service workers without external network dependencies.
-- **TDD & Coverage**: Automated tests verifying the API endpoints and configuration persistence with $\ge 90\%$ statement coverage.
-- **Zero Lint Errors**: Full compliance with `uv run ruff check src tests` and `uv run ruff format --check src tests`.
+## 1. Review of Initial Implementation (PR #8 Feedback)
+During local verification of PR #8, the following gaps were identified:
+1. **Incomplete DOM Coverage**: Only the top navigation bar (`#nav-*`, `#mnav-*`) and the Settings language card had `data-i18n` attributes. Nearly all body content across the 6 main tabs (`Overview`, `Buckets`, `Guidance`, `Data & Assets`, `AI Advisor`, `Settings`) and 7 modals (`Setup Wizard`, `Help`, `Add Asset`, `Add Liability`, `Bucket`, `Milestones`, `Re-Bucket`) remained hardcoded in English.
+2. **Untranslated Dynamic JavaScript Renderers**: Client-side renderers (`renderDashboard`, `renderDonutChart`, `renderProjectionChart`, `renderBuckets`, `renderHoldingsMapping`, `renderAdvice`, `recalculateContribution`, `renderTransactions`, `renderMilestones`, `renderManualAssetsAndDebts`, `loadSettings`, `runTaxSimulation`) injected hardcoded English strings and backend `AdviceItem` text without localization.
+3. **Inline Dictionaries Instead of Isolated Translation Files**: Translation dictionaries were embedded directly inside `i18n.py` and `i18n.js` rather than isolated into standalone, maintainable per-language resource files.
 
 ---
 
-## 3. Hexagonal Architecture Impact
+## 2. Architecture Plan: Isolated Locale Files & Complete Page Wiring
 
-### 3.1 Domain Layer (`src/wealth_pilot/domain/`)
-- Remains 100% pure Python standard library. No framework or i18n dependencies in domain models.
+### 2.1 File Isolation Structure (Single Source of Truth)
+All translatable strings are isolated into dedicated JSON locale files under `src/wealth_pilot/delivery/web/static/locales/`:
 
-### 3.2 Use Cases Layer (`src/wealth_pilot/use_cases/`)
-- Pure calculation orchestrators continue to return domain entities and typed values without coupling to delivery-specific strings.
+```text
+src/wealth_pilot/delivery/web/
+├── i18n.py                       # Loads static/locales/{lang}.json dynamically
+├── app.py                        # Exposes /api/i18n and /api/i18n/{lang}
+├── static/
+│   ├── i18n.js                   # Client-side i18n engine (fetches & caches locales, interpolates params)
+│   └── locales/
+│       ├── en.json               # English (Default / Fallback)
+│       ├── nl.json               # Nederlands (Belgian/Flemish market primary target)
+│       ├── fr.json               # Français (Belgian French)
+│       └── de.json               # Deutsch (Belgian German)
+└── templates/
+    └── index.html                # Full data-i18n* attributes across all tabs, modals & JS renderers
+```
 
-### 3.3 Adapters & Repositories (`src/wealth_pilot/adapters/`)
-- `ConfigRepository.load_settings()` provides default `"language": "en"` and reads stored user language.
-- `ConfigRepository.save_settings()` updates and persists `language` into `portfolio.yaml`.
+### 2.2 Translation Key Namespace Hierarchy
+Each locale file (`en.json`, `nl.json`, `fr.json`, `de.json`) is organized into structured namespaces matching the UI domains:
+- `header`: Brand subtitle, badge, OAuth banner.
+- `nav`: Desktop and mobile navigation tabs (`explore`, `manage`, `overview`, `buckets`, `guidance`, `ai`, `cashflow`, `settings`, `setup`, `docs`, `help`).
+- `dashboard`: Overview filter bar, 4 KPI cards, Allocation & Trajectory charts, Milestones tracker, Immediate Recommendations card, and dynamic chart/KPI strings.
+- `buckets`: Strategic Buckets header, table columns, Allocation Visualizer, Holdings Mapping table, status badges (`Balanced`, `Underweight`, `Overweight`, `Excluded`), and empty states.
+- `guidance`: Buy-Only Rebalancing Calculator, Consolidated Debt Payoff & Action Plan, Belgian 2026 Capital Gains Tax Simulator (inputs, lots breakdown, result cards), and dynamic order/tax statuses.
+- `cashflow`: Data Management header, Manual Assets card & table, Liabilities/Mortgages card & table, CSV Ingestion dropzone, Recent Transactions table.
+- `ai`: AI Strategic Advisor header, quick strategy prompt chips (both button labels and prompt payloads), custom question input, loading/empty states.
+- `settings`: PDT MCP card, Custom MCP Servers card & form, AI Advisor Configuration card & setup guide, Regional Tax & Benchmark card, Language & Localization card.
+- `modals`:
+  - `rebucket`: Re-bucket transaction modal & category labels.
+  - `asset`: Add Manual Asset modal, categories & placeholders.
+  - `liability`: Add/Edit Mortgage & Loan modal, loan types, and amortization schedule estimator.
+  - `bucket`: Add/Edit Strategic Bucket modal & checkboxes.
+  - `milestones`: Configure Wealth Milestones modal.
+  - `help`: In-App Help Guide modal.
+  - `wizard`: 3-step Interactive First-Time Setup Wizard.
+- `advice_items`: Pattern-based localization templates for dynamic `AdviceItem` entries (`Debt-Free Status`, `Priority Debt Payoff`, `Maintain Minimums`, `Underweight`).
+- `priority`: Priority badge translations (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFO`).
+- `common`: Shared buttons, statuses, and actions (`Save`, `Cancel`, `Delete`, `Edit`, `Close`, `Light`, `Dark`).
 
-### 3.4 Delivery Frameworks (`src/wealth_pilot/delivery/`)
-- `src/wealth_pilot/delivery/web/i18n.py`: Backend i18n constants (`SUPPORTED_LANGUAGES`, `DEFAULT_LANGUAGE`, `TRANSLATIONS`).
-- `src/wealth_pilot/delivery/web/static/i18n.js`: Client-side i18n module with `data-i18n` attribute scanning and reactive event dispatching.
-- `src/wealth_pilot/delivery/web/app.py`:
-  - `SettingsUpdateRequest` accepts optional `language: str`.
-  - Added `GET /api/i18n` and `GET /api/i18n/{lang}` endpoints.
-- `src/wealth_pilot/delivery/web/templates/index.html`:
-  - Language selector controls in header, mobile drawer, and settings.
-  - `data-i18n` attributes on key interface elements.
-  - Re-rendering triggers on `languageChanged` events.
+### 2.3 Client-Side Engine (`static/i18n.js`) Capabilities
+- **Asynchronous Preloading + Instant Switching**: Fetches `/api/i18n` (or `/static/locales/{lang}.json`) on initialization, caching all locale bundles in memory so switching between `NL`, `EN`, `FR`, and `DE` is instantaneous with zero flicker.
+- **Parameter Interpolation**: `I18N.t('dashboard.debt_ratio', { ratio: '12.5' })` replaces `{ratio}` placeholders cleanly.
+- **Declarative DOM Attributes**:
+  - `data-i18n="key"` for `textContent`
+  - `data-i18n-html="key"` for safe static HTML fragments (`<strong>`, `<em>`, `<code>`)
+  - `data-i18n-placeholder="key"` for input placeholders
+  - `data-i18n-title="key"` for tooltips
+- **Dynamic Advice Localization (`I18N.localizeAdvice(adv)`)**: Translates backend-generated `AdviceItem` titles and messages into the active language without polluting pure domain/use-case layers.
 
 ---
 
-## 4. Test-Driven Development (TDD) Plan
-1. **Red (Tests First)**:
-   - Created `tests/delivery/test_i18n.py` verifying `/api/i18n`, `/api/i18n/{lang}`, and `/api/settings` language persistence.
-   - Verified initial test failure.
-2. **Green (Implementation)**:
-   - Implemented `i18n.py`, updated `config_repo.py`, and added endpoints in `app.py`.
-   - Wired client-side engine in `i18n.js` and `index.html`.
-   - Verified tests pass cleanly.
-3. **Refactor & Verification**:
-   - Run full pytest test suite with coverage report ($\ge 90\%$).
-   - Run `ruff check` and `ruff format`.
-   - Build documentation with `mkdocs build --strict`.
-
----
-
-## 5. Verification Checklist
-- [x] Linters pass: `uv run ruff check src tests`
-- [x] Formatting passes: `uv run ruff format --check src tests`
-- [x] Documentation builds: `uv run mkdocs build --strict`
-- [x] Test suite passes with $\ge 90\%$ coverage: `uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90`
-- [x] `CHANGELOG.md` updated under `[Unreleased]`
-- [ ] PR created with `Closes #7`
+## 3. Test-Driven Development (TDD) & Verification Plan
+1. **Locale File Integrity Tests (`tests/delivery/test_i18n.py`)**:
+   - Verify `en.json`, `nl.json`, `fr.json`, and `de.json` exist as standalone JSON files in `src/wealth_pilot/delivery/web/static/locales/`.
+   - Assert key parity across all 4 locale files (every section and key present in `en.json` exists in `nl.json`, `fr.json`, and `de.json`).
+   - Verify `/static/locales/nl.json` is served directly as a static asset.
+   - Verify `index.html` contains `data-i18n` bindings across all 6 tabs and modals.
+2. **Quality Gates**:
+   - `uv run ruff check src tests`
+   - `uv run ruff format --check src tests`
+   - `uv run mkdocs build --strict`
+   - `uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90`
