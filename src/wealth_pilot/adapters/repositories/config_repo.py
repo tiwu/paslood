@@ -160,6 +160,7 @@ class ConfigRepository:
                     color=str(b.get("color", "#3B82F6")),
                     description=str(b.get("description", "")),
                     include_in_rebalancing=bool(b.get("include_in_rebalancing", True)),
+                    include_in_net_worth=bool(b.get("include_in_net_worth", True)),
                 )
             )
 
@@ -198,6 +199,11 @@ class ConfigRepository:
                 and bucket_data["include_in_rebalancing"] is not None
             ):
                 existing["include_in_rebalancing"] = bool(bucket_data["include_in_rebalancing"])
+            if (
+                "include_in_net_worth" in bucket_data
+                and bucket_data["include_in_net_worth"] is not None
+            ):
+                existing["include_in_net_worth"] = bool(bucket_data["include_in_net_worth"])
         else:
             palette = [
                 "#3B82F6",
@@ -211,6 +217,7 @@ class ConfigRepository:
             ]
             chosen_color = bucket_data.get("color") or palette[len(buckets) % len(palette)]
             include_reb = bool(bucket_data.get("include_in_rebalancing", True))
+            include_nw = bool(bucket_data.get("include_in_net_worth", True))
             buckets.append(
                 {
                     "id": bucket_id,
@@ -221,6 +228,7 @@ class ConfigRepository:
                     "description": bucket_data.get("description", ""),
                     "rules": bucket_data.get("rules", []),
                     "include_in_rebalancing": include_reb,
+                    "include_in_net_worth": include_nw,
                 }
             )
 
@@ -288,9 +296,39 @@ class ConfigRepository:
             except ValueError:
                 lt = LoanType.MORTGAGE
 
-            bal = Money.from_val(item.get("principal_balance", 0.0), item.get("currency", "EUR"))
-            pmt = Money.from_val(item.get("monthly_payment", 0.0), item.get("currency", "EUR"))
+            cur = item.get("currency", "EUR")
+            bal = Money.from_val(item.get("principal_balance", 0.0), cur)
+            pmt = Money.from_val(item.get("monthly_payment", 0.0), cur)
             rate = Decimal(str(item.get("interest_rate_pct", 0.0)))
+            pmt_pct_raw = item.get("monthly_payment_pct")
+            pmt_pct = Decimal(str(pmt_pct_raw)) if pmt_pct_raw is not None else None
+            start_cap_raw = item.get("start_capital")
+            start_cap = Money.from_val(start_cap_raw, cur) if start_cap_raw is not None else None
+            start_date = item.get("start_date")
+            end_date = item.get("end_date")
+            dur_raw = item.get("duration_months")
+            dur_months = int(dur_raw) if dur_raw is not None else None
+
+            if (
+                bal.amount <= Decimal("0.00")
+                and start_cap
+                and start_cap.amount > Decimal("0.00")
+                and start_date
+            ):
+                est_bal, est_pmt = Liability.calculate_amortized_state(
+                    start_capital=start_cap,
+                    interest_rate_pct=rate,
+                    start_date=str(start_date),
+                    duration_months=dur_months,
+                    end_date=str(end_date) if end_date else None,
+                )
+                bal = est_bal
+                if pmt.amount <= Decimal("0.00"):
+                    pmt = est_pmt
+
+            if pmt.amount <= Decimal("0.00") and pmt_pct is not None and pmt_pct > Decimal("0.00"):
+                pmt = bal * (pmt_pct / Decimal("100.0"))
+
             liabilities.append(
                 Liability(
                     id=str(item.get("id", "manual-debt")),
@@ -299,6 +337,11 @@ class ConfigRepository:
                     principal_balance=bal,
                     interest_rate_pct=rate,
                     monthly_payment=pmt,
+                    monthly_payment_pct=pmt_pct,
+                    start_capital=start_cap,
+                    start_date=str(start_date) if start_date else None,
+                    end_date=str(end_date) if end_date else None,
+                    duration_months=dur_months,
                     institution=str(item.get("institution", "Manual")),
                     account_reference=str(item.get("account_reference", "")),
                 )

@@ -125,6 +125,44 @@ def test_liability_and_debt_metrics():
     assert debt.is_high_interest(threshold_pct=Decimal("7.0")) is False
 
 
+def test_liability_amortization_and_percentage_payments():
+    # 1. Percentage-based monthly payment (e.g. Credit Card / Flex Budget Loan)
+    flex_loan = Liability(
+        id="flex1",
+        name="KBC Flex Budget",
+        loan_type=LoanType.CREDIT_CARD,
+        principal_balance=Money.from_val(5000.0),
+        interest_rate_pct=Decimal("10.0"),
+        monthly_payment_pct=Decimal("5.0"),  # 5% of €5000 = €250/mo
+    )
+    assert flex_loan.effective_monthly_payment.amount == Decimal("250.00")
+
+    # 2. Auto-estimated remaining balance and payment from start capital, start date, and duration
+    # Start 10 years (120 months) ago out of 20 years (240 months) at 2.0% APR on €200,000
+    est_bal, est_pmt = Liability.calculate_amortized_state(
+        start_capital=Money.from_val(200000.0),
+        interest_rate_pct=Decimal("2.0"),
+        start_date="2016-10-01",
+        duration_months=240,
+        as_of_date="2026-10-01",
+    )
+    # Monthly payment on €200k @ 2% for 240m is ~€1,011.77
+    assert Decimal("1005.00") <= est_pmt.amount <= Decimal("1020.00")
+    # Halfway through a 2% loan, remaining principal is slightly over 50% (~€110k)
+    assert Decimal("105000.00") <= est_bal.amount <= Decimal("115000.00")
+
+    # Zero-interest loan linear amortization halfway through
+    est_bal_zero, est_pmt_zero = Liability.calculate_amortized_state(
+        start_capital=Money.from_val(12000.0),
+        interest_rate_pct=Decimal("0.0"),
+        start_date="2025-10-01",
+        end_date="2027-10-01",
+        as_of_date="2026-10-01",
+    )
+    assert est_pmt_zero.amount == Decimal("500.00")
+    assert est_bal_zero.amount == Decimal("6000.00")
+
+
 def test_balance_sheet_edge_cases():
     # Empty balance sheet
     bs_empty = BalanceSheet(assets=[], liabilities=[])
