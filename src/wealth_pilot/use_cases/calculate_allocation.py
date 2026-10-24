@@ -88,6 +88,7 @@ class CalculateBucketAllocationUseCase:
                     drift_tolerance_pct=tolerance,
                     color=bucket.color,
                     include_in_rebalancing=bucket.include_in_rebalancing,
+                    include_in_net_worth=getattr(bucket, "include_in_net_worth", True),
                 )
             )
 

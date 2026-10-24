@@ -51,6 +51,7 @@ class BucketCreateOrUpdateRequest(BaseModel):
     drift_tolerance_pct: float | None = 3.0
     description: str | None = None
     include_in_rebalancing: bool | None = True
+    include_in_net_worth: bool | None = True
 
 
 class TargetWeightRequest(BaseModel):
@@ -88,9 +89,14 @@ class ManualLiabilityRequest(BaseModel):
     id: str | None = None
     name: str
     loan_type: str = "MORTGAGE"
-    principal_balance: float
+    principal_balance: float = 0.0
     interest_rate_pct: float = 0.0
     monthly_payment: float = 0.0
+    monthly_payment_pct: float | None = None
+    start_capital: float | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    duration_months: int | None = None
     institution: str | None = "Manual"
     account_reference: str | None = ""
     currency: str = "EUR"
@@ -313,10 +319,26 @@ def create_app(
         return templates.TemplateResponse(request=request, name="index.html")
 
     @app.get("/api/overview")
-    async def get_overview():
+    async def get_overview(exclude_property: bool = False):
         bs = _get_consolidated_balance_sheet()
         buckets = repo.load_buckets()
         allocations = alloc_calc.execute(assets=bs.assets, buckets=buckets)
+
+        # Determine effective assets for net worth & growth projections
+        effective_assets: list[Asset] = []
+        for a in bs.assets:
+            ac_val = a.asset_class.value if hasattr(a.asset_class, "value") else str(a.asset_class)
+            matched_b = next((b for b in buckets if b.matches(a)), None)
+            if exclude_property and (
+                ac_val == "REAL_ESTATE"
+                or (matched_b and not getattr(matched_b, "include_in_net_worth", True))
+            ):
+                continue
+            effective_assets.append(a)
+
+        effective_bs = BalanceSheet(
+            assets=effective_assets, liabilities=bs.liabilities, cashflow=bs.cashflow
+        )
 
         # Generate guidance
         advices = []
@@ -343,9 +365,9 @@ def create_app(
 
         # Trajectory
         trajectory = net_worth_projector.execute(
-            initial_assets=bs.total_assets,
-            initial_debts=bs.total_liabilities,
-            monthly_savings=bs.free_monthly_cashflow,
+            initial_assets=effective_bs.total_assets,
+            initial_debts=effective_bs.total_liabilities,
+            monthly_savings=effective_bs.free_monthly_cashflow,
             annual_return_pct=Decimal("7.0"),
             years=30,
         )
@@ -399,8 +421,19 @@ def create_app(
                 "principal_balance": float(liab.principal_balance.amount),
                 "principal_balance_formatted": liab.principal_balance.format(),
                 "interest_rate_pct": float(liab.interest_rate_pct),
-                "monthly_payment": float(liab.monthly_payment.amount),
-                "monthly_payment_formatted": liab.monthly_payment.format(),
+                "monthly_payment": float(liab.effective_monthly_payment.amount),
+                "monthly_payment_formatted": liab.effective_monthly_payment.format(),
+                "monthly_payment_pct": (
+                    float(liab.monthly_payment_pct)
+                    if liab.monthly_payment_pct is not None
+                    else None
+                ),
+                "start_capital": (
+                    float(liab.start_capital.amount) if liab.start_capital is not None else None
+                ),
+                "start_date": liab.start_date,
+                "end_date": liab.end_date,
+                "duration_months": liab.duration_months,
                 "institution": liab.institution,
                 "account_reference": liab.account_reference,
                 "is_high_interest": liab.is_high_interest(),
@@ -409,7 +442,7 @@ def create_app(
         ]
 
         configured_milestones = repo.load_milestones()
-        nw_val = float(bs.net_worth.amount)
+        nw_val = float(effective_bs.net_worth.amount)
         milestone_data = []
         for m in configured_milestones:
             target = float(m.get("target_amount", 0.0))
@@ -429,13 +462,17 @@ def create_app(
             )
 
         return {
-            "net_worth_formatted": bs.net_worth.format(),
-            "total_assets_formatted": bs.total_assets.format(),
-            "total_liabilities_formatted": bs.total_liabilities.format(),
-            "free_cashflow_formatted": bs.free_monthly_cashflow.format(),
-            "debt_to_asset_ratio": float(bs.debt_to_asset_ratio),
-            "savings_rate_pct": float(bs.cashflow.savings_rate_pct),
-            "asset_count": len(bs.assets),
+            "net_worth_value": float(effective_bs.net_worth.amount),
+            "net_worth_formatted": effective_bs.net_worth.format(),
+            "total_assets_value": float(effective_bs.total_assets.amount),
+            "total_assets_formatted": effective_bs.total_assets.format(),
+            "total_liabilities_value": float(effective_bs.total_liabilities.amount),
+            "total_liabilities_formatted": effective_bs.total_liabilities.format(),
+            "free_cashflow_formatted": effective_bs.free_monthly_cashflow.format(),
+            "debt_to_asset_ratio": float(effective_bs.debt_to_asset_ratio),
+            "savings_rate_pct": float(effective_bs.cashflow.savings_rate_pct),
+            "asset_count": len(effective_bs.assets),
+            "exclude_property": exclude_property,
             "allocations": [
                 {
                     "bucket_id": a.bucket_id,
@@ -449,6 +486,7 @@ def create_app(
                     "drift_tolerance_pct": float(a.drift_tolerance_pct),
                     "color": a.color,
                     "include_in_rebalancing": getattr(a, "include_in_rebalancing", True),
+                    "include_in_net_worth": getattr(a, "include_in_net_worth", True),
                 }
                 for a in allocations
             ],
@@ -668,9 +706,40 @@ def create_app(
         repo.delete_manual_asset(asset_id)
         return {"status": "success"}
 
+    def _enrich_liability_dict(req: ManualLiabilityRequest) -> dict[str, Any]:
+        liab_dict = req.model_dump(exclude_unset=True)
+        cur = liab_dict.get("currency", "EUR")
+        bal_val = float(liab_dict.get("principal_balance", 0.0))
+        pmt_val = float(liab_dict.get("monthly_payment", 0.0))
+        rate_val = float(liab_dict.get("interest_rate_pct", 0.0))
+        start_cap = liab_dict.get("start_capital")
+        start_date = liab_dict.get("start_date")
+        end_date = liab_dict.get("end_date")
+        dur_months = liab_dict.get("duration_months")
+        pmt_pct = liab_dict.get("monthly_payment_pct")
+
+        if bal_val <= 0.0 and start_cap and float(start_cap) > 0.0 and start_date:
+            est_bal, est_pmt = Liability.calculate_amortized_state(
+                start_capital=Money.from_val(start_cap, cur),
+                interest_rate_pct=Decimal(str(rate_val)),
+                start_date=str(start_date),
+                duration_months=int(dur_months) if dur_months is not None else None,
+                end_date=str(end_date) if end_date else None,
+            )
+            liab_dict["principal_balance"] = float(est_bal.amount)
+            bal_val = float(est_bal.amount)
+            if pmt_val <= 0.0:
+                liab_dict["monthly_payment"] = float(est_pmt.amount)
+                pmt_val = float(est_pmt.amount)
+
+        if pmt_val <= 0.0 and pmt_pct is not None and float(pmt_pct) > 0.0:
+            liab_dict["monthly_payment"] = round(bal_val * (float(pmt_pct) / 100.0), 2)
+
+        return liab_dict
+
     @app.post("/api/liabilities/manual")
     async def save_manual_liability(req: ManualLiabilityRequest):
-        liab_dict = req.model_dump(exclude_unset=True)
+        liab_dict = _enrich_liability_dict(req)
         repo.save_manual_liability(liab_dict)
         if req.id:
             db.update_liability(req.id, liab_dict)
@@ -678,7 +747,7 @@ def create_app(
 
     @app.put("/api/liabilities/manual/{liability_id}")
     async def update_manual_liability(liability_id: str, req: ManualLiabilityRequest):
-        liab_dict = req.model_dump(exclude_unset=True)
+        liab_dict = _enrich_liability_dict(req)
         liab_dict["id"] = liability_id
         repo.save_manual_liability(liab_dict)
         db.update_liability(liability_id, liab_dict)
@@ -729,16 +798,31 @@ def create_app(
         years: int = 30,
         cagr: float = 7.0,
         annual_savings: float | None = None,
+        exclude_property: bool = False,
     ):
         bs = _get_consolidated_balance_sheet()
+        buckets = repo.load_buckets()
+        effective_assets: list[Asset] = []
+        for a in bs.assets:
+            ac_val = a.asset_class.value if hasattr(a.asset_class, "value") else str(a.asset_class)
+            matched_b = next((b for b in buckets if b.matches(a)), None)
+            if exclude_property and (
+                ac_val == "REAL_ESTATE"
+                or (matched_b and not getattr(matched_b, "include_in_net_worth", True))
+            ):
+                continue
+            effective_assets.append(a)
+        effective_bs = BalanceSheet(
+            assets=effective_assets, liabilities=bs.liabilities, cashflow=bs.cashflow
+        )
         savings_money = (
             Money.from_val(annual_savings / 12.0)
             if annual_savings is not None
-            else bs.free_monthly_cashflow
+            else effective_bs.free_monthly_cashflow
         )
         trajectory = net_worth_projector.execute(
-            initial_assets=bs.total_assets,
-            initial_debts=bs.total_liabilities,
+            initial_assets=effective_bs.total_assets,
+            initial_debts=effective_bs.total_liabilities,
             monthly_savings=savings_money,
             annual_return_pct=Decimal(str(cagr)),
             years=years,

@@ -254,3 +254,134 @@ async def test_pdt_oauth_auto_sync_callback(test_app):
             redirect_url = callback_resp.headers["location"]
             assert "pdt_connected=true" in redirect_url
             assert "synced_count=1" in redirect_url
+
+
+@pytest.mark.asyncio
+async def test_loan_amortization_and_percentage_payment_api(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # 1. Create loan with start_capital, start_date, duration_months (no principal_balance given)
+        resp1 = await client.post(
+            "/api/liabilities/manual",
+            json={
+                "name": "Home Renovation Loan",
+                "loan_type": "MORTGAGE",
+                "principal_balance": 0.0,
+                "start_capital": 120000.0,
+                "start_date": "2021-10-01",
+                "duration_months": 120,
+                "interest_rate_pct": 2.4,
+                "monthly_payment": 0.0,
+                "institution": "KBC",
+            },
+        )
+        assert resp1.status_code == 200
+        liab1 = resp1.json()["liability"]
+        # Should have auto-calculated remaining principal_balance and monthly_payment
+        assert liab1["principal_balance"] > 0.0
+        assert liab1["principal_balance"] < 120000.0
+        assert liab1["monthly_payment"] > 0.0
+
+        # 2. Create credit card / flex loan with monthly_payment_pct
+        resp2 = await client.post(
+            "/api/liabilities/manual",
+            json={
+                "name": "Flex Credit Line",
+                "loan_type": "CREDIT_CARD",
+                "principal_balance": 4000.0,
+                "interest_rate_pct": 11.5,
+                "monthly_payment_pct": 5.0,
+                "institution": "KBC",
+            },
+        )
+        assert resp2.status_code == 200
+        liab2 = resp2.json()["liability"]
+        assert liab2["monthly_payment"] == 200.0  # 5% of 4000
+        assert liab2["monthly_payment_pct"] == 5.0
+
+
+@pytest.mark.asyncio
+async def test_exclude_property_from_net_worth_and_projection(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Add a Real Estate asset worth 400,000
+        await client.post(
+            "/api/assets/manual",
+            json={
+                "id": "house-1",
+                "name": "Primary Residence",
+                "symbol": "HOUSE",
+                "asset_class": "REAL_ESTATE",
+                "current_value": 400000.0,
+            },
+        )
+        # Add a Real Estate bucket that excludes from net worth
+        await client.post(
+            "/api/buckets",
+            json={
+                "id": "real-estate-bucket",
+                "name": "Primary Residence Bucket",
+                "target_weight_pct": 0.0,
+                "include_in_rebalancing": False,
+                "include_in_net_worth": False,
+            },
+        )
+        await client.post(
+            "/api/buckets/assign-asset",
+            json={"bucket_id": "real-estate-bucket", "symbol": "HOUSE"},
+        )
+
+        # Overview with default (or bucket setting applied) and explicit exclude_property=true
+        ov_incl = (await client.get("/api/overview?exclude_property=false")).json()
+        ov_excl = (await client.get("/api/overview?exclude_property=true")).json()
+
+        # Total assets when excluded must be 400k lower than when included
+        assert ov_incl["total_assets_value"] - ov_excl["total_assets_value"] == 400000.0
+        assert ov_incl["net_worth_value"] - ov_excl["net_worth_value"] == 400000.0
+
+        # Projection with exclude_property=true vs false
+        proj_incl = (
+            await client.get("/api/projection?years=10&cagr=7.0&exclude_property=false")
+        ).json()
+        proj_excl = (
+            await client.get("/api/projection?years=10&cagr=7.0&exclude_property=true")
+        ).json()
+        assert (
+            proj_incl["trajectory"][0]["assets"] - proj_excl["trajectory"][0]["assets"] == 400000.0
+        )
+
+
+@pytest.mark.asyncio
+async def test_responsive_ui_and_ux_improvements_rendered(test_app):
+    """Test that all UX review improvements are rendered cleanly in the dashboard HTML."""
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
+        res = await client.get("/")
+        assert res.status_code == 200
+        html = res.text
+
+        # 1. Responsive mobile menu & light/dark theme toggle
+        assert 'id="mobile-nav-drawer"' in html
+        assert 'id="btn-mobile-menu"' in html
+        assert 'id="btn-theme-toggle"' in html
+        assert 'meta name="color-scheme" content="light dark"' in html
+
+        # 2. Exclude property toggle on frontpage & bucket modal
+        assert 'id="toggle-exclude-property"' in html
+        assert 'id="bucket-modal-include-net-worth"' in html
+
+        # 3. Loan amortization & monthly percentage inputs
+        assert 'id="manual-liab-start-cap"' in html
+        assert 'id="manual-liab-start-date"' in html
+        assert 'id="manual-liab-duration"' in html
+        assert 'id="manual-liab-end-date"' in html
+        assert 'id="manual-liab-payment-pct"' in html
+
+        # 4. Single AI Advisor config in Settings + quick strategy prompts
+        assert 'id="ai-provider-select"' not in html
+        assert 'id="ai-active-provider-badge"' in html
+        assert "selectAiPrompt(" in html
+        assert "aistudio.google.com/app/apikey" in html
+
+        # 5. Regional tax explanation banner
+        assert "Why is this here" in html
+        assert "Meerwaardebelasting" in html

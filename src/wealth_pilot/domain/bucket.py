@@ -58,6 +58,7 @@ class Bucket:
     description: str = ""
     color: str = "#3B82F6"  # Hex color for UI charts
     include_in_rebalancing: bool = True
+    include_in_net_worth: bool = True
 
     @property
     def target_weight(self) -> Decimal:
@@ -87,3 +88,4 @@ class BucketAllocationResult:
     drift_tolerance_pct: Decimal
     color: str = "#3B82F6"
     include_in_rebalancing: bool = True
+    include_in_net_worth: bool = True

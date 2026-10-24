@@ -3,6 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    try {
+      const savedScheme = localStorage.getItem("color-scheme");
+      document.querySelector('meta[name="color-scheme"]').content = savedScheme ?? "light dark";
+      if (savedScheme === "light") {
+        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("light-theme");
+      } else {
+        document.documentElement.classList.add("dark");
+      }
+    } catch (e) {}
+  </script>
   <title>Wealth Pilot — Strategic Wealth & Asset Allocation</title>
   <link rel="manifest" href="/static/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,55 +36,177 @@
     }
   </script>
   <style>
+    :root {
+      color-scheme: light dark;
+      --color-scrollbar-track: light-dark(#f1f5f9, #0f172a);
+      --color-scrollbar-thumb: light-dark(#94a3b8, #334155);
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+    }
+    :root:has(> head > meta[name="color-scheme"][content="dark"]) {
+      color-scheme: dark;
+    }
+    :root:has(> head > meta[name="color-scheme"][content="light"]) {
+      color-scheme: light;
+    }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    @supports not (scrollbar-color: auto) {
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: var(--color-scrollbar-track); }
+      ::-webkit-scrollbar-thumb { background: var(--color-scrollbar-thumb); border-radius: 3px; }
+    }
+    /* Responsive table container */
+    .table-wrapper {
+      overflow-x: auto;
+      max-inline-size: 100%;
+      container-type: inline-size;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Light Theme Overrides */
+    html.light-theme body {
+      background-color: #f8fafc !important;
+      color: #0f172a !important;
+    }
+    html.light-theme header {
+      background-color: rgba(255, 255, 255, 0.92) !important;
+      border-color: #e2e8f0 !important;
+    }
+    html.light-theme .bg-slate-900 {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06) !important;
+    }
+    html.light-theme .bg-slate-950,
+    html.light-theme .bg-slate-950\/50,
+    html.light-theme .bg-slate-950\/60,
+    html.light-theme .bg-slate-950\/70,
+    html.light-theme .bg-slate-950\/40 {
+      background-color: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+    }
+    html.light-theme .bg-slate-850,
+    html.light-theme .bg-slate-800,
+    html.light-theme .bg-slate-800\/60,
+    html.light-theme .bg-slate-800\/80 {
+      background-color: #e2e8f0 !important;
+      border-color: #cbd5e1 !important;
+      color: #1e293b !important;
+    }
+    html.light-theme .text-white {
+      color: #0f172a !important;
+    }
+    html.light-theme .bg-blue-600.text-white,
+    html.light-theme .bg-emerald-600.text-white,
+    html.light-theme .bg-rose-600.text-white,
+    html.light-theme .bg-purple-600.text-white,
+    html.light-theme .bg-indigo-600.text-white,
+    html.light-theme .nav-btn.bg-blue-600 {
+      color: #ffffff !important;
+    }
+    html.light-theme .text-slate-100,
+    html.light-theme .text-slate-200,
+    html.light-theme .text-slate-300 {
+      color: #334155 !important;
+    }
+    html.light-theme .text-slate-400,
+    html.light-theme .text-slate-500 {
+      color: #64748b !important;
+    }
+    html.light-theme .border-slate-800,
+    html.light-theme .border-slate-700,
+    html.light-theme .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+      border-color: #e2e8f0 !important;
+    }
+    html.light-theme input,
+    html.light-theme select,
+    html.light-theme textarea {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    html.light-theme .prose-invert {
+      color: #1e293b !important;
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-[100dvh] flex flex-col font-sans antialiased">
 
   <!-- Header -->
   <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="h-9 w-9 bg-blue-600 rounded-lg flex items-center justify-center text-xl shadow-lg shadow-blue-500/30">🧭</div>
-        <div>
-          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-            Wealth Pilot
-            <span class="text-xs font-medium px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">Local Core</span>
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      <div class="flex items-center space-x-2.5 min-w-0">
+        <div class="h-9 w-9 shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-xl shadow-lg shadow-blue-500/30">🧭</div>
+        <div class="truncate">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
+            <span>Wealth Pilot</span>
+            <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 hidden xs:inline-block">Local Core</span>
           </h1>
-          <p class="text-xs text-slate-400 hidden sm:block">Strategic Allocation & Wealth Guidance</p>
+          <p class="text-[11px] text-slate-400 hidden xl:block truncate">Strategic Allocation & Wealth Guidance</p>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="flex items-center space-x-1 sm:space-x-2">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-600">📊 Overview</button>
-        <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800">🪣 Buckets</button>
-        <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800">💡 Guidance</button>
-        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800">💳 Cashflow & Ingest</button>
-        <button onclick="switchTab('ai')" id="nav-ai" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1">
+      <!-- Desktop Navigation Tabs: Explore vs Manage -->
+      <nav class="hidden lg:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800" aria-label="Main Navigation">
+        <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-2 select-none">Explore</span>
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 whitespace-nowrap transition">📊 Overview</button>
+        <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">🪣 Buckets</button>
+        <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">💡 Guidance</button>
+        <button onclick="switchTab('ai')" id="nav-ai" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
           <span>🤖 AI Advisor</span>
         </button>
-        <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-3 py-1.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1">
-          <span>⚙️ Settings & MCP</span>
+        <div class="h-4 w-px bg-slate-800 mx-1"></div>
+        <span class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-1.5 select-none">Manage</span>
+        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition">🏦 Data & Assets</button>
+        <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
+          <span>⚙️ Settings</span>
         </button>
       </nav>
 
-      <!-- Quick Actions & Docs -->
-      <div class="flex items-center space-x-2">
-        <button onclick="openSetupWizard()" class="text-xs text-amber-400 hover:text-amber-300 px-2.5 py-1.5 rounded border border-amber-500/30 bg-amber-500/10 flex items-center gap-1 hover:border-amber-500 transition font-medium" title="Launch Interactive Setup Wizard">
-          <span>🚀 Setup Wizard</span>
+      <!-- Quick Actions, Theme Toggle & Mobile Hamburger -->
+      <div class="flex items-center space-x-1.5 shrink-0">
+        <button onclick="toggleThemeScheme()" id="btn-theme-toggle" class="p-2 rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:text-white transition text-xs flex items-center gap-1" title="Switch Light / Dark Theme" aria-label="Switch color theme">
+          <span id="theme-toggle-icon">☀️</span>
+          <span id="theme-toggle-label" class="hidden xl:inline">Light</span>
         </button>
-        <a href="/guide/index.html" target="_blank" rel="noopener" class="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded border border-slate-700 bg-slate-800/60 flex items-center gap-1 hover:border-slate-500 transition" title="Built-in Documentation (Works Offline & Private Repos)">
+        <button onclick="openSetupWizard()" class="hidden sm:flex text-xs text-amber-400 hover:text-amber-300 px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 items-center gap-1 hover:border-amber-500 transition font-medium" title="Launch Interactive Setup Wizard">
+          <span>🚀 Setup</span>
+        </button>
+        <a href="/guide/index.html" target="_blank" rel="noopener" class="hidden md:flex text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 items-center gap-1 hover:border-slate-500 transition" title="Built-in Documentation">
           <span>📖 Docs</span>
-          <span class="text-[10px]">↗</span>
         </a>
-        <button onclick="openHelpModal()" class="text-slate-400 hover:text-white p-1.5 rounded hover:bg-slate-800" title="In-App Help Guide">
+        <button onclick="openHelpModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800" title="In-App Help Guide" aria-label="Help Guide">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path stroke-width="2" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01"></path></svg>
         </button>
+        <!-- Hamburger Button for Small/Phone Screens -->
+        <button onclick="toggleMobileMenu()" id="btn-mobile-menu" class="lg:hidden p-2 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-200 hover:text-white focus:outline-none" aria-label="Toggle Navigation Menu" aria-expanded="false">
+          <svg id="hamburger-icon-open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          <svg id="hamburger-icon-close" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-nav-drawer" class="hidden lg:hidden border-t border-slate-800 bg-slate-900 px-4 pt-3 pb-4 space-y-3 shadow-xl">
+      <div>
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1">Frontend — Explore State</div>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button onclick="switchTab('dashboard')" id="mnav-dashboard" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left bg-blue-600 text-white flex items-center gap-2">📊 Overview</button>
+          <button onclick="switchTab('buckets')" id="mnav-buckets" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🪣 Buckets & Drift</button>
+          <button onclick="switchTab('advice')" id="mnav-advice" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">💡 Guidance & Tax</button>
+          <button onclick="switchTab('ai')" id="mnav-ai" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🤖 AI Advisor</button>
+        </div>
+      </div>
+      <div class="border-t border-slate-800 pt-2">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1">Backend — Manage Data & Config</div>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button onclick="switchTab('cashflow')" id="mnav-cashflow" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">🏦 Data, Assets & Loans</button>
+          <button onclick="switchTab('settings')" id="mnav-settings" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2">⚙️ Settings & MCP</button>
+        </div>
+      </div>
+      <div class="border-t border-slate-800 pt-2 flex items-center justify-between gap-2">
+        <button onclick="openSetupWizard(); toggleMobileMenu(false);" class="flex-1 text-xs text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-center font-medium">🚀 Setup Wizard</button>
+        <a href="/guide/index.html" target="_blank" rel="noopener" class="flex-1 text-xs text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-center">📖 Offline Docs ↗</a>
       </div>
     </div>
   </header>
@@ -93,6 +228,22 @@
 
     <!-- TAB 1: OVERVIEW & DASHBOARD -->
     <section id="tab-dashboard" class="tab-content active space-y-6">
+      <!-- Top Filter Bar: Exclude Property / Illiquid Assets -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900 border border-slate-800 px-4 py-3 rounded-xl shadow-sm">
+        <div class="flex items-center gap-2 text-xs text-slate-300">
+          <span>🧭 <strong>Explore State</strong> — High-level wealth telemetry & trajectory</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg hover:border-blue-500/40 transition">
+            <input type="checkbox" id="toggle-exclude-property" onchange="toggleExcludeProperty(this.checked)" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 w-3.5 h-3.5">
+            <span>Exclude Real Estate / Illiquid Buckets from Net Worth & Growth</span>
+          </label>
+          <button onclick="switchTab('cashflow')" class="text-xs text-blue-400 hover:text-blue-300 font-medium whitespace-nowrap">
+            Manage Assets & Loans →
+          </button>
+        </div>
+      </div>
+
       <!-- KPI Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
@@ -182,77 +333,17 @@
         </div>
       </div>
 
-      <!-- Balance Sheet: Real Estate, Manual Assets & Mortgages / Debts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Real Estate & Manual Assets Card -->
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                <span>🏠 Real Estate & Manual Assets</span>
-              </h3>
-              <p class="text-xs text-slate-400 mt-0.5">Properties, savings accounts, private equity, or physical assets.</p>
-            </div>
-            <button onclick="openAddAssetModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition">
-              + Add Asset / Property
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="text-slate-400 border-b border-slate-800">
-                <tr>
-                  <th class="pb-2">Asset</th>
-                  <th class="pb-2">Category</th>
-                  <th class="pb-2">Value</th>
-                  <th class="pb-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody id="manual-assets-tbody" class="divide-y divide-slate-800 text-slate-300">
-                <!-- Populated dynamically -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Mortgages & Liabilities Card -->
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                <span>💳 Mortgages, Loans & Debts</span>
-              </h3>
-              <p class="text-xs text-slate-400 mt-0.5">Mortgage balances, consumer loans, student loans, or credit lines.</p>
-            </div>
-            <button onclick="openAddLiabilityModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow transition">
-              + Add Mortgage / Loan
-            </button>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="text-slate-400 border-b border-slate-800">
-                <tr>
-                  <th class="pb-2">Liability</th>
-                  <th class="pb-2">Type</th>
-                  <th class="pb-2">Balance</th>
-                  <th class="pb-2">APR</th>
-                  <th class="pb-2">Monthly</th>
-                  <th class="pb-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody id="manual-liabilities-tbody" class="divide-y divide-slate-800 text-slate-300">
-                <!-- Populated dynamically -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
       <!-- Top Guidance Summary -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-        <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-          <span>⚡ Immediate Strategic Recommendations</span>
-          <span id="advice-count-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-blue-500/20 text-blue-400 font-normal">Active</span>
-        </h3>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+            <span>⚡ Immediate Strategic Recommendations</span>
+            <span id="advice-count-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-blue-500/20 text-blue-400 font-normal">Active</span>
+          </h3>
+          <button onclick="switchTab('advice')" class="text-xs text-blue-400 hover:text-blue-300 font-medium">
+            Open Full Guidance & Simulators →
+          </button>
+        </div>
         <div id="dashboard-advice-list" class="space-y-2.5">
           <div class="text-xs text-slate-400">Loading guidance recommendations...</div>
         </div>
@@ -370,12 +461,19 @@
         </div>
       </div>
 
-      <!-- Debt vs Investing Strategy -->
+      <!-- Consolidated Strategic Action Plan & Debt Payoff Priority -->
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
-        <h3 class="text-base font-bold text-white">⚖️ Debt Payoff vs. Investing Advisor</h3>
-        <p class="text-xs text-slate-400">
-          Evaluates your active liabilities against the long-term expected portfolio CAGR (7.0%). Debts with APR above 5.0% are prioritized for accelerated avalanche payoff.
-        </p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>⚖️ Consolidated Debt Payoff & Portfolio Action Plan</span>
+              <span id="guidance-total-badge" class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">0 Active</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Unified priority queue comparing debt APRs against expected portfolio CAGR (7.0%) alongside active bucket drift alerts.
+            </p>
+          </div>
+        </div>
         <div id="debt-advisor-list" class="space-y-3 pt-2"></div>
       </div>
 
@@ -489,8 +587,80 @@
       </div>
     </section>
 
-    <!-- TAB 4: CASHFLOW & INGESTION -->
+    <!-- TAB 4: DATA MANAGEMENT, ASSETS, LOANS & INGESTION (BACKEND) -->
     <section id="tab-cashflow" class="tab-content space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-lg font-bold text-white">🏦 Data Management — Assets, Liabilities & Statement Ingestion</h2>
+          <p class="text-xs text-slate-400">Backend workspace to insert real estate/manual assets, configure loans/mortgages, and upload bank or broker CSVs.</p>
+        </div>
+      </div>
+
+      <!-- Balance Sheet Management: Real Estate, Manual Assets & Mortgages / Debts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Real Estate & Manual Assets Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <span>🏠 Real Estate & Manual Assets</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Properties, savings accounts, private equity, or physical assets.</p>
+            </div>
+            <button onclick="openAddAssetModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition whitespace-nowrap">
+              + Add Asset / Property
+            </button>
+          </div>
+          <div tabindex="0" role="region" aria-label="Manual Assets Table" class="table-wrapper">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="pb-2 pr-2">Asset</th>
+                  <th class="pb-2 pr-2">Category</th>
+                  <th class="pb-2 pr-2">Value</th>
+                  <th class="pb-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="manual-assets-tbody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mortgages & Liabilities Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <span>💳 Mortgages, Loans & Debts</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-0.5">Insert remaining principal or auto-calculate from start capital & duration.</p>
+            </div>
+            <button onclick="openAddLiabilityModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow transition whitespace-nowrap">
+              + Add Mortgage / Loan
+            </button>
+          </div>
+          <div tabindex="0" role="region" aria-label="Liabilities Table" class="table-wrapper">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="pb-2 pr-2">Liability</th>
+                  <th class="pb-2 pr-2">Type</th>
+                  <th class="pb-2 pr-2">Balance</th>
+                  <th class="pb-2 pr-2">APR</th>
+                  <th class="pb-2 pr-2">Monthly</th>
+                  <th class="pb-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="manual-liabilities-tbody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- File Ingestion Dropzone -->
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
         <div class="flex items-start justify-between">
@@ -549,58 +719,55 @@
 
     <!-- TAB 5: AI ADVISOR -->
     <section id="tab-ai" class="tab-content space-y-6">
-      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
-        <div class="flex items-start justify-between">
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
             <h3 class="text-base font-bold text-white flex items-center gap-2">
               <span>🤖 AI Strategic Financial Advisor</span>
-              <span class="text-xs font-normal text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">BYO API Key</span>
+              <span id="ai-active-provider-badge" class="text-xs font-medium text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">Configured in Settings</span>
             </h3>
             <p class="text-xs text-slate-400 mt-1">
               Your consolidated financial data (net worth, bucket drift, debts, cashflow) is synthesized into an anonymized prompt for qualitative strategic review.
             </p>
           </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="switchTab('settings')" class="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
+              ⚙️ Configure Provider / API Key
+            </button>
+            <button onclick="runAiReview()" id="btn-run-ai" class="px-4 py-2 font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs transition flex items-center gap-1.5 whitespace-nowrap shadow">
+              <span>⚡ Run Strategic Review</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Provider, Model & Key Config -->
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2 text-xs">
-          <div class="sm:col-span-3">
-            <label class="block font-medium text-slate-400 mb-1">Provider</label>
-            <select id="ai-provider-select" onchange="onAiProviderOrKeyChanged()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-              <option value="gemini">Google Gemini</option>
-              <option value="openai">OpenAI</option>
-              <option value="anthropic">Anthropic</option>
-              <option value="ollama">Local Ollama</option>
-            </select>
-          </div>
-          <div class="sm:col-span-4">
-            <label class="block font-medium text-slate-400 mb-1 flex items-center justify-between">
-              <span>Model</span>
-              <button onclick="refreshAiModels()" class="text-[10px] text-purple-400 hover:text-purple-300 font-mono">🔄 Refresh</button>
-            </label>
-            <select id="ai-model-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash ★ Recommended</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-            </select>
-          </div>
-          <div class="sm:col-span-5">
-            <label class="block font-medium text-slate-400 mb-1">API Key</label>
-            <div class="flex gap-2">
-              <input type="password" id="ai-api-key" placeholder="Paste API key" onchange="onAiProviderOrKeyChanged()" onblur="onAiProviderOrKeyChanged()" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 font-mono">
-              <button onclick="runAiReview()" id="btn-run-ai" class="px-3.5 py-2 font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition flex items-center gap-1.5 whitespace-nowrap shadow">
-                <span>⚡ Run Review</span>
-              </button>
-            </div>
+        <!-- Default Strategy Prompts / Quick Questions -->
+        <div class="space-y-2">
+          <div class="text-xs font-medium text-slate-300">💡 Quick Strategy Prompts (Click to populate & analyze):</div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="selectAiPrompt('Compare paying down my loans/mortgage early vs investing my monthly surplus into my underweight ETF buckets.')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+              ⚖️ Debt Payoff vs. Investing Surplus
+            </button>
+            <button type="button" onclick="selectAiPrompt('Analyze my current bucket drift and recommend a tax-efficient buy-only rebalancing plan for the next 6 months.')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+              🪣 Tax-Efficient Bucket Rebalancing
+            </button>
+            <button type="button" onclick="selectAiPrompt('Evaluate my emergency cash buffer relative to my monthly expenses and debt obligations. Is my liquidity optimal?')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+              🛡️ Emergency Buffer & Risk Audit
+            </button>
+            <button type="button" onclick="selectAiPrompt('How can I optimize my portfolio under the Belgian 2026 capital gains tax framework (€10,000 annual exemption)?')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+              🇧🇪 Belgian 2026 Capital Gains Strategy
+            </button>
+            <button type="button" onclick="selectAiPrompt('Based on my current net worth, savings rate, and trajectory, what adjustments will accelerate my path to Financial Independence (FIRE)?')" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+              🎯 Accelerate Financial Independence
+            </button>
           </div>
         </div>
 
         <!-- Custom Prompt Question (Optional) -->
         <div>
           <label class="block text-xs font-medium text-slate-400 mb-1">Specific Question or Scenario (Optional)</label>
-          <input type="text" id="ai-user-question" placeholder="e.g. 'Should I pay down my 1.85% mortgage early or increase my ETF contributions?'" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="text" id="ai-user-question" placeholder="Select a prompt above or type your own financial strategy question..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
+          </div>
         </div>
 
         <!-- AI Output Window -->
@@ -609,7 +776,7 @@
             Analyzing your consolidated balance sheet and generating strategic guidance...
           </div>
           <div id="ai-output" class="bg-slate-950 border border-slate-800 p-5 rounded-lg text-sm text-slate-200 prose prose-invert max-w-none leading-relaxed">
-            Click "Run Review" above to generate a comprehensive AI strategic wealth consultation based on your current financial metrics.
+            Select one of the strategy prompts above or click <strong>"Run Strategic Review"</strong> to generate a customized consultation based on your current financial metrics.
           </div>
         </div>
       </div>
@@ -747,30 +914,51 @@
 
       <!-- Section: AI Advisor Configuration -->
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
-        <div class="border-b border-slate-800 pb-3">
-          <h3 class="text-base font-bold text-white">🤖 AI Financial Advisor Configuration</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Configure your preferred Large Language Model provider and API keys. All keys remain private and local to your system.</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white">🤖 AI Financial Advisor Configuration (Single Source of Truth)</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Configure your preferred LLM provider, model, and API key here. The AI Advisor tab uses these settings automatically.</p>
+          </div>
+          <!-- Quick One-Click Provider Key Links -->
+          <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 font-medium transition">🔑 Get Free Gemini Key ↗</a>
+            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition">OpenAI Keys ↗</a>
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white transition">Anthropic Keys ↗</a>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div>
             <label class="block text-slate-300 font-medium mb-1">AI Provider</label>
-            <select id="settings-ai-provider" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <select id="settings-ai-provider" onchange="refreshAiModels()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
               <option value="gemini">Google Gemini (Recommended)</option>
               <option value="openai">OpenAI (GPT-4o)</option>
               <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
-              <option value="ollama">Ollama (Local Offline LLM)</option>
-              <option value="algorithmic">Algorithmic (Rule-Based Engine)</option>
+              <option value="ollama">Ollama (Local Offline — Zero Keys Needed)</option>
+              <option value="algorithmic">Algorithmic (Deterministic Rule Engine)</option>
             </select>
           </div>
           <div>
-            <label class="block text-slate-300 font-medium mb-1">Model Name</label>
-            <input type="text" id="settings-ai-model" value="gemini-2.5-flash" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <label class="block text-slate-300 font-medium mb-1 flex items-center justify-between">
+              <span>Model Name</span>
+              <button type="button" onclick="refreshAiModels()" class="text-[10px] text-purple-400 hover:text-purple-300 font-mono">🔄 Discover Models</button>
+            </label>
+            <select id="settings-ai-model" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash ★ Recommended</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            </select>
           </div>
           <div>
             <label class="block text-slate-300 font-medium mb-1">API Key</label>
-            <input type="password" id="settings-ai-key" placeholder="Enter API Key" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <input type="password" id="settings-ai-key" placeholder="Paste API Key (stored locally in ~/.wealth_pilot)" onchange="refreshAiModels()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
+        </div>
+
+        <div class="bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-xs text-slate-400 space-y-1">
+          <div class="font-semibold text-white">💡 Zero-Friction AI Setup Guide:</div>
+          <p>• <strong>Google Gemini (Free Tier)</strong>: Click <em>"Get Free Gemini Key"</em> above, sign in with your Google account, click <em>Create API Key</em>, and paste it here.</p>
+          <p>• <strong>100% Keyless Local AI</strong>: Select <strong>Ollama</strong> to run local open-source models (e.g. <code>llama3.2</code>) on your machine or <strong>Algorithmic</strong> for instant rule-based reviews with zero API keys.</p>
         </div>
 
         <div class="flex justify-end pt-1">
@@ -782,7 +970,12 @@
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
         <div class="border-b border-slate-800 pb-3">
           <h3 class="text-base font-bold text-white">🇧🇪 Regional Tax & Benchmark Preferences</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Customize capital gains tax rules, benchmark reference dates, and exemption allowances.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Configure default fiscal parameters for the Capital Gains Tax Simulator on the Guidance tab.</p>
+        </div>
+
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-xs text-slate-300 space-y-1">
+          <div class="font-semibold text-blue-400">ℹ️ Why is this here & what does it add?</div>
+          <p>Under the <strong>Belgian 2026 Capital Gains Tax (Meerwaardebelasting)</strong> framework, historical gains accrued before <strong>Dec 31, 2025</strong> are tax-exempt: shares bought before 2026 use their Dec 31, 2025 closing price ("Foto-moment") as their fiscal cost basis rather than original purchase price. Realized gains above the <strong>€10,000 annual exemption</strong> are taxed at <strong>10%</strong>. Setting your defaults here pre-fills the Tax Simulator in the Guidance tab and informs the AI Advisor when planning tax-free rebalancing sales.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
@@ -902,13 +1095,13 @@
 
   <!-- Add / Edit Manual Liability Modal -->
   <div id="add-liability-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 space-y-4 shadow-xl max-h-[92dvh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
           <h3 id="liab-modal-title" class="text-base font-bold text-white flex items-center gap-2">
             <span>💳 Add Mortgage or Loan</span>
           </h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Specify actual remaining capital & APR for net worth and debt guidance.</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Enter remaining principal directly, or provide start capital & duration to auto-calculate.</p>
         </div>
         <button onclick="closeAddLiabilityModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
@@ -917,11 +1110,11 @@
       <input type="hidden" id="manual-liab-ref">
 
       <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-medium text-slate-300 mb-1">Debt / Loan Name</label>
-          <input type="text" id="manual-liab-name" placeholder="e.g. KBC Home Mortgage" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Debt / Loan Name</label>
+            <input type="text" id="manual-liab-name" placeholder="e.g. KBC Home Mortgage" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
           <div>
             <label class="block font-medium text-slate-300 mb-1">Loan Type</label>
             <select id="manual-liab-type" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
@@ -929,25 +1122,61 @@
               <option value="CONSUMER_LOAN">Consumer / Car Loan</option>
               <option value="STUDENT_LOAN">Student Loan</option>
               <option value="MARGIN_LOAN">Margin / Broker Loan</option>
-              <option value="CREDIT_CARD">Credit Card Balance</option>
+              <option value="CREDIT_CARD">Credit Card / Flex Budget</option>
               <option value="OTHER">Other Debt</option>
             </select>
           </div>
-          <div>
-            <label class="block font-medium text-slate-300 mb-1">Remaining Principal (€)</label>
-            <input type="number" id="manual-liab-balance" step="500" placeholder="e.g. 280000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+        </div>
+
+        <!-- Amortization / Start Capital Estimator Box -->
+        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-white">📐 Loan Schedule (Optional — Auto-Estimates Balance)</span>
+            <button type="button" onclick="previewLoanAmortization()" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium">⚡ Estimate Balance</button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Start Capital (€)</label>
+              <input type="number" id="manual-liab-start-cap" step="1000" placeholder="e.g. 250000" oninput="previewLoanAmortization()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Start Date</label>
+              <input type="date" id="manual-liab-start-date" onchange="previewLoanAmortization()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Duration (Mos)</label>
+              <input type="number" id="manual-liab-duration" step="12" placeholder="e.g. 240" oninput="previewLoanAmortization()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white font-mono">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Or End Date</label>
+              <input type="date" id="manual-liab-end-date" onchange="previewLoanAmortization()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white">
+            </div>
           </div>
         </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Interest Rate (APR %)</label>
-            <input type="number" id="manual-liab-rate" step="0.05" placeholder="e.g. 1.85" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <label class="block font-medium text-slate-300 mb-1">Remaining Principal (€)</label>
+            <input type="number" id="manual-liab-balance" step="100" placeholder="Leave 0 to auto-estimate" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
           <div>
-            <label class="block font-medium text-slate-300 mb-1">Monthly Payment (€/mo)</label>
-            <input type="number" id="manual-liab-payment" step="50" placeholder="e.g. 1150" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <label class="block font-medium text-slate-300 mb-1">Interest Rate (APR %)</label>
+            <input type="number" id="manual-liab-rate" step="0.05" placeholder="e.g. 1.85" oninput="previewLoanAmortization()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
         </div>
+
+        <!-- Monthly Payment: Fixed EUR or Percentage of Balance -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Monthly Fixed Payment (€/mo)</label>
+            <input type="number" id="manual-liab-payment" step="25" placeholder="e.g. 1150" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-300 mb-1">Or Monthly % (Flex / Card)</label>
+            <input type="number" id="manual-liab-payment-pct" step="0.5" placeholder="e.g. 5.0% of balance" oninput="previewPctPayment()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+          </div>
+        </div>
+
         <div>
           <label class="block font-medium text-slate-300 mb-1">Lending Institution</label>
           <input type="text" id="manual-liab-inst" placeholder="e.g. KBC, BNP Paribas Fortis, ING" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
@@ -999,12 +1228,21 @@
           <label class="block font-medium text-slate-300 mb-1">Description (Optional)</label>
           <input type="text" id="bucket-modal-desc" placeholder="e.g. High cashflow rental properties or physical bullion" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
         </div>
-        <div class="pt-1">
-          <label class="flex items-center gap-2 cursor-pointer select-none text-slate-300">
-            <input type="checkbox" id="bucket-modal-include-rebalancing" class="rounded bg-slate-950 border-slate-700 text-blue-600 focus:ring-blue-500 w-4 h-4" checked>
-            <span class="font-medium">Include in portfolio rebalancing calculations</span>
-          </label>
-          <p class="text-[11px] text-slate-500 pl-6 mt-0.5">Uncheck for illiquid assets (like primary residence / house or locked pension) so they do not distort rebalancing weights or deposit recommendations.</p>
+        <div class="pt-1 space-y-2">
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer select-none text-slate-300">
+              <input type="checkbox" id="bucket-modal-include-rebalancing" class="rounded bg-slate-950 border-slate-700 text-blue-600 focus:ring-blue-500 w-4 h-4" checked>
+              <span class="font-medium">Include in portfolio rebalancing calculations</span>
+            </label>
+            <p class="text-[11px] text-slate-500 pl-6 mt-0.5">Uncheck for illiquid assets (like primary residence / house) so they do not distort buy/sell rebalancing weights.</p>
+          </div>
+          <div>
+            <label class="flex items-center gap-2 cursor-pointer select-none text-slate-300">
+              <input type="checkbox" id="bucket-modal-include-net-worth" class="rounded bg-slate-950 border-slate-700 text-blue-600 focus:ring-blue-500 w-4 h-4" checked>
+              <span class="font-medium">Include in Net Worth & Compound Growth when property filter is active</span>
+            </label>
+            <p class="text-[11px] text-slate-500 pl-6 mt-0.5">Uncheck to exclude this bucket's assets when toggling "Exclude Real Estate / Illiquid Buckets" on the Overview page.</p>
+          </div>
         </div>
       </div>
 
@@ -1310,6 +1548,56 @@
     let currentProjectionYears = 30;
     let currentProjectionCagr = 7.0;
     let currentMcpServers = [];
+    let excludePropertyState = localStorage.getItem('wealth_pilot_exclude_property') === 'true';
+
+    // Theme Toggle (Light / Dark Mode following modern-web-guidance)
+    function syncThemeToggleUI() {
+      const isLight = document.documentElement.classList.contains('light-theme');
+      const iconEl = document.getElementById('theme-toggle-icon');
+      const labelEl = document.getElementById('theme-toggle-label');
+      if (iconEl) iconEl.textContent = isLight ? '🌙' : '☀️';
+      if (labelEl) labelEl.textContent = isLight ? 'Dark' : 'Light';
+    }
+
+    function toggleThemeScheme() {
+      const root = document.documentElement;
+      const meta = document.querySelector('meta[name="color-scheme"]');
+      const isCurrentlyLight = root.classList.contains('light-theme');
+      if (isCurrentlyLight) {
+        root.classList.remove('light-theme');
+        root.classList.add('dark');
+        if (meta) meta.content = 'dark';
+        localStorage.setItem('color-scheme', 'dark');
+      } else {
+        root.classList.add('light-theme');
+        root.classList.remove('dark');
+        if (meta) meta.content = 'light';
+        localStorage.setItem('color-scheme', 'light');
+      }
+      syncThemeToggleUI();
+      if (currentData) {
+        renderDonutChart(currentData.allocations || []);
+        renderProjectionChart(currentData.trajectory || []);
+      }
+    }
+
+    // Mobile Navigation Drawer
+    function toggleMobileMenu(forceClose = false) {
+      const drawer = document.getElementById('mobile-nav-drawer');
+      const btn = document.getElementById('btn-mobile-menu');
+      const icon = document.getElementById('mobile-menu-icon');
+      if (!drawer) return;
+      const isHidden = drawer.classList.contains('hidden');
+      if (forceClose || !isHidden) {
+        drawer.classList.add('hidden');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+        if (icon) icon.textContent = '☰';
+      } else {
+        drawer.classList.remove('hidden');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+        if (icon) icon.textContent = '✕';
+      }
+    }
 
     // Navigation Tab Switching
     function switchTab(tabId) {
@@ -1318,21 +1606,45 @@
         el.classList.remove('bg-blue-600', 'text-white');
         el.classList.add('text-slate-300', 'hover:bg-slate-800');
       });
-      document.getElementById('tab-' + tabId).classList.add('active');
+      document.querySelectorAll('.mnav-btn').forEach(el => {
+        el.classList.remove('bg-blue-600', 'text-white', 'font-medium');
+        el.classList.add('text-slate-300', 'hover:bg-slate-800');
+      });
+
+      const targetTab = document.getElementById('tab-' + tabId);
+      if (targetTab) targetTab.classList.add('active');
+
       const activeBtn = document.getElementById('nav-' + tabId);
       if (activeBtn) {
         activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
         activeBtn.classList.add('bg-blue-600', 'text-white');
       }
+      const activeMobileBtn = document.getElementById('mnav-' + tabId);
+      if (activeMobileBtn) {
+        activeMobileBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+        activeMobileBtn.classList.add('bg-blue-600', 'text-white', 'font-medium');
+      }
+      toggleMobileMenu(true);
     }
 
     function openHelpModal() { document.getElementById('help-modal').classList.remove('hidden'); }
     function closeHelpModal() { document.getElementById('help-modal').classList.add('hidden'); }
 
+    // Exclude Real Estate / Property Toggle
+    async function toggleExcludeProperty(checked) {
+      excludePropertyState = Boolean(checked);
+      localStorage.setItem('wealth_pilot_exclude_property', excludePropertyState ? 'true' : 'false');
+      await loadOverview();
+      await updateProjectionChart();
+    }
+
     // Initial Data Fetch
     async function loadOverview() {
       try {
-        const res = await fetch('/api/overview');
+        const toggleEl = document.getElementById('toggle-exclude-property');
+        if (toggleEl) toggleEl.checked = excludePropertyState;
+        const url = `/api/overview?exclude_property=${excludePropertyState ? 'true' : 'false'}`;
+        const res = await fetch(url);
         if (!res.ok) return;
         currentData = await res.json();
         renderDashboard(currentData);
@@ -1354,28 +1666,35 @@
       document.getElementById('kpi-surplus').textContent = data.free_cashflow_formatted;
       document.getElementById('kpi-debt-ratio').textContent = `Debt ratio: ${data.debt_to_asset_ratio}%`;
       document.getElementById('kpi-savings-rate').textContent = `Savings rate: ${data.savings_rate_pct}%`;
-      document.getElementById('kpi-asset-count').textContent = `Across ${data.asset_count} assets & cash`;
+      document.getElementById('kpi-asset-count').textContent = data.exclude_property
+        ? `Liquid assets (${data.asset_count} total in portfolio)`
+        : `Across ${data.asset_count} assets & cash`;
 
       renderDonutChart(data.allocations);
       renderProjectionChart(data.trajectory);
 
-      // Top recommendations
+      // All active recommendations (synchronized badge count & list)
       const adviceContainer = document.getElementById('dashboard-advice-list');
       adviceContainer.innerHTML = '';
-      (data.advices || []).slice(0, 4).forEach(adv => {
+      const advices = data.advices || [];
+      advices.forEach(adv => {
         const item = document.createElement('div');
         item.className = 'p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs flex items-start gap-2.5';
-        const badgeColor = adv.priority === 'CRITICAL' ? 'bg-red-500/20 text-red-400 border-red-500/30' : (adv.priority === 'HIGH' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30');
+        const badgeColor = adv.priority === 'CRITICAL'
+          ? 'bg-red-500/20 text-red-400 border-red-500/30'
+          : (adv.priority === 'HIGH'
+            ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+            : 'bg-blue-500/20 text-blue-400 border-blue-500/30');
         item.innerHTML = `
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border ${badgeColor}">${escapeHtml(adv.priority)}</span>
-          <div>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border shrink-0 ${badgeColor}">${escapeHtml(adv.priority)}</span>
+          <div class="min-w-0">
             <div class="font-semibold text-white">${escapeHtml(adv.title)}</div>
-            <div class="text-slate-400 mt-0.5">${escapeHtml(adv.message)}</div>
+            <div class="text-slate-400 mt-0.5 leading-relaxed">${escapeHtml(adv.message)}</div>
           </div>
         `;
         adviceContainer.appendChild(item);
       });
-      document.getElementById('advice-count-badge').textContent = `${(data.advices || []).length} Recommendations`;
+      document.getElementById('advice-count-badge').textContent = `${advices.length} Recommendation${advices.length === 1 ? '' : 's'}`;
     }
 
     function renderDonutChart(allocations) {
@@ -1512,7 +1831,7 @@
         currentProjectionCagr = parseFloat(cagrInput.value) || 7.0;
       }
       try {
-        const res = await fetch(`/api/projection?years=${currentProjectionYears}&cagr=${currentProjectionCagr}`);
+        const res = await fetch(`/api/projection?years=${currentProjectionYears}&cagr=${currentProjectionCagr}&exclude_property=${excludePropertyState ? 'true' : 'false'}`);
         if (!res.ok) return;
         const data = await res.json();
         renderProjectionChart(data.trajectory);
@@ -1563,13 +1882,15 @@
       document.getElementById('bucket-modal-tolerance').value = '3.0';
       document.getElementById('bucket-modal-desc').value = '';
       document.getElementById('bucket-modal-include-rebalancing').checked = true;
+      const netWorthCheck = document.getElementById('bucket-modal-include-net-worth');
+      if (netWorthCheck) netWorthCheck.checked = true;
       document.getElementById('bucket-modal-delete-btn').classList.add('hidden');
       const nextColor = BUCKET_PALETTE[(currentData?.allocations?.length || 0) % BUCKET_PALETTE.length];
       selectBucketColor(nextColor);
       document.getElementById('bucket-modal').classList.remove('hidden');
     }
 
-    function openEditBucketModal(bucketId, name, color, target, tolerance, desc, includeInRebalancing) {
+    function openEditBucketModal(bucketId, name, color, target, tolerance, desc, includeInRebalancing, includeInNetWorth = true) {
       const titleElem = document.getElementById('bucket-modal-title');
       titleElem.textContent = `✏️ Edit Bucket: ${name}`;
       document.getElementById('bucket-modal-id').value = bucketId;
@@ -1578,6 +1899,8 @@
       document.getElementById('bucket-modal-tolerance').value = tolerance || 3.0;
       document.getElementById('bucket-modal-desc').value = desc || '';
       document.getElementById('bucket-modal-include-rebalancing').checked = includeInRebalancing !== false;
+      const netWorthCheck = document.getElementById('bucket-modal-include-net-worth');
+      if (netWorthCheck) netWorthCheck.checked = includeInNetWorth !== false;
       document.getElementById('bucket-modal-delete-btn').classList.remove('hidden');
       selectBucketColor(color || '#3B82F6');
       document.getElementById('bucket-modal').classList.remove('hidden');
@@ -1586,7 +1909,16 @@
     function openEditBucketModalById(bucketId) {
       const a = (currentData?.allocations || []).find(b => b.bucket_id === bucketId);
       if (!a) return;
-      openEditBucketModal(a.bucket_id, a.name, a.color, a.target_weight_pct, a.drift_tolerance_pct, a.description || '', a.include_in_rebalancing !== false);
+      openEditBucketModal(
+        a.bucket_id,
+        a.name,
+        a.color,
+        a.target_weight_pct,
+        a.drift_tolerance_pct,
+        a.description || '',
+        a.include_in_rebalancing !== false,
+        a.include_in_net_worth !== false
+      );
     }
 
     function closeBucketModal() {
@@ -1601,6 +1933,8 @@
       const color = document.getElementById('bucket-modal-color').value;
       const desc = document.getElementById('bucket-modal-desc').value.trim();
       const includeInRebalancing = document.getElementById('bucket-modal-include-rebalancing').checked;
+      const netWorthCheck = document.getElementById('bucket-modal-include-net-worth');
+      const includeInNetWorth = netWorthCheck ? netWorthCheck.checked : true;
 
       if (!name) {
         alert('Please enter a bucket name.');
@@ -1614,7 +1948,8 @@
         drift_tolerance_pct: tolerance,
         color: color,
         description: desc,
-        include_in_rebalancing: includeInRebalancing
+        include_in_rebalancing: includeInRebalancing,
+        include_in_net_worth: includeInNetWorth
       };
 
       try {
@@ -1669,7 +2004,9 @@
         // Table row
         const tr = document.createElement('tr');
         const isExcluded = a.include_in_rebalancing === false;
-        const excludedBadge = isExcluded ? '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-normal ml-1">Excluded</span>' : '';
+        const isNetWorthExcluded = a.include_in_net_worth === false;
+        const excludedBadge = isExcluded ? '<span class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-1.5 py-0.5 rounded font-normal ml-1">No Rebalance</span>' : '';
+        const nwExcludedBadge = isNetWorthExcluded ? '<span class="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded font-normal ml-1">Illiquid / Prop</span>' : '';
         const statusBadge = isExcluded ? '<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400 border border-slate-700">Excluded</span>' : (a.drift_status === 'BALANCED' ? '<span class="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400">Balanced</span>' : (a.drift_status === 'UNDERWEIGHT' ? '<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">Underweight</span>' : '<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Overweight</span>'));
         const diffDisplay = isExcluded ? '—' : `${a.diff_value > 0 ? '+' : ''}€ ${a.diff_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}`;
         const weightDisplay = isExcluded ? '—' : `${a.current_weight_pct}%`;
@@ -1677,9 +2014,10 @@
 
         tr.innerHTML = `
           <td class="px-4 py-3 font-medium flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full inline-block shadow-sm" style="background-color: ${escapeHtml(a.color)}"></span>
+            <span class="w-3 h-3 rounded-full inline-block shadow-sm shrink-0" style="background-color: ${escapeHtml(a.color)}"></span>
             <span class="text-white font-semibold">${escapeHtml(a.name)}</span>
             ${excludedBadge}
+            ${nwExcludedBadge}
           </td>
           <td class="px-4 py-3 font-mono">€ ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
           <td class="px-4 py-3 font-semibold font-mono">${weightDisplay}</td>
@@ -1704,6 +2042,7 @@
               <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(a.color)}"></span>
               ${escapeHtml(a.name)}
               ${excludedBadge}
+              ${nwExcludedBadge}
             </span>
             <span class="text-slate-400 font-mono text-[11px]">${isExcluded ? 'Excluded from Rebalancing • € ' + a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2}) : 'Current: ' + a.current_weight_pct + '% / Target: ' + a.target_weight_pct + '% (±' + a.drift_tolerance_pct + '%)'}</span>
           </div>
@@ -1716,18 +2055,36 @@
     }
 
     function renderAdvice(data) {
-      // Debt items
+      // Consolidated Priority Queue (Debt Avalanche + Portfolio Drift)
       const debtContainer = document.getElementById('debt-advisor-list');
-      debtContainer.innerHTML = '';
-      (data.advices || []).filter(a => a.advice_type.includes('DEBT')).forEach(adv => {
-        const item = document.createElement('div');
-        item.className = 'p-4 rounded-lg bg-slate-950 border border-slate-800 text-xs';
-        item.innerHTML = `
-          <div class="font-bold text-white text-sm mb-1">${escapeHtml(adv.title)}</div>
-          <div class="text-slate-300 leading-relaxed">${escapeHtml(adv.message)}</div>
-        `;
-        debtContainer.appendChild(item);
-      });
+      if (debtContainer) {
+        debtContainer.innerHTML = '';
+        const advices = data.advices || [];
+        const totalBadge = document.getElementById('guidance-total-badge');
+        if (totalBadge) totalBadge.textContent = `${advices.length} Active`;
+
+        advices.forEach(adv => {
+          const item = document.createElement('div');
+          item.className = 'p-4 rounded-lg bg-slate-950 border border-slate-800 text-xs space-y-1.5';
+          const badgeColor = adv.priority === 'CRITICAL'
+            ? 'bg-red-500/20 text-red-400 border-red-500/30'
+            : (adv.priority === 'HIGH'
+              ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+              : 'bg-blue-500/20 text-blue-400 border-blue-500/30');
+          const typeLabel = (adv.advice_type || '').includes('DEBT') ? 'Debt Avalanche' : 'Portfolio Drift';
+          item.innerHTML = `
+            <div class="flex items-center justify-between gap-2">
+              <div class="font-bold text-white text-sm">${escapeHtml(adv.title)}</div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700">${escapeHtml(typeLabel)}</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase border ${badgeColor}">${escapeHtml(adv.priority)}</span>
+              </div>
+            </div>
+            <div class="text-slate-300 leading-relaxed">${escapeHtml(adv.message)}</div>
+          `;
+          debtContainer.appendChild(item);
+        });
+      }
 
       recalculateContribution();
     }
@@ -1905,16 +2262,39 @@
       }
     }
 
-    // AI Advisor & Model Discovery
+    // AI Advisor & Model Discovery (Unified in Settings)
+    function updateAiActiveBadge() {
+      const badge = document.getElementById('ai-active-provider-badge');
+      if (!badge) return;
+      const prov = (document.getElementById('settings-ai-provider')?.value || 'gemini').toUpperCase();
+      const model = document.getElementById('settings-ai-model')?.value || 'gemini-2.5-flash';
+      const hasKey = Boolean((document.getElementById('settings-ai-key')?.value || '').trim());
+      const keyLabel = (prov === 'OLLAMA' || prov === 'ALGORITHMIC') ? 'Local' : (hasKey ? 'Key Configured' : 'Algorithmic Fallback');
+      badge.textContent = `Provider: ${prov} • ${model} (${keyLabel})`;
+    }
+
+    function selectAiPrompt(promptText) {
+      const input = document.getElementById('ai-user-question');
+      if (input) {
+        input.value = promptText;
+        input.focus();
+      }
+    }
+
     async function onAiProviderOrKeyChanged() {
       await refreshAiModels();
+      updateAiActiveBadge();
     }
 
     async function refreshAiModels() {
-      const provider = document.getElementById('ai-provider-select').value;
-      const key = document.getElementById('ai-api-key').value;
-      const select = document.getElementById('ai-model-select');
-      if (!select) return;
+      const providerEl = document.getElementById('settings-ai-provider');
+      const keyEl = document.getElementById('settings-ai-key');
+      const select = document.getElementById('settings-ai-model');
+      if (!select || !providerEl) return;
+
+      const provider = providerEl.value;
+      const key = keyEl ? keyEl.value : '';
+      const previousModel = select.value;
 
       select.innerHTML = '<option value="">Discovering models...</option>';
 
@@ -1931,23 +2311,28 @@
           const opt = document.createElement('option');
           opt.value = m.id;
           opt.textContent = `${m.name}${m.recommended ? ' ★ Recommended' : ''}`;
-          if (m.recommended) opt.selected = true;
+          if (previousModel && m.id === previousModel) {
+            opt.selected = true;
+          } else if (!previousModel && m.recommended) {
+            opt.selected = true;
+          }
           select.appendChild(opt);
         });
       } catch (err) {
         console.error('Failed to load AI models:', err);
         select.innerHTML = '<option value="gemini-2.5-flash">Gemini 2.5 Flash ★ Recommended</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option>';
       }
+      updateAiActiveBadge();
     }
 
     async function runAiReview() {
       const btn = document.getElementById('btn-run-ai');
       const loader = document.getElementById('ai-loading');
       const output = document.getElementById('ai-output');
-      const provider = document.getElementById('ai-provider-select').value;
-      const model = document.getElementById('ai-model-select')?.value || null;
-      const key = document.getElementById('ai-api-key').value;
-      const question = document.getElementById('ai-user-question').value;
+      const provider = document.getElementById('settings-ai-provider')?.value || 'gemini';
+      const model = document.getElementById('settings-ai-model')?.value || null;
+      const key = document.getElementById('settings-ai-key')?.value || '';
+      const question = document.getElementById('ai-user-question')?.value || '';
 
       btn.disabled = true;
       loader.classList.remove('hidden');
@@ -1990,7 +2375,7 @@
             </div>
             <div class="text-xs text-red-300 font-mono leading-relaxed whitespace-pre-wrap">${escapeHtml(err.message)}</div>
             <div class="text-[11px] text-slate-400 pt-1">
-              Tip: Verify that your API key is valid and has active quota, or select a different model in the dropdown above.
+              Tip: Verify your API key or switch to Ollama / Algorithmic Engine in <button onclick="switchTab('settings')" class="text-blue-400 underline">Settings</button>.
             </div>
           </div>
         `;
@@ -2147,7 +2532,8 @@
 
             const safeName = escapeHtml(l.name);
             const safeType = escapeHtml(l.loan_type);
-            const safePmt = escapeHtml(l.monthly_payment_formatted);
+            const pctSuffix = l.monthly_payment_pct > 0 ? ` <span class="text-[10px] text-slate-400">(${escapeHtml(l.monthly_payment_pct)}%/mo)</span>` : '';
+            const safePmt = `${escapeHtml(l.monthly_payment_formatted)}${pctSuffix}`;
             const safeId = escapeHtml(l.id);
 
             tr.innerHTML = `
@@ -2170,7 +2556,21 @@
     function openEditLiabilityModalById(id) {
       const l = (currentData?.liabilities || []).find(x => x.id === id);
       if (l) {
-        openEditLiabilityModal(l.id, l.name, l.loan_type, l.principal_balance, l.interest_rate_pct, l.monthly_payment, l.institution, l.account_reference);
+        openEditLiabilityModal(
+          l.id,
+          l.name,
+          l.loan_type,
+          l.principal_balance,
+          l.interest_rate_pct,
+          l.monthly_payment,
+          l.institution,
+          l.account_reference,
+          l.monthly_payment_pct,
+          l.start_capital,
+          l.start_date,
+          l.duration_months,
+          l.end_date
+        );
       }
     }
 
@@ -2235,12 +2635,17 @@
       document.getElementById('manual-liab-balance').value = '';
       document.getElementById('manual-liab-rate').value = '';
       document.getElementById('manual-liab-payment').value = '';
+      document.getElementById('manual-liab-payment-pct').value = '';
+      document.getElementById('manual-liab-start-cap').value = '';
+      document.getElementById('manual-liab-start-date').value = '';
+      document.getElementById('manual-liab-duration').value = '';
+      document.getElementById('manual-liab-end-date').value = '';
       document.getElementById('manual-liab-inst').value = '';
       document.getElementById('manual-liab-ref').value = '';
       document.getElementById('add-liability-modal').classList.remove('hidden');
     }
 
-    function openEditLiabilityModal(id, name, type, balance, rate, payment, inst, ref) {
+    function openEditLiabilityModal(id, name, type, balance, rate, payment, inst, ref, paymentPct = 0, startCap = null, startDate = null, durationMos = null, endDate = null) {
       document.getElementById('liab-modal-title').textContent = '✏️ Edit Loan / Mortgage Details';
       document.getElementById('manual-liab-id').value = id;
       document.getElementById('manual-liab-name').value = name;
@@ -2248,6 +2653,11 @@
       document.getElementById('manual-liab-balance').value = balance > 0 ? balance : '';
       document.getElementById('manual-liab-rate').value = rate > 0 ? rate : '';
       document.getElementById('manual-liab-payment').value = payment > 0 ? payment : '';
+      document.getElementById('manual-liab-payment-pct').value = paymentPct > 0 ? paymentPct : '';
+      document.getElementById('manual-liab-start-cap').value = startCap > 0 ? startCap : '';
+      document.getElementById('manual-liab-start-date').value = startDate || '';
+      document.getElementById('manual-liab-duration').value = durationMos > 0 ? durationMos : '';
+      document.getElementById('manual-liab-end-date').value = endDate || '';
       document.getElementById('manual-liab-inst').value = inst || 'KBC';
       document.getElementById('manual-liab-ref').value = ref || '';
       document.getElementById('add-liability-modal').classList.remove('hidden');
@@ -2257,13 +2667,77 @@
       document.getElementById('add-liability-modal').classList.add('hidden');
     }
 
+    function previewLoanAmortization() {
+      const startCap = parseFloat(document.getElementById('manual-liab-start-cap')?.value || 0);
+      const startDateStr = document.getElementById('manual-liab-start-date')?.value || '';
+      const durationVal = parseInt(document.getElementById('manual-liab-duration')?.value || 0, 10);
+      const endDateStr = document.getElementById('manual-liab-end-date')?.value || '';
+      const ratePct = parseFloat(document.getElementById('manual-liab-rate')?.value || 0);
+
+      if (startCap <= 0 || !startDateStr) return;
+
+      const startDt = new Date(startDateStr);
+      if (isNaN(startDt.getTime())) return;
+
+      let totalMonths = durationVal;
+      if (!totalMonths && endDateStr) {
+        const endDt = new Date(endDateStr);
+        if (!isNaN(endDt.getTime())) {
+          totalMonths = (endDt.getFullYear() - startDt.getFullYear()) * 12 + (endDt.getMonth() - startDt.getMonth());
+        }
+      }
+      if (!totalMonths || totalMonths <= 0) return;
+
+      const now = new Date();
+      const elapsed = Math.max(0, (now.getFullYear() - startDt.getFullYear()) * 12 + (now.getMonth() - startDt.getMonth()));
+      let remBal = 0;
+      let monthlyPmt = 0;
+
+      if (elapsed >= totalMonths) {
+        remBal = 0;
+      } else if (ratePct <= 0) {
+        monthlyPmt = startCap / totalMonths;
+        remBal = startCap * ((totalMonths - elapsed) / totalMonths);
+      } else {
+        const r = (ratePct / 100.0) / 12.0;
+        const factorN = Math.pow(1 + r, totalMonths);
+        const factorK = Math.pow(1 + r, elapsed);
+        monthlyPmt = startCap * (r * factorN) / (factorN - 1);
+        remBal = startCap * (factorN - factorK) / (factorN - 1);
+      }
+
+      const balInput = document.getElementById('manual-liab-balance');
+      const pmtInput = document.getElementById('manual-liab-payment');
+      if (balInput) balInput.value = remBal.toFixed(2);
+      if (pmtInput && (!pmtInput.value || parseFloat(pmtInput.value) <= 0)) {
+        pmtInput.value = monthlyPmt.toFixed(2);
+      }
+    }
+
+    function previewPctPayment() {
+      const pct = parseFloat(document.getElementById('manual-liab-payment-pct')?.value || 0);
+      const bal = parseFloat(document.getElementById('manual-liab-balance')?.value || 0);
+      const pmtInput = document.getElementById('manual-liab-payment');
+      if (pct > 0 && bal > 0 && pmtInput) {
+        pmtInput.value = ((bal * pct) / 100.0).toFixed(2);
+      }
+    }
+
     async function saveManualLiability() {
       const id = document.getElementById('manual-liab-id').value.trim();
       const name = document.getElementById('manual-liab-name').value.trim();
       const loanType = document.getElementById('manual-liab-type').value;
-      const balance = parseFloat(document.getElementById('manual-liab-balance').value) || 0;
+      const balanceRaw = document.getElementById('manual-liab-balance').value;
+      const balance = balanceRaw !== '' ? parseFloat(balanceRaw) : null;
       const rate = parseFloat(document.getElementById('manual-liab-rate').value) || 0;
       const payment = parseFloat(document.getElementById('manual-liab-payment').value) || 0;
+      const paymentPct = parseFloat(document.getElementById('manual-liab-payment-pct')?.value) || 0;
+      const startCapRaw = document.getElementById('manual-liab-start-cap')?.value;
+      const startCap = startCapRaw ? parseFloat(startCapRaw) : null;
+      const startDate = document.getElementById('manual-liab-start-date')?.value || null;
+      const durationRaw = document.getElementById('manual-liab-duration')?.value;
+      const durationMos = durationRaw ? parseInt(durationRaw, 10) : null;
+      const endDate = document.getElementById('manual-liab-end-date')?.value || null;
       const inst = document.getElementById('manual-liab-inst').value.trim() || 'Manual';
       const ref = document.getElementById('manual-liab-ref').value.trim();
 
@@ -2280,6 +2754,11 @@
           principal_balance: balance,
           interest_rate_pct: rate,
           monthly_payment: payment,
+          monthly_payment_pct: paymentPct,
+          start_capital: startCap,
+          start_date: startDate,
+          duration_months: durationMos,
+          end_date: endDate,
           institution: inst,
           account_reference: ref || undefined,
         };
@@ -2466,17 +2945,23 @@
           tbody.appendChild(tr);
         });
 
-        // AI Settings
+        // AI Settings (Single Source of Truth)
         const ai = s.ai || {};
-        document.getElementById('settings-ai-provider').value = ai.provider || 'gemini';
-        document.getElementById('settings-ai-model').value = ai.model || 'gemini-1.5-pro';
+        const provSelect = document.getElementById('settings-ai-provider');
+        const modelSelect = document.getElementById('settings-ai-model');
+        if (provSelect) provSelect.value = ai.provider || 'gemini';
         if (ai.api_key) document.getElementById('settings-ai-key').value = ai.api_key;
-
-        // Also sync AI tab inputs
-        const aiTabKey = document.getElementById('ai-api-key');
-        if (aiTabKey && !aiTabKey.value && ai.api_key) aiTabKey.value = ai.api_key;
-        const aiTabProv = document.getElementById('ai-provider-select');
-        if (aiTabProv && ai.provider) aiTabProv.value = ai.provider;
+        if (modelSelect && ai.model) {
+          let found = Array.from(modelSelect.options).some(o => o.value === ai.model);
+          if (!found) {
+            const opt = document.createElement('option');
+            opt.value = ai.model;
+            opt.textContent = ai.model;
+            modelSelect.appendChild(opt);
+          }
+          modelSelect.value = ai.model;
+        }
+        updateAiActiveBadge();
 
         // Tax Settings
         const tax = s.tax || {};
@@ -2981,6 +3466,7 @@
 
     // Initialize on page load
     window.addEventListener('DOMContentLoaded', async () => {
+      syncThemeToggleUI();
       await loadOverview();
       await loadSettings();
       await runTaxSimulation();
@@ -3029,6 +3515,10 @@
         switchTab('buckets');
       } else if (hash.includes('ai')) {
         switchTab('ai');
+      } else if (hash.includes('cashflow') || hash.includes('data')) {
+        switchTab('cashflow');
+      } else if (hash.includes('advice') || hash.includes('guidance')) {
+        switchTab('advice');
       }
     });
   </script>
