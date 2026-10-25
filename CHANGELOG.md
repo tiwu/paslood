@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.7.0] - 2026-10-25
+
+### Added
 - **Legally Grounded Belgian Fiscal Shield & EquatePlus Forensic Tax Engine**:
   - Added `src/wealth_pilot/domain/tax_rules.py` with official Belgian statutory rules and FOD Financiën citations (`WIB 92 Art. 90/101`, `WDRT Art. 120–126/2`, `WIB 92 Art. 19bis`), TOB plafond caps (`0.12%` cap €1,300, `0.35%` cap €1,600, `1.32%` cap €4,000), and ASML's official Dec 31, 2025 Euronext Amsterdam closing price (`€921.40`).
   - Enhanced `OptimizeTaxUseCase` with pre-2026 historical loss protection (`max(benchmark_price, historical_purchase_price)`), 5-year exemption carryover (`+€1,000/yr` up to `€15,000`, doubled for joint filing), Art. 19bis Reynders 30% tax split for funds with `>10%` debt claims, and an inverse **Max Tax-Free Share Trim Solver**.
@@ -205,7 +215,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/tiwu/wealth-pilot/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/tiwu/wealth-pilot/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/tiwu/wealth-pilot/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/tiwu/wealth-pilot/compare/v0.3.0...v0.4.0
