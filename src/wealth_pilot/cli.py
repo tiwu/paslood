@@ -25,8 +25,8 @@ from wealth_pilot.use_cases.build_overview import BuildPortfolioOverviewUseCase
 from wealth_pilot.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
 
 app = typer.Typer(
-    name="wealth-pilot",
-    help="🧭 Wealth Pilot: Strategic Wealth & Asset Allocation Guidance Platform",
+    name="paslood",
+    help="🧭 Paslood (Wealth Pilot): Whole-Life Balance Sheet, PDT Companion & Belgian Fiscal Shield",
     add_completion=False,
 )
 console = Console()
@@ -34,7 +34,7 @@ console = Console()
 
 def version_callback(value: bool) -> None:
     if value:
-        console.print(f"Wealth Pilot [bold cyan]v{__version__}[/bold cyan]")
+        console.print(f"Paslood (Wealth Pilot) [bold cyan]v{__version__}[/bold cyan]")
         raise typer.Exit()
 
 
