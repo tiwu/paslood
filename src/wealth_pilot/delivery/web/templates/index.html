@@ -416,11 +416,41 @@
         </div>
       </div>
 
-      <!-- Allocation Progress Meters -->
+      <!-- Allocation Progress Meters & Drift Visualizer -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-4">
-        <h3 data-i18n="buckets.visualizer_title" class="text-sm font-semibold text-white">Allocation Visualizer & Tolerances</h3>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 data-i18n="buckets.visualizer_title" class="text-sm font-semibold text-white">Allocation Visualizer & Tolerances</h3>
+            <p data-i18n="buckets.visualizer_subtitle" class="text-xs text-slate-400 mt-0.5">Visualize portfolio drift against target weights and tolerance bands for active buckets.</p>
+          </div>
+          <!-- View Toggle: Bullet vs Drift -->
+          <div class="flex items-center rounded-lg bg-slate-950 border border-slate-800 p-0.5 text-xs shrink-0 self-start sm:self-auto">
+            <button onclick="setAllocationVizMode('bullet')" id="btn-alloc-mode-bullet" class="px-2.5 py-1 rounded bg-blue-600 text-white font-medium transition" data-i18n="buckets.mode_bullet">🎯 Target vs Actual (Bullet)</button>
+            <button onclick="setAllocationVizMode('drift')" id="btn-alloc-mode-drift" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition" data-i18n="buckets.mode_drift">⚖️ Drift Divergence</button>
+          </div>
+        </div>
+
+        <!-- Mode A: Bullet Meters Container -->
         <div id="bucket-meters-container" class="space-y-4">
           <!-- Meters populated dynamically -->
+        </div>
+
+        <!-- Mode B: Diverging Drift Chart Container -->
+        <div id="bucket-drift-container" class="hidden space-y-3">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Excluded / Non-rebalancing Assets Section -->
+        <div id="bucket-excluded-section" class="pt-4 border-t border-slate-800/80 hidden">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-medium flex items-center gap-1.5" data-i18n="buckets.excluded_section_title">
+              <span>🛡️ Excluded from Rebalancing (Illiquid / Real Estate / Cash Buffer)</span>
+            </span>
+            <span id="excluded-buckets-total" class="font-mono text-slate-300 font-semibold"></span>
+          </div>
+          <div id="bucket-excluded-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <!-- Populated dynamically -->
+          </div>
         </div>
       </div>
 
@@ -2238,32 +2268,264 @@
         tbody.appendChild(tr);
 
         // Progress meter
-        const meter = document.createElement('div');
-        meter.className = 'space-y-1';
-        const meterText = isExcluded
-          ? `${I18N.t('buckets.meter_excluded', 'Excluded from Rebalancing')} • ${I18N.formatCurrency(a.current_value, 'EUR')}`
-          : I18N.t('buckets.meter_current_target', {
-              current: I18N.formatPercent(a.current_weight_pct),
-              target: I18N.formatPercent(a.target_weight_pct),
-              tolerance: I18N.formatPercent(a.drift_tolerance_pct),
-              _fallback: `Current: ${I18N.formatPercent(a.current_weight_pct)} / Target: ${I18N.formatPercent(a.target_weight_pct)} (±${I18N.formatPercent(a.drift_tolerance_pct)})`
-            });
-        meter.innerHTML = `
-          <div class="flex justify-between text-xs">
-            <span class="font-medium text-white flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${escapeHtml(a.color)}"></span>
-              ${escapeHtml(a.name)}
-              ${excludedBadge}
-              ${nwExcludedBadge}
-            </span>
-            <span class="text-slate-400 font-mono text-[11px]">${escapeHtml(meterText)}</span>
+        // (Replaced by enhanced bullet meters and drift divergence below)
+      });
+
+      const activeAllocs = (data.allocations || []).filter(a => a.include_in_rebalancing !== false);
+      const excludedAllocs = (data.allocations || []).filter(a => a.include_in_rebalancing === false);
+
+      renderBulletMeters(activeAllocs, meters);
+      const driftContainer = document.getElementById('bucket-drift-container');
+      if (driftContainer) renderDriftChart(activeAllocs, driftContainer);
+      renderExcludedBuckets(excludedAllocs);
+    }
+
+    let currentAllocationVizMode = 'bullet';
+
+    function setAllocationVizMode(mode) {
+      currentAllocationVizMode = mode;
+      const btnBullet = document.getElementById('btn-alloc-mode-bullet');
+      const btnDrift = document.getElementById('btn-alloc-mode-drift');
+      const containerBullet = document.getElementById('bucket-meters-container');
+      const containerDrift = document.getElementById('bucket-drift-container');
+
+      if (mode === 'bullet') {
+        if (btnBullet) {
+          btnBullet.className = 'px-2.5 py-1 rounded bg-blue-600 text-white font-medium transition';
+        }
+        if (btnDrift) {
+          btnDrift.className = 'px-2.5 py-1 rounded text-slate-400 hover:text-white transition';
+        }
+        if (containerBullet) containerBullet.classList.remove('hidden');
+        if (containerDrift) containerDrift.classList.add('hidden');
+      } else {
+        if (btnBullet) {
+          btnBullet.className = 'px-2.5 py-1 rounded text-slate-400 hover:text-white transition';
+        }
+        if (btnDrift) {
+          btnDrift.className = 'px-2.5 py-1 rounded bg-blue-600 text-white font-medium transition';
+        }
+        if (containerBullet) containerBullet.classList.add('hidden');
+        if (containerDrift) containerDrift.classList.remove('hidden');
+      }
+    }
+
+    function renderBulletMeters(activeAllocs, container) {
+      if (!container) return;
+      container.innerHTML = '';
+      if (!activeAllocs.length) {
+        container.innerHTML = `<div class="text-xs text-slate-500 py-3 text-center">No rebalanceable buckets configured.</div>`;
+        return;
+      }
+
+      activeAllocs.forEach(a => {
+        const target = a.target_weight_pct;
+        const tol = a.drift_tolerance_pct || 2.0;
+        const lower = Math.max(0, target - tol);
+        const upper = Math.min(100, target + tol);
+        const curr = a.current_weight_pct;
+        const status = a.drift_status;
+
+        // Status badge styling
+        let statusBadge = '';
+        let statusActionText = '';
+        if (status === 'BALANCED') {
+          statusBadge = `<span class="px-2 py-0.5 rounded text-[11px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold whitespace-nowrap">✓ ${escapeHtml(I18N.t('buckets.status_balanced', 'In Balance'))}</span>`;
+          statusActionText = I18N.t('buckets.rebalance_action_balanced', 'In Balance (Within safe tolerance corridor)');
+        } else if (status === 'OVERWEIGHT') {
+          statusBadge = `<span class="px-2 py-0.5 rounded text-[11px] bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold whitespace-nowrap">▲ ${escapeHtml(I18N.t('buckets.status_overweight', 'Overweight'))} (+${I18N.formatPercent(a.diff_weight_pct)})</span>`;
+          statusActionText = I18N.t('buckets.rebalance_action_overweight', { diff_pct: '+' + I18N.formatPercent(a.diff_weight_pct), _fallback: `Overweight (+${I18N.formatPercent(a.diff_weight_pct)} above target) — Pause contributions or trim` });
+        } else {
+          statusBadge = `<span class="px-2 py-0.5 rounded text-[11px] bg-blue-500/20 text-blue-400 border border-blue-500/30 font-semibold whitespace-nowrap">▼ ${escapeHtml(I18N.t('buckets.status_underweight', 'Underweight'))} (${I18N.formatPercent(a.diff_weight_pct)})</span>`;
+          statusActionText = I18N.t('buckets.rebalance_action_underweight', { diff_pct: I18N.formatPercent(a.diff_weight_pct), _fallback: `Underweight (${I18N.formatPercent(a.diff_weight_pct)} below target) — Priority for cash contributions` });
+        }
+
+        const diffMoney = `${a.diff_value > 0 ? '+' : ''}${I18N.formatCurrency(a.diff_value, 'EUR')}`;
+        const diffMoneyClass = a.diff_value < 0 ? 'text-blue-400' : (a.diff_value > 0 ? 'text-amber-400' : 'text-slate-400');
+
+        const card = document.createElement('div');
+        card.className = 'p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2';
+
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color: ${escapeHtml(a.color)}"></span>
+              <span class="font-bold text-white text-sm truncate">${escapeHtml(a.name)}</span>
+              <span class="text-slate-400 font-mono text-xs whitespace-nowrap">(${I18N.formatCurrency(a.current_value, 'EUR')})</span>
+            </div>
+            <div class="flex items-center gap-2 font-mono flex-wrap shrink-0">
+              <span class="text-white font-bold text-xs">${I18N.formatPercent(curr)}</span>
+              <span class="text-slate-500">/</span>
+              <span class="text-slate-400 text-xs">${escapeHtml(I18N.t('buckets.th_target_weight', 'Target'))}: <span class="text-slate-200 font-medium">${I18N.formatPercent(target)}</span></span>
+              <span class="text-slate-500 text-[11px] font-sans">(±${I18N.formatPercent(tol)})</span>
+              <span class="font-mono text-xs ${diffMoneyClass} font-semibold ml-1">[${escapeHtml(diffMoney)}]</span>
+              ${statusBadge}
+            </div>
           </div>
-          <div class="w-full bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-800 relative">
-            <div class="h-full rounded-full transition-all duration-500 shadow-sm" style="width: ${isExcluded ? 0 : Math.min(100, a.current_weight_pct)}%; background-color: ${escapeHtml(a.color)}"></div>
+
+          <!-- Bullet Track -->
+          <div class="relative w-full h-5 bg-slate-900 rounded-lg border border-slate-800 overflow-visible">
+            <!-- Shaded Tolerance Corridor -->
+            <div class="tolerance-zone absolute top-0 bottom-0 bg-emerald-500/15 border-x border-emerald-500/40 z-0 transition-all"
+                 style="left: ${lower}%; width: ${Math.max(1, upper - lower)}%;"
+                 title="${escapeHtml(I18N.t('buckets.tolerance_corridor', { lower: I18N.formatPercent(lower), upper: I18N.formatPercent(upper), _fallback: `Tolerance Corridor (${I18N.formatPercent(lower)} – ${I18N.formatPercent(upper)})` }))}">
+            </div>
+
+            <!-- Current Weight Fill Bar -->
+            <div class="absolute top-0 bottom-0 left-0 rounded-l-lg transition-all duration-500 shadow-sm z-10 flex items-center justify-end pr-1.5 opacity-90"
+                 style="width: ${Math.min(100, Math.max(0, curr))}%; background-color: ${escapeHtml(a.color)};">
+            </div>
+
+            <!-- Crisp Target Pin Marker -->
+            <div class="target-pin absolute -top-1 bottom-0 z-20"
+                 style="left: ${target}%; width: 2px; height: calc(100% + 8px); background-color: #ffffff; box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);"
+                 title="${escapeHtml(I18N.t('buckets.th_target_weight', 'Target'))}: ${I18N.formatPercent(target)}">
+              <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 shadow"></div>
+            </div>
+          </div>
+
+          <!-- Legend / Action Guidance -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-slate-400 gap-1 pt-0.5">
+            <div class="flex items-center gap-2">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 bg-white rounded-full inline-block"></span> ${escapeHtml(I18N.t('buckets.th_target_weight', 'Target'))}: ${I18N.formatPercent(target)}</span>
+              <span class="text-slate-600">•</span>
+              <span class="flex items-center gap-1 text-emerald-400/90"><span class="w-2.5 h-1.5 bg-emerald-500/30 border border-emerald-500/60 rounded-sm inline-block"></span> Band: ${I18N.formatPercent(lower)} – ${I18N.formatPercent(upper)}</span>
+            </div>
+            <div class="text-right sm:text-left text-slate-300 font-medium">${escapeHtml(statusActionText)}</div>
           </div>
         `;
-        meters.appendChild(meter);
+        container.appendChild(card);
       });
+    }
+
+    function renderDriftChart(activeAllocs, container) {
+      if (!container) return;
+      container.innerHTML = '';
+      if (!activeAllocs.length) {
+        container.innerHTML = `<div class="text-xs text-slate-500 py-3 text-center">No rebalanceable buckets configured.</div>`;
+        return;
+      }
+
+      // Determine max drift scale for symmetric left/right view (minimum 8%)
+      const maxDriftAbs = Math.max(8, ...activeAllocs.map(a => Math.abs(a.diff_weight_pct || 0)));
+      const scaleLimit = Math.ceil(maxDriftAbs * 1.25);
+
+      const headerGuide = document.createElement('div');
+      headerGuide.className = 'grid grid-cols-12 text-[11px] text-slate-400 px-2 pb-1 border-b border-slate-800 font-mono';
+      headerGuide.innerHTML = `
+        <div class="col-span-4 sm:col-span-3 text-slate-300 font-semibold font-sans">${escapeHtml(I18N.t('buckets.th_bucket', 'Bucket'))}</div>
+        <div class="col-span-5 sm:col-span-6 relative flex justify-between text-[10px] text-slate-500">
+          <span>-${scaleLimit}%</span>
+          <span class="text-emerald-400 font-bold">0% (${escapeHtml(I18N.t('buckets.status_balanced', 'Target'))})</span>
+          <span>+${scaleLimit}%</span>
+        </div>
+        <div class="col-span-3 text-right text-slate-300 font-semibold font-sans">${escapeHtml(I18N.t('buckets.th_diff', 'Diff & Action'))}</div>
+      `;
+      container.appendChild(headerGuide);
+
+      activeAllocs.forEach(a => {
+        const diffPct = a.diff_weight_pct;
+        const diffVal = a.diff_value;
+        const tol = a.drift_tolerance_pct || 2.0;
+        const status = a.drift_status;
+
+        // Center is 50%. Calculate bar offset and width
+        const pctClamped = Math.max(-scaleLimit, Math.min(scaleLimit, diffPct));
+        const barWidthPct = (Math.abs(pctClamped) / scaleLimit) * 50;
+        const barLeftPct = pctClamped >= 0 ? 50 : 50 - barWidthPct;
+        const tolWidthPct = (tol / scaleLimit) * 50;
+
+        let barColor = 'bg-emerald-500';
+        let badgeColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+        let actionTip = I18N.t('buckets.status_balanced', 'In Balance');
+        if (status === 'OVERWEIGHT') {
+          barColor = 'bg-amber-500';
+          badgeColor = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+          actionTip = 'Trim / Pause';
+        } else if (status === 'UNDERWEIGHT') {
+          barColor = 'bg-blue-500';
+          badgeColor = 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+          actionTip = 'Buy Priority';
+        }
+
+        const diffFormatted = `${diffVal > 0 ? '+' : ''}${I18N.formatCurrency(diffVal, 'EUR')}`;
+        const pctFormatted = `${diffPct > 0 ? '+' : ''}${I18N.formatPercent(diffPct)}`;
+
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-12 items-center gap-2 p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs hover:border-slate-700 transition';
+
+        row.innerHTML = `
+          <!-- Name & color dot -->
+          <div class="col-span-4 sm:col-span-3 flex items-center gap-2 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(a.color)}"></span>
+            <div class="truncate">
+              <div class="font-bold text-white truncate">${escapeHtml(a.name)}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${I18N.formatPercent(a.current_weight_pct)} <span class="text-slate-600">/</span> ${I18N.formatPercent(a.target_weight_pct)}</div>
+            </div>
+          </div>
+
+          <!-- Centered Divergence Bar Track -->
+          <div class="col-span-5 sm:col-span-6 relative h-6 bg-slate-900 rounded-md border border-slate-800 overflow-hidden">
+            <!-- Center zero line -->
+            <div class="absolute top-0 bottom-0 left-1/2 w-px bg-slate-600 z-20"></div>
+
+            <!-- Tolerance Corridor around zero -->
+            <div class="tolerance-zone absolute top-0 bottom-0 bg-emerald-500/15 border-x border-emerald-500/30 z-0"
+                 style="left: ${50 - tolWidthPct}%; width: ${tolWidthPct * 2}%;">
+            </div>
+
+            <!-- Diverging Bar -->
+            <div class="absolute top-1 bottom-1 ${barColor} rounded transition-all duration-500 shadow-sm z-10 opacity-90"
+                 style="left: ${barLeftPct}%; width: ${Math.max(1.5, barWidthPct)}%;">
+            </div>
+          </div>
+
+          <!-- Values & Action -->
+          <div class="col-span-3 text-right">
+            <div class="font-mono font-bold text-xs ${diffPct < 0 ? 'text-blue-400' : (diffPct > 0 ? 'text-amber-400' : 'text-emerald-400')}">
+              ${escapeHtml(pctFormatted)}
+            </div>
+            <div class="flex items-center justify-end gap-1 text-[10px]">
+              <span class="font-mono text-slate-400 hidden sm:inline">${escapeHtml(diffFormatted)}</span>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold border ${badgeColor}">${escapeHtml(actionTip)}</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderExcludedBuckets(excludedAllocs) {
+      const section = document.getElementById('bucket-excluded-section');
+      const list = document.getElementById('bucket-excluded-list');
+      const totalSpan = document.getElementById('excluded-buckets-total');
+      if (!section || !list) return;
+
+      if (!excludedAllocs || !excludedAllocs.length) {
+        section.classList.add('hidden');
+        list.innerHTML = '';
+        return;
+      }
+
+      section.classList.remove('hidden');
+      list.innerHTML = '';
+      const totalVal = excludedAllocs.reduce((sum, a) => sum + (a.current_value || 0), 0);
+      if (totalSpan) totalSpan.textContent = `Totaal: ${I18N.formatCurrency(totalVal, 'EUR')}`;
+
+      excludedAllocs.forEach(a => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2.5 rounded-lg bg-slate-950/40 border border-slate-800 text-xs';
+        item.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(a.color)}"></span>
+            <span class="text-slate-300 font-medium truncate">${escapeHtml(a.name)}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 whitespace-nowrap">${escapeHtml(I18N.t('buckets.status_excluded', 'Excluded'))}</span>
+          </div>
+          <div class="font-mono font-semibold text-slate-200 whitespace-nowrap">${I18N.formatCurrency(a.current_value, 'EUR')}</div>
+        `;
+        list.appendChild(item);
+      });
+    }
     }
 
     function renderAdvice(data) {
