@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced `ci.yml` test job with test execution status, high-level coverage percentage vs. $\ge 90\%$ target threshold, and full Markdown coverage breakdown table via `coverage report --format=markdown`.
   - Added documentation deployment summary in `docs.yml` and release distribution artifact listing in `release.yml`.
   - Added comprehensive unit test suite in `tests/unit/test_ci_summary.py`.
+- **Autonomous Issue Worker Protocol Skill (`issue-worker`)**:
+  - Consolidated issue processing lifecycle into a deterministic skill in `.agents/skills/issue-worker/SKILL.md`.
+  - Added strict guardrails banning exploratory codebase probing, reading `poll_issues.py` internals, or creating dummy files.
+  - Streamlined sidecar worker prompt in `~/.gemini/config/sidecars/wealth-pilot-issue-worker/sidecar.json` to reduce token consumption and eliminate workflow meandering.
 - **Belgian Multi-Language Internationalization & Dutch Translation (Issue #7)**:
   - Added comprehensive Dutch (NL) translation for all core dashboard sections (Overview, Buckets, Guidance, AI Advisor, Data & Assets, Settings, and Setup Wizard).
   - Added multi-language support framework covering Belgium's official languages: Dutch (`nl`), English (`en`), French (`fr`), and German (`de`).
