@@ -11,10 +11,14 @@ from typing import Any
 
 import httpx
 
+from wealth_pilot import __version__
+
 AUTH_ENDPOINT = "https://auth.portfoliodividendtracker.com/oauth/authorize"
 TOKEN_ENDPOINT = "https://auth.portfoliodividendtracker.com/oauth/token"
 REGISTER_ENDPOINT = "https://mcp.portfoliodividendtracker.com/oauth/register"
-USER_AGENT = "WealthPilot/0.1.0 (Strategic Wealth & Allocation Guidance Platform; Python httpx)"
+USER_AGENT = (
+    f"WealthPilot/{__version__} (Strategic Wealth & Allocation Guidance Platform; Python httpx)"
+)
 
 
 def generate_pkce_pair() -> tuple[str, str]:

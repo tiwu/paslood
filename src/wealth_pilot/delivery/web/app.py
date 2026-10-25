@@ -22,6 +22,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from starlette.requests import Request
 
+from wealth_pilot import __version__
 from wealth_pilot.adapters.ai.llm_client import UniversalAIAdvisorClient
 from wealth_pilot.adapters.ingestion.generic_csv import GenericCsvGateway
 from wealth_pilot.adapters.ingestion.kbc_csv import KbcCsvGateway
@@ -690,9 +691,16 @@ def create_app(
         )
         return resp
 
+    @app.get("/api/version")
+    async def get_version() -> dict[str, str]:
+        """Return the running application version."""
+        return {"version": __version__}
+
     @app.get("/", response_class=HTMLResponse)
     async def index_page(request: Request):
-        return templates.TemplateResponse(request=request, name="index.html")
+        return templates.TemplateResponse(
+            request=request, name="index.html", context={"app_version": __version__}
+        )
 
     @app.get("/api/overview")
     async def get_overview(request: Request, exclude_property: bool = False):
@@ -1386,7 +1394,7 @@ def create_app(
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream",
-            "User-Agent": "WealthPilot/0.1.0",
+            "User-Agent": f"WealthPilot/{__version__}",
         }
         if req.auth_token:
             headers["Authorization"] = f"Bearer {req.auth_token}"
@@ -1398,7 +1406,7 @@ def create_app(
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "wealth-pilot", "version": "0.1.0"},
+                "clientInfo": {"name": "wealth-pilot", "version": __version__},
             },
         }
 

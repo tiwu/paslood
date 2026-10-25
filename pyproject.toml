@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wealth-pilot"
-version = "0.1.0"
+version = "0.4.0"
 description = "Strategic Wealth & Asset Allocation Guidance Platform"
 readme = "README.md"
 requires-python = ">=3.10"

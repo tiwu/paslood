@@ -11,6 +11,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from wealth_pilot import __version__
 from wealth_pilot.adapters.ingestion.generic_csv import GenericCsvGateway
 from wealth_pilot.adapters.ingestion.kbc_csv import KbcCsvGateway
 from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
@@ -29,6 +30,28 @@ app = typer.Typer(
     add_completion=False,
 )
 console = Console()
+
+
+def version_callback(value: bool) -> None:
+    if value:
+        console.print(f"Wealth Pilot [bold cyan]v{__version__}[/bold cyan]")
+        raise typer.Exit()
+
+
+@app.callback()
+def main_callback(
+    version: bool | None = typer.Option(
+        None,
+        "--version",
+        "-V",
+        "-v",
+        help="Show the application version and exit.",
+        callback=version_callback,
+        is_eager=True,
+    ),
+) -> None:
+    """Wealth Pilot CLI."""
+    pass
 
 
 @app.command()

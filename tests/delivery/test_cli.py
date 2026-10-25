@@ -20,6 +20,13 @@ def test_cli_help():
     assert "template" in result.stdout
 
 
+def test_cli_version():
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert "Wealth Pilot" in result.stdout
+    assert "v0.4.0" in result.stdout
+
+
 def test_cli_status(tmp_path: Path):
     cfg_file = tmp_path / "portfolio.yaml"
     result = runner.invoke(app, ["status", "--config", str(cfg_file)])

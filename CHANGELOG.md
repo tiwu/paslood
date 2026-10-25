@@ -10,17 +10,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **GitHub Actions Workflow Job & Step Summaries (Issue #15)**:
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.4.0] - 2026-10-25
+
+### Added
+- **CI/CD Job Summaries & Automated Release Pipeline (Issue #15)**:
   - Added structured Markdown job summaries across CI, documentation, and release workflows.
   - Added `scripts/ci_summary.py` helper module supporting summary generation for linting, testing, docs deployment, and release distributions.
   - Enhanced `ci.yml` lint job with breakdown of Ruff linter, Ruff formatter, and MkDocs strict build checks.
   - Enhanced `ci.yml` test job with test execution status, high-level coverage percentage vs. $\ge 90\%$ target threshold, and full Markdown coverage breakdown table via `coverage report --format=markdown`.
   - Added documentation deployment summary in `docs.yml` and release distribution artifact listing in `release.yml`.
   - Added comprehensive unit test suite in `tests/unit/test_ci_summary.py`.
+  - Added automated release pipeline in `.github/workflows/release.yml` triggering on push to `main` with unreleased changelog detection, automatic version bumping, and release note extraction via `scripts/release.py`.
+  - Added `--version` / `-V` CLI flag (`wealth-pilot --version`) and `GET /api/version` endpoint linking code directly to package metadata.
+  - Added dynamic app version indicators in the dashboard navigation header and Settings tab.
 - **Autonomous Issue Worker Protocol Skill (`issue-worker`)**:
-  - Consolidated issue processing lifecycle into a deterministic skill in `.agents/skills/issue-worker/SKILL.md`.
+  - Consolidated issue processing lifecycle into a deterministic skill in `.agents/skills/issue-worker/SKILL.md` (Issue #16).
   - Added strict guardrails banning exploratory codebase probing, reading `poll_issues.py` internals, or creating dummy files.
   - Streamlined sidecar worker prompt in `~/.gemini/config/sidecars/wealth-pilot-issue-worker/sidecar.json` to reduce token consumption and eliminate workflow meandering.
+- **Two-Stage Autonomous Issue Queue & Plan Archiving**:
+  - Implemented asynchronous issue poller (`scripts/poll_issues.py`) supporting the deterministic two-stage approval workflow (`agent:plan` -> `agent:plan-review` -> `agent:approved` -> `agent:in-progress` -> `agent:review-ready`) (Issue #2).
+  - Automatically commits and pushes architecture plans (`docs/plans/PLAN-<id>-<slug>.md`) to origin feature branches before posting issue review comments, resolving remote 404 links.
+  - Added expandable Markdown previews of architecture plans directly within GitHub issue comments for mobile/remote accessibility.
+  - Added GitHub Actions workflow (`.github/workflows/issue-worker.yml`) triggered by `issues: [opened, labeled]`, `workflow_dispatch`, and hourly schedule, enabling remote plan generation and lifecycle transitions in the cloud without requiring a local machine to be running.
+  - Added persistent architecture plan directory in `docs/plans/` with `README.md` and `PLAN-TEMPLATE.md`.
+  - Integrated Architecture Plans into `mkdocs.yml` navigation for built-in documentation and GitHub Pages.
+- **Strategic Allocation Visualizer & Bucket Drift Divergence (Issue #13)**:
+  - Redesigned bucket allocation visualizer with horizontal bullet meters showing actual vs. target weights.
+  - Added drift divergence indicators and visual bounds for rebalancing thresholds.
+- **Bucket Exclusion from Rebalancing Calculations (Issue #3)**:
+  - Added `include_in_rebalancing` flag on `Bucket` and `BucketAllocationResult` entities.
+  - Excluded buckets (e.g. Primary Residence / Real Estate) are omitted from liquid portfolio rebalancing target weights and contribution advice.
+  - Excluded buckets display "Excluded from Rebalancing" status badges in the UI without generating drift imbalances.
+  - Added checkbox in Add/Edit Bucket modal to toggle rebalancing inclusion.
 - **Belgian Multi-Language Internationalization & Dutch Translation (Issue #7)**:
   - Added comprehensive Dutch (NL) translation for all core dashboard sections (Overview, Buckets, Guidance, AI Advisor, Data & Assets, Settings, and Setup Wizard).
   - Added multi-language support framework covering Belgium's official languages: Dutch (`nl`), English (`en`), French (`fr`), and German (`de`).
@@ -29,25 +57,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added offline-capable client-side internationalization module in `src/wealth_pilot/delivery/web/static/i18n.js` with instant local-storage persistence and reactive re-rendering on language switch.
   - Updated `ConfigRepository` to persist language preference across sessions in `portfolio.yaml`.
   - Added test suite in `tests/delivery/test_i18n.py` verifying endpoint contracts and language persistence.
-- **Bucket Exclusion from Rebalancing Calculations (Issue #3)**:
-  - Added `include_in_rebalancing` flag on `Bucket` and `BucketAllocationResult` entities.
-  - Excluded buckets (e.g. Primary Residence / Real Estate) are omitted from liquid portfolio rebalancing target weights and contribution advice.
-  - Excluded buckets display "Excluded from Rebalancing" status badges in the UI without generating drift imbalances.
-  - Added checkbox in Add/Edit Bucket modal to toggle rebalancing inclusion.
-- **Remote Architecture Plan Publishing & Cloud Issue Worker**:
-  - Automatically commits and pushes architecture plans (`docs/plans/PLAN-<id>-<slug>.md`) to origin feature branches before posting issue review comments, resolving remote 404 links.
-  - Added expandable Markdown previews of architecture plans directly within GitHub issue comments for mobile/remote accessibility.
-  - Added GitHub Actions workflow (`.github/workflows/issue-worker.yml`) triggered by `issues: [opened, labeled]`, `workflow_dispatch`, and hourly schedule, enabling remote plan generation and lifecycle transitions in the cloud without requiring a local machine to be running.
-- **Two-Stage Autonomous Issue Queue**:
-  - Implemented asynchronous issue poller (`scripts/poll_issues.py`) supporting the deterministic two-stage approval workflow (`agent:plan` -> `agent:plan-review` -> `agent:approved` -> `agent:in-progress` -> `agent:review-ready`).
-  - Added GitHub issue templates for feature requests (`.github/ISSUE_TEMPLATE/feature_request.md`) and bug reports (`.github/ISSUE_TEMPLATE/bug_report.md`).
-  - Created standardized `agent:*` label taxonomy in the GitHub repository.
-  - Added unit test suite for the issue poller (`tests/unit/test_poll_issues.py`).
-- **Architecture & Feature Plan Archive (`docs/plans/`)**:
-  - Added persistent architecture plan directory in `docs/plans/` with `README.md` and `PLAN-TEMPLATE.md`.
-  - Integrated Architecture Plans into `mkdocs.yml` navigation for built-in documentation and GitHub Pages.
-- **Antigravity Scheduled Automation (`wealth-pilot-issue-worker`)**:
-  - Configured hourly background automation sidecar (`CRON_TZ=Europe/Brussels 0 * * * *`) for autonomous local queue processing while active.
+- **Containerized Self-Hosting & Authentication (Issue #11)**:
+  - Added multi-stage Docker build with non-root security runner and health check.
+  - Implemented session authentication with Google OAuth, GitHub OAuth, and PBKDF2 password authentication modes.
+  - Added CLI `set-password` command to initialize or reset master admin credentials.
+- **Responsive Mobile UX & Loan Amortization Schedule (Issue #6)**:
+  - Added mobile navigation bottom bar and slide-out drawer for seamless smartphone access.
+  - Added interactive loan amortization schedule calculator on liability cards.
+  - Added light/dark theme toggle with persistent user preference.
+- **Encrypted Cloud Backup & Secret Vault (Issue #10)**:
+  - Added AES-GCM encrypted backup and restore for portfolio configuration and secret vault.
+  - Added cloud folder sync helper for Proton Drive / Google Drive.
+
+### Fixed
+- Fixed regional European number and currency formatting across tables, trajectory charts, and milestone cards (Issue #12).
+- Hardened server against unauthenticated LAN/external interface binding without configured credentials (Issue #5).
+- Resolved Anthropic API model parameter compatibility errors and masked API key overwrite issues (Issue #10).
+- Fixed PDT MCP asset sync caching behavior to prevent stale holdings after re-authentication (Issue #10).
 
 ---
 
@@ -130,3 +156,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Interactive onboarding setup wizard.
 - **Documentation**:
   - MkDocs Material documentation site built and bundled locally for offline access.
+
+---
+
+[Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/tiwu/wealth-pilot/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/tiwu/wealth-pilot/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/tiwu/wealth-pilot/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/tiwu/wealth-pilot/releases/tag/v0.1.0
