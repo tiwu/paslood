@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: "3.14"
 
       - name: Install dependencies
         run: uv sync --all-extras --dev
@@ -45,12 +45,12 @@ jobs:
             --linter "${{ steps.linter.outcome }}" \
             --formatter "${{ steps.formatter.outcome }}" \
             --docs "${{ steps.docs.outcome }}" \
-            --python "3.11" \
+            --python "3.14" \
             --runner "${{ runner.os }} (${{ runner.arch }})" \
             --run-id "${{ github.run_id }}"
 
   test:
-    name: Test Suite & Coverage (Python 3.11)
+    name: Test Suite & Coverage (Python 3.14)
     needs: lint
     runs-on: ubuntu-24.04
     steps:
@@ -64,7 +64,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: "3.14"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6

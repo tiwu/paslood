@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
@@ -14,7 +14,7 @@ RUN uv sync --frozen --no-dev
 RUN uv run mkdocs build
 
 # Runtime Stage
-FROM python:3.12-slim-bookworm AS runtime
+FROM python:3.14-slim-bookworm AS runtime
 
 WORKDIR /app
 

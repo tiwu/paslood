@@ -19,7 +19,7 @@ assignees: ""
 
 ### Environment Details
 - **OS**: macOS / Linux
-- **Python Version**: 3.11+
+- **Python Version**: 3.12+ (3.14 recommended)
 - **Version/Commit**: (e.g. `main` branch commit)
 
 ---

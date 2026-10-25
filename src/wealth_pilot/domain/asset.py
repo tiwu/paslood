@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 from wealth_pilot.domain.money import Money
 
 
-class AssetClass(str, Enum):
+class AssetClass(StrEnum):
     EQUITY = "EQUITY"
     ETF = "ETF"
     COMMODITY = "COMMODITY"

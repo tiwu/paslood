@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
+from wealth_pilot import __version__
 from wealth_pilot.cli import app
 
 runner = CliRunner()
@@ -24,7 +25,7 @@ def test_cli_version():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
     assert "Wealth Pilot" in result.stdout
-    assert "v0.4.0" in result.stdout
+    assert f"v{__version__}" in result.stdout
 
 
 def test_cli_status(tmp_path: Path):

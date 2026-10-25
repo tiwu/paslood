@@ -7,7 +7,7 @@ name = "wealth-pilot"
 version = "0.5.0"
 description = "Strategic Wealth & Asset Allocation Guidance Platform"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
     { name = "Wealth Pilot Contributors" }
@@ -53,7 +53,7 @@ python_files = ["test_*.py"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 src = ["src", "tests", "scripts"]
 
 [tool.ruff.lint]
