@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 from wealth_pilot.domain.money import Money
 
 
-class AdviceType(str, Enum):
+class AdviceType(StrEnum):
     DEPOSIT_REBALANCE = "DEPOSIT_REBALANCE"
     DEBT_AVALANCHE = "DEBT_AVALANCHE"
     DEBT_SNOWBALL = "DEBT_SNOWBALL"
@@ -19,7 +19,7 @@ class AdviceType(str, Enum):
     GENERAL = "GENERAL"
 
 
-class Priority(str, Enum):
+class Priority(StrEnum):
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"

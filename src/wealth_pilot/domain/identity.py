@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class TenantRole(str, Enum):
+class TenantRole(StrEnum):
     OWNER = "OWNER"
     MEMBER = "MEMBER"
     VIEWER = "VIEWER"

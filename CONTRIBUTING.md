@@ -17,7 +17,7 @@ Wealth Pilot is a privacy-first, local-first strategic asset allocation and pers
 ## 2. Getting Started
 
 ### Prerequisites
-- **Python 3.10+** (Python 3.11 or 3.12 recommended)
+- **Python 3.12+** (Python 3.14 recommended)
 - **uv** (ultra-fast package installer and tool runner): [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
 - **Git**
 

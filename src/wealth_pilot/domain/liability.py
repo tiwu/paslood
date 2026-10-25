@@ -5,12 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 from wealth_pilot.domain.money import Money
 
 
-class LoanType(str, Enum):
+class LoanType(StrEnum):
     MORTGAGE = "MORTGAGE"
     CONSUMER_LOAN = "CONSUMER_LOAN"
     STUDENT_LOAN = "STUDENT_LOAN"

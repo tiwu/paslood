@@ -28,7 +28,7 @@ Wealth Pilot is a local-first, privacy-respecting financial planning platform de
 
 ### Option A: Local Run via `uv` (Fastest for Local Desktop)
 
-Requires Python 3.11+ and [`uv`](https://docs.astral.sh/uv/).
+Requires Python 3.12+ (3.14 recommended) and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
 # Clone the repository

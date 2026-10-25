@@ -11,7 +11,7 @@ You can run Wealth Pilot either directly via Python (`uv`) on your local machine
 ### Option A: Local Run via `uv` (Recommended for Local Workstations)
 
 #### Prerequisites
-- **Python 3.11+**
+- **Python 3.12+** (3.14 recommended)
 - [`uv`](https://docs.astral.sh/uv/) installed:
   ```bash
   curl -LsSf https://astral.sh/uv/install.sh | sh

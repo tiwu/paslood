@@ -1,6 +1,6 @@
 {
   "name": "Wealth Pilot Development",
-  "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/python:3.14-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
   },

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from wealth_pilot.domain.asset import Asset
@@ -12,7 +12,7 @@ from wealth_pilot.domain.liability import Liability
 from wealth_pilot.domain.money import Money
 
 
-class TransactionCategory(str, Enum):
+class TransactionCategory(StrEnum):
     INCOME = "INCOME"
     MORTGAGE = "MORTGAGE"
     DEBT_REPAYMENT = "DEBT_REPAYMENT"

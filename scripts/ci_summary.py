@@ -11,7 +11,7 @@ import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -30,7 +30,7 @@ def generate_lint_summary(
     linter: str = "success",
     formatter: str = "success",
     docs: str = "success",
-    python_version: str = "3.11",
+    python_version: str = "3.14",
     runner: str = "ubuntu-24.04",
     run_id: str = "",
     repo: str = "tiwu/wealth-pilot",
@@ -132,7 +132,7 @@ def generate_docs_summary(
     timestamp: str = "",
 ) -> str:
     """Generate Markdown summary for documentation deployment."""
-    ts = timestamp or datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    ts = timestamp or datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
     is_success = status.strip().lower() in ("success", "passed", "true")
 
     lines = [
@@ -227,7 +227,7 @@ def main(argv: list[str] | None = None) -> int:
     lint_p.add_argument("--linter", default="success", help="Ruff linter status")
     lint_p.add_argument("--formatter", default="success", help="Ruff formatter status")
     lint_p.add_argument("--docs", default="success", help="MkDocs build status")
-    lint_p.add_argument("--python", default="3.11", help="Python version")
+    lint_p.add_argument("--python", default="3.14", help="Python version")
     lint_p.add_argument("--runner", default="ubuntu-24.04", help="Runner OS and architecture")
     lint_p.add_argument("--run-id", default="", help="GitHub run ID")
     lint_p.add_argument("--repo", default="tiwu/wealth-pilot", help="GitHub repo")

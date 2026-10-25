@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from wealth_pilot.domain.asset import Asset, AssetClass
 
 
-class DriftStatus(str, Enum):
+class DriftStatus(StrEnum):
     BALANCED = "BALANCED"
     OVERWEIGHT = "OVERWEIGHT"
     UNDERWEIGHT = "UNDERWEIGHT"
