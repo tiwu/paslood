@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#wealth-pilot-documentation" class="md-skip">
+        <a href="#paslood-wealth-pilot-documentation" class="md-skip">
           Skip to content
         </a>
       
@@ -496,10 +496,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#why-wealth-pilot" class="md-nav__link">
+  <a href="#why-paslood" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why Wealth Pilot?
+        Why Paslood?
       
     </span>
   </a>
@@ -1464,10 +1464,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#why-wealth-pilot" class="md-nav__link">
+  <a href="#why-paslood" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why Wealth Pilot?
+        Why Paslood?
       
     </span>
   </a>
@@ -1505,30 +1505,35 @@
   
 
 
-<h1 id="wealth-pilot-documentation">Wealth Pilot Documentation 🧭</h1>
+<h1 id="paslood-wealth-pilot-documentation">Paslood (Wealth Pilot) Documentation 🧭</h1>
 <blockquote>
-<p><strong>Strategic Wealth &amp; Asset Allocation Guidance Platform</strong></p>
+<p><strong>Whole-Life Balance Sheet, PDT Strategic Companion &amp; Belgian Fiscal Shield</strong></p>
+<p><em>"You can't know where you're going if you don't know where you are."</em></p>
 </blockquote>
-<p>Welcome to the documentation for <strong>Wealth Pilot</strong>, an open-source, local-first platform designed for mid-to-long term wealth planning, strategic asset allocation, and actionable financial guidance.</p>
+<p>Welcome to the documentation for <strong>Paslood</strong> (<em>in het lood staan</em> — plumb-line alignment for your personal balance sheet), an open-source, local-first platform designed to unify your brokerage portfolio with your real-world off-broker assets, debts, and Belgian fiscal obligations.</p>
 <hr />
-<h2 id="why-wealth-pilot">Why Wealth Pilot?</h2>
-<p>Most personal finance apps fall into one of two extremes:
-1. <strong>Micro-Budgeting Apps</strong> (e.g. YNAB, Monarch): Focus on categorizing small daily expenses and managing envelope budgets. They offer little to no strategic investment guidance.
-2. <strong>Passive Net Worth Dashboards</strong> (e.g. Kubera, Finary): Provide high-level aggregation across accounts, but lack proactive advice on how to rebalance, which debts to pay off, or where to deploy monthly surplus cashflow.</p>
-<p><strong>Wealth Pilot bridges this gap</strong>:
-- <strong>Macro Allocation Buckets</strong>: Organize assets into target pillars (e.g. Core World ETFs, High-Conviction Growth, Gold/Commodities, Cash Buffers, Real Estate) with customizable drift tolerances.
-- <strong>Unified Balance Sheet</strong>: Connects investment accounts (PDT MCP), bank checking cashflow (KBC CSV), savings accounts (Bunq), and active debts (mortgages, credit lines).
-- <strong>Proactive Guidance Engine</strong>: Rebalances portfolios using incoming monthly cash deposits (<strong>Buy-Only Rebalancing</strong>) without forcing taxable asset sales or broker fees.
-- <strong>Belgian 2026 Capital Gains Tax Optimizer</strong>: FIFO lot tracking with Dec 31, 2025 benchmark price lookup and €10,000 annual exemption optimization.
-- <strong>Debt vs. Investing Optimization</strong>: Evaluates debt APR against long-term expected portfolio returns (Avalanche vs Snowball).
-- <strong>Server-Side AI Advisor</strong>: Pluggable LLM interface (BYO API key) delivering personalized strategic commentary with zero client-side credential exposure.
-- <strong>Privacy &amp; Security First</strong>: Envelope encryption (<code>SecretVault</code> with AES-256-GCM), local SQLite database, and network bind guards.
-- <strong>Containerized &amp; Mobile-Ready</strong>: Run locally or via Docker Compose with <strong>Tailscale</strong>, <strong>Cloudflare Tunnel</strong>, or <strong>DuckDNS + Caddy</strong> for secure remote phone access.</p>
+<h2 id="why-paslood">Why Paslood?</h2>
+<p>Brokerage portfolio trackers like <strong>Portfolio Dividend Tracker (PDT)</strong> do the heavy lifting of importing broker CSVs (e.g., Saxo) and tracking dividend income. However, <strong>PDT only sees your brokerage accounts</strong>. It knows nothing about:</p>
+<ul>
+<li><strong>Checking &amp; Savings Accounts</strong>: Cash buffers at KBC or Bunq.</li>
+<li><strong>Pillar Pensions</strong>: KBC pension savings (<em>pensioensparen</em>).</li>
+<li><strong>Real Estate &amp; Loans</strong>: Primary residence value, mortgage principal/APR, or consumer/vehicle loans (e.g., Alpha Credit motorcycle loan).</li>
+<li><strong>Employee Stock Concentration &amp; Foreign Custodians</strong>: Recurring employee share purchase plans (e.g., 0–10% gross salary quarterly ASML stock purchases + lump-sum grants on <strong>EquatePlus / Equatex AG Zurich</strong>) and the Belgian tax traps hidden on foreign settlement PDFs.</li>
+</ul>
+<p><strong>Paslood bridges this gap as your Strategic Decision Engine</strong>:
+- <strong>Macro Allocation Buckets</strong>: Organize your <em>entire</em> financial life into target pillars (Core World ETFs, Employee Stock / High-Conviction Growth, Gold/Commodities, Cash Buffers, Real Estate) with customizable drift tolerances.
+- <strong>Buy-Only Rebalancing</strong>: Directs incoming monthly savings to underweight buckets without forcing taxable sales.
+- <strong>Legally Grounded Belgian Fiscal Shield</strong>:
+  - <strong>2026 Meerwaardebelasting (<code>WIB 92 Art. 90/101</code>)</strong>: Uses <code>max(31 Dec 2025 Fotomoment, Historical Purchase Price)</code> as legal cost basis, models the <code>€10,000</code> annual exemption (<code>+€1,000/yr</code> 5-year carryover, doubled for joint filing), and solves the exact <strong>Max Tax-Free Share Trim</strong> to de-concentrate employee stock at <code>€0.00</code> CGT.
+  - <strong>EquatePlus (Zurich) Reconciliation &amp; TOB (<code>WDRT Art. 120-126/2</code>)</strong>: Separates Equatex AG's <code>0.35%</code> commission and <code>0.15%</code> Swiss stamp duty (<em>Zegelrechten</em>) from unwithheld <strong>Belgian TOB (<code>0.35%</code>)</strong>, alerting you to the bi-monthly FOD Financiën declaration deadline.
+  - <strong>Reynders Tax (<code>WIB 92 Art. 19bis</code>)</strong>: Computes the <code>30%</code> withholding tax on fixed-income/money-market funds (<code>&gt;10%</code> debt claims).
+- <strong>Debt vs. Investing Optimization</strong>: Evaluates loan APRs (mortgage, vehicle loan) against long-term expected portfolio CAGR.
+- <strong>Server-Side AI Advisor &amp; Privacy First</strong>: Envelope encryption (<code>SecretVault</code> with AES-256-GCM), local SQLite database, and Tailscale / Cloudflare Tunnel mobile access.</p>
 <hr />
 <h2 id="architectural-highlights">Architectural Highlights</h2>
-<p>Wealth Pilot strictly implements <strong>Uncle Bob's Clean Architecture</strong>:</p>
+<p>Paslood strictly implements <strong>Clean Architecture</strong>:</p>
 <ul>
-<li><code>domain/</code>: Pure business models (<code>Money</code>, <code>Asset</code>, <code>Liability</code>, <code>Bucket</code>, <code>AllocationRule</code>, <code>BalanceSheet</code>, <code>User</code>, <code>TenantContext</code>). Zero third-party dependencies.</li>
+<li><code>domain/</code>: Pure business models (<code>Money</code>, <code>Asset</code>, <code>Liability</code>, <code>Bucket</code>, <code>AllocationRule</code>, <code>BalanceSheet</code>, <code>TobTier</code>, <code>BrokerTaxProfile</code>, <code>BelgianTaxCitation</code>). Zero third-party dependencies.</li>
 <li><code>use_cases/</code>: Application business rules (<code>CalculateBucketAllocation</code>, <code>AdviseContribution</code>, <code>AdviseDebtPayoff</code>, <code>ProjectNetWorth</code>, <code>CategorizeTransactions</code>, <code>OptimizeTax</code>, <code>BuildPortfolioOverview</code>).</li>
 <li><code>adapters/</code>: Ingestion gateways (KBC CSV, PDT MCP, Generic CSV), repositories (<code>ConfigRepository</code>, <code>LocalDbRepository</code>), security (<code>SecretVault</code>), and settings (<code>AppSettings</code>).</li>
 <li><code>delivery/</code>: Modern local FastAPI web dashboard (<code>delivery/web</code>) with PWA and mobile bottom navigation, authentication manager (<code>AuthManager</code>), and scriptable CLI (<code>cli.py</code>).</li>
