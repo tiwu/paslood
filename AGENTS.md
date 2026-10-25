@@ -214,6 +214,6 @@ The autonomous issue lifecycle is powered by the Antigravity LLM worker sidecar,
   uv run python scripts/poll_issues.py --checkout <issue_number>
   ```
 
-- **Scheduled Background Poller**: Configured via the Antigravity scheduled automation sidecar `wealth-pilot-issue-worker` running hourly (`CRON_TZ=Europe/Brussels 0 * * * *`) in `~/.gemini/config/sidecars/wealth-pilot-issue-worker/sidecar.json`.
+- **Scheduled Background Poller**: Configured via the Antigravity scheduled automation sidecar `wealth-pilot-issue-worker` running hourly (`CRON_TZ=Europe/Brussels 0 * * * *`) in `~/.gemini/config/sidecars/wealth-pilot-issue-worker/sidecar.json`, executing the `issue-worker` skill (`.agents/skills/issue-worker/SKILL.md`).
 
 
