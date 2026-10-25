@@ -1,0 +1,2243 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Strategic Wealth & Asset Allocation Guidance Platform">
+      
+      
+        <meta name="author" content="Wealth Pilot Contributors">
+      
+      
+        <link rel="canonical" href="https://tiwu.github.io/wealth-pilot/reviews/ARCHITECTURE-REVIEW/">
+      
+      
+        <link rel="prev" href="../../plans/PLAN-7-add-translation-to-nl/">
+      
+      
+        <link rel="next" href="../UX-REVIEW/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Architecture Review - Wealth Pilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#wealth-pilot-software-architecture-saasiaas-readiness-review" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Wealth Pilot Documentation" class="md-header__button md-logo" aria-label="Wealth Pilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Wealth Pilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture Review
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tiwu/wealth-pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wealth-pilot
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../self-hosting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Self-Hosting & Deployment
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/buckets/" class="md-tabs__link">
+          
+  
+  
+  Core Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ingestion/kbc-csv/" class="md-tabs__link">
+          
+  
+  
+  Data Ingestion
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guidance/debt-payoff/" class="md-tabs__link">
+          
+  
+  
+  Guidance Engine
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ai-advisor/setup/" class="md-tabs__link">
+          
+  
+  
+  AI Advisor
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../plans/" class="md-tabs__link">
+          
+  
+  
+  Architecture Plans
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Architecture & UX Reviews
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Wealth Pilot Documentation" class="md-nav__button md-logo" aria-label="Wealth Pilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Wealth Pilot Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tiwu/wealth-pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wealth-pilot
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Hosting & Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/buckets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategic Buckets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/balance-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Balance Sheet & Net Worth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/rebalancing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Buy-Only Rebalancing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Ingestion
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data Ingestion
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ingestion/kbc-csv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KBC Bank Statements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ingestion/pdt-mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PDT MCP Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ingestion/generic-csv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generic CSV / Excel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ingestion/manual-accounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manual Accounts & Bunq
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guidance Engine
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guidance Engine
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guidance/debt-payoff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debt Payoff Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guidance/net-worth-projections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Net Worth Projections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guidance/tax-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Belgian Tax Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Advisor
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    AI Advisor
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai-advisor/setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup & API Keys
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Plans
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture Plans
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview & Standards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-TEMPLATE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan Template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-3-option-to-exclude-bucket-from-weight-cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #3 - Exclude Bucket from Rebalancing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-7-add-translation-to-nl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #7 - Dutch (NL) Translation and Localization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture & UX Reviews
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture & UX Reviews
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Review
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary-top-5-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary (Top 5 Findings)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-detailed-findings-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Detailed Findings Table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-clean-architecture-bounded-context-map-ddd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Clean Architecture &amp; Bounded Context Map (DDD)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Clean Architecture &amp; Bounded Context Map (DDD)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-current-vs-target-layering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Current vs. Target Layering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-six-bounded-contexts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Six Bounded Contexts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-multi-tenancy-data-architecture-ddia-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Multi-Tenancy &amp; Data Architecture (DDIA Evaluation)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Multi-Tenancy &amp; Data Architecture (DDIA Evaluation)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-storage-engine-tradeoff-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Storage Engine Tradeoff Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-recommended-unified-persistence-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Recommended Unified Persistence Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-identity-oauth2oidc-social-login-deployment-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Identity, OAuth2/OIDC Social Login &amp; Deployment Modes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Identity, OAuth2/OIDC Social Login &amp; Deployment Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-provider-architecture-authlib" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Provider Architecture (Authlib)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-account-linking-tenant-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Account Linking &amp; Tenant Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-poller-scriptspoll_issuespy-vs-github-action-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Poller (scripts/poll_issues.py) vs. GitHub Action Evaluation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Poller (scripts/poll_issues.py) vs. GitHub Action Evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommendation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommendation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-phased-architecture-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Phased Architecture Roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../UX-REVIEW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI/UX Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary-top-5-findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary (Top 5 Findings)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-detailed-findings-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Detailed Findings Table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-clean-architecture-bounded-context-map-ddd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Clean Architecture &amp; Bounded Context Map (DDD)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Clean Architecture &amp; Bounded Context Map (DDD)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-current-vs-target-layering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Current vs. Target Layering
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-six-bounded-contexts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Six Bounded Contexts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-multi-tenancy-data-architecture-ddia-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Multi-Tenancy &amp; Data Architecture (DDIA Evaluation)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Multi-Tenancy &amp; Data Architecture (DDIA Evaluation)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-storage-engine-tradeoff-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Storage Engine Tradeoff Matrix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-recommended-unified-persistence-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Recommended Unified Persistence Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-identity-oauth2oidc-social-login-deployment-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Identity, OAuth2/OIDC Social Login &amp; Deployment Modes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Identity, OAuth2/OIDC Social Login &amp; Deployment Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-provider-architecture-authlib" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Provider Architecture (Authlib)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-account-linking-tenant-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Account Linking &amp; Tenant Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-poller-scriptspoll_issuespy-vs-github-action-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Poller (scripts/poll_issues.py) vs. GitHub Action Evaluation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Poller (scripts/poll_issues.py) vs. GitHub Action Evaluation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#findings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Findings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommendation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommendation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-phased-architecture-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Phased Architecture Roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="wealth-pilot-software-architecture-saasiaas-readiness-review">Wealth Pilot — Software Architecture &amp; SaaS/IaaS Readiness Review</h1>
+<ul>
+<li><strong>Date</strong>: 2026-10-25</li>
+<li><strong>Lenses Applied</strong>: Clean Architecture (<code>.agents/skills/clean-architecture</code>), Kent Beck Simple Design (<code>.agents/skills/kent-beck-style</code>), Domain-Driven Design (<code>.agents/skills/domain-driven-design</code>), Designing Data-Intensive Applications (<code>.agents/skills/ddia-systems</code>)</li>
+<li><strong>Strategic Target</strong>: Dual-mode deployment — <strong>Self-Hosted Container / IaaS</strong> (Docker + Tailscale/Cloudflare/DDNS) and <strong>Multi-Tenant SaaS</strong> with OAuth/OIDC Social Login (Google, GitHub, Meta), server-side AI, and strict tenant isolation.</li>
+</ul>
+<hr />
+<h2 id="1-executive-summary-top-5-findings">1. Executive Summary (Top 5 Findings)</h2>
+<ol>
+<li><strong>[CRITICAL] Zero Authentication &amp; Arbitrary Server-File Write (<code>app.py</code>)</strong>: All 35+ REST endpoints have no authentication. Worse, <code>POST /api/backup/cloud-sync</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L1296-L1350">app.py:1296-1350</a>) accepts an arbitrary <code>sync_dir</code> string from the JSON body and writes/reads <code>wealth_pilot_vault.wpbackup</code> anywhere on the host filesystem. In a remotely accessible or SaaS environment, this is a critical path-traversal / arbitrary file read-write vulnerability.</li>
+<li><strong>[CRITICAL] Process-Global Mutable State &amp; File-Based Single-Tenancy (<code>app.py</code>, <code>config_repo.py</code>)</strong>: <code>create_app()</code> holds mutable singleton dicts <code>pending_oauth</code> and <code>state["pdt_assets"]</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L302-L305">app.py:302-305</a>) in memory, and <code>ConfigRepository</code> does unguarded read-modify-write cycles on <code>~/.wealth_pilot/portfolio.yaml</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/config_repo.py#L166">config_repo.py:166</a>). Concurrent requests or multiple users will overwrite each other's portfolios and leak holdings across sessions.</li>
+<li><strong>[HIGH] Fat Delivery Controller &amp; Business Logic Leakage (<code>app.py</code>)</strong>: <code>app.py</code> is 1,357 lines with 35+ endpoints defined inline inside <code>create_app()</code>. Domain rules—balance sheet consolidation (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L307-L342">L307-342</a>), property exclusion filtering (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L355-L363">L355-363</a>), drift alert construction (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L380-L392">L380-392</a>), milestone math (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L474-L490">L474-490</a>), and loan amortization fallback (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L737-L766">L737-766</a>)—live inside HTTP route handlers instead of Use Cases.</li>
+<li><strong>[HIGH] Missing Repository Ports &amp; Split-Brain Persistence (<code>config_repo.py</code>, <code>local_db.py</code>)</strong>: <code>use_cases/</code> has zero <code>Protocol</code> interfaces for persistence. Manual liabilities are written to both <code>portfolio.yaml</code> and SQLite <code>discovered_liabilities</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L771-L788">app.py:771-788</a>), creating dual sources of truth. SQLite stores monetary amounts as IEEE 754 <code>REAL</code> floats (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/local_db.py#L49-L93">local_db.py:49-93</a>) instead of integer cents or exact numeric strings.</li>
+<li><strong>[MEDIUM] SSRF &amp; Secret Exposure Surfaces (<code>app.py</code>, <code>llm_client.py</code>)</strong>: <code>POST /api/settings/mcp/servers/test</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L1114-L1165">app.py:1114-1165</a>) blocks link-local IPs (<code>169.254.169.254</code>) but allows <code>127.0.0.1</code>, <code>localhost</code>, and RFC1918 private networks (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>), enabling SSRF against internal container services (including Ollama or Redis/Postgres).</li>
+</ol>
+<hr />
+<h2 id="2-detailed-findings-table">2. Detailed Findings Table</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ID</th>
+<th style="text-align: left;">Severity</th>
+<th style="text-align: left;">Area</th>
+<th style="text-align: left;">Location</th>
+<th style="text-align: left;">Problem</th>
+<th style="text-align: left;">Recommended Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>ARCH-01</strong></td>
+<td style="text-align: left;">Critical</td>
+<td style="text-align: left;">Security / SaaS</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L1296-L1350">app.py:1296-1350</a></td>
+<td style="text-align: left;"><code>/api/backup/cloud-sync</code> takes arbitrary <code>sync_dir</code> path from client request and reads/writes files on the server host.</td>
+<td style="text-align: left;">Disable host-filesystem path sync in container/SaaS mode; use browser download/upload (<code>/api/backup/export</code> &amp; <code>import</code>) or server-configured backup storage volume only.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-02</strong></td>
+<td style="text-align: left;">Critical</td>
+<td style="text-align: left;">Security / Auth</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L180-L1354">app.py:180-1354</a></td>
+<td style="text-align: left;">No authentication or authorization on any route. Origin check (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L209">L209</a>) only checks <code>Origin</code> header when present (easily bypassed or spoofed by non-browser clients).</td>
+<td style="text-align: left;">Add OAuth2/OIDC authentication middleware + <code>CurrentTenant</code> FastAPI dependency injected into every <code>/api/*</code> router.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-03</strong></td>
+<td style="text-align: left;">Critical</td>
+<td style="text-align: left;">Concurrency / State</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L302-L305">app.py:302-305</a></td>
+<td style="text-align: left;"><code>pending_oauth</code> and <code>state["pdt_assets"]</code> are module/app-scoped dicts shared across all requests and users.</td>
+<td style="text-align: left;">Store OAuth PKCE state in signed session cookie or DB table with TTL; persist PDT assets per <code>tenant_id</code> in DB (<code>discovered_assets</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-04</strong></td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">Clean Arch</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L307-L490">app.py:307-490</a></td>
+<td style="text-align: left;"><code>get_overview</code> (200 lines) orchestrates asset deduplication, property filtering, drift AdviceItem creation, and milestone calculation inside the web layer.</td>
+<td style="text-align: left;">Extract <code>BuildPortfolioOverviewUseCase</code> in <code>use_cases/overview.py</code> tested purely against domain entities.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-05</strong></td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">Clean Arch / DRY</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L737-L766">app.py:737-766</a> &amp; <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/config_repo.py#L390-L409">config_repo.py:390-409</a></td>
+<td style="text-align: left;">Loan amortization &amp; percentage-payment fallback logic is duplicated verbatim between <code>app.py</code> (using <code>float</code>) and <code>config_repo.py</code> (using <code>Decimal</code>).</td>
+<td style="text-align: left;">Move into <code>Liability.create_or_estimate(...)</code> domain factory method using <code>Decimal</code> exclusively.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-06</strong></td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">Data / DDIA</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/config_repo.py#L166">config_repo.py:166</a>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/local_db.py#L25">local_db.py:25</a></td>
+<td style="text-align: left;">Hardcoded <code>Path.home() / ".wealth_pilot"</code> and <code>~/.pdt_auth.json</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/config_repo.py#L460">config_repo.py:460</a>); no env-var data directory configuration.</td>
+<td style="text-align: left;">Introduce <code>AppSettings</code> (<code>WEALTH_PILOT_DATA_DIR</code>) and migrate YAML state into tenant-scoped relational tables.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-07</strong></td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">Security / SSRF</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L1114-L1165">app.py:1114-1165</a></td>
+<td style="text-align: left;"><code>test_mcp_server</code> only blocks link-local IPs; permits loopback (<code>127.0.0.1</code>), private IPs (<code>10.x</code>, <code>192.168.x</code>), and DNS rebinding.</td>
+<td style="text-align: left;">Resolve hostname via <code>socket.getaddrinfo</code> and block <code>ip.is_private</code>, <code>ip.is_loopback</code>, <code>ip.is_link_local</code>, <code>ip.is_reserved</code> in SaaS/remote mode.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-08</strong></td>
+<td style="text-align: left;">Medium</td>
+<td style="text-align: left;">Precision</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L57-L162">app.py:57-162</a>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/local_db.py#L49-L93">local_db.py:49-93</a></td>
+<td style="text-align: left;">Request Pydantic models use <code>float</code> for money/weights; SQLite schema uses <code>REAL</code>.</td>
+<td style="text-align: left;">Use <code>Decimal</code> in Pydantic models and <code>NUMERIC(18,2)</code> / integer cents or text in SQLite/Postgres.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-09</strong></td>
+<td style="text-align: left;">Medium</td>
+<td style="text-align: left;">Crypto / Secrets</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/config_repo.py#L33-L95">config_repo.py:33-95</a></td>
+<td style="text-align: left;">Custom home-rolled stream cipher (<code>PBKDF2</code> + HMAC-SHA256 CTR-XOR) for vault encryption; AI keys &amp; PDT tokens stored in plaintext in <code>portfolio.yaml</code>.</td>
+<td style="text-align: left;">Keep v1 decryptor for backward-compatible restore, but use standard <code>cryptography.fernet</code> / <code>AESGCM</code> for v2 vault and for per-tenant envelope encryption of stored API keys/tokens.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-10</strong></td>
+<td style="text-align: left;">Medium</td>
+<td style="text-align: left;">CLI / Drift</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/cli.py#L61-L66">cli.py:61-66</a></td>
+<td style="text-align: left;"><code>wealth-pilot status</code> hardcodes fake cashflow numbers (<code>4800.0</code>, <code>1200.0</code>, <code>1553.92</code>, <code>800.0</code>) instead of reading <code>LocalDbRepository.get_monthly_cashflow()</code>.</td>
+<td style="text-align: left;">Wire <code>cli.py</code> to the same <code>PortfolioUnitOfWork</code> / <code>BuildPortfolioOverviewUseCase</code> as the web app.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARCH-11</strong></td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">CSP / AI</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L201">app.py:201</a></td>
+<td style="text-align: left;"><code>connect-src</code> in CSP whitelists <code>generativelanguage.googleapis.com</code>, <code>api.openai.com</code>, <code>api.anthropic.com</code> even though AI calls are already executed via <code>/api/ai/advise</code> and <code>/api/ai/models</code>.</td>
+<td style="text-align: left;">Remove external LLM domains from browser <code>connect-src</code>; stop accepting raw <code>api_key</code> in <code>GET /api/ai/models</code> query params (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/app.py#L673">app.py:673</a>) which leaks keys in access logs.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-clean-architecture-bounded-context-map-ddd">3. Clean Architecture &amp; Bounded Context Map (DDD)</h2>
+<h3 id="31-current-vs-target-layering">3.1 Current vs. Target Layering</h3>
+<ul>
+<li><strong>Domain (<code>src/wealth_pilot/domain/</code>)</strong>: 100% pure Python today (passes the Dependency Rule check—zero framework imports).</li>
+<li><strong>Use Cases (<code>src/wealth_pilot/use_cases/</code>)</strong>: Pure today, <strong>but</strong> missing repository ports (<code>Protocol</code>) and missing an application-level orchestrator for the consolidated dashboard, forcing <code>app.py</code> and <code>cli.py</code> to duplicate orchestration logic.</li>
+<li><strong>Adapters (<code>src/wealth_pilot/adapters/</code>)</strong>: <code>ConfigRepository</code> (814 lines) is a "God Repository" managing 6 distinct aggregates in one YAML file (<code>buckets</code>, <code>manual_assets</code>, <code>manual_liabilities</code>, <code>milestones</code>, <code>settings</code>, <code>rules</code>).</li>
+<li><strong>Delivery (<code>src/wealth_pilot/delivery/</code>)</strong>: Monolithic <code>app.py</code> (1,357 lines) + <code>index.html</code> (3,815 lines).</li>
+</ul>
+<h3 id="32-six-bounded-contexts">3.2 Six Bounded Contexts</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flowchart TB
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    subgraph Delivery["Delivery Layer (FastAPI Routers + CLI)"]
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        R_AUTH["routers/auth.py"]
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        R_PORT["routers/portfolio.py"]
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        R_PLAN["routers/planning.py"]
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        R_ING["routers/ingestion.py"]
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        R_AI["routers/ai.py"]
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        R_SET["routers/settings.py"]
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    end
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    subgraph UseCases["Application Layer (Use Cases + Ports)"]
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        UC_ID["Identity &amp; Tenancy\n(AuthenticateOAuth, ResolveTenant)"]
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        UC_PORT["Portfolio &amp; Allocation\n(BuildOverview, CalculateAllocation, AssignBucket)"]
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        UC_PLAN["Strategic Planning\n(AdviseContribution, AdviseDebt, OptimizeTax, ProjectNetWorth)"]
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        UC_ING["Cashflow &amp; Ingestion\n(IngestStatement, CategorizeTransactions)"]
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        UC_AI["AI Advisory\n(AdviseAi, ListProviderModels)"]
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        PORTS["Repository Protocols (Ports)\nTenantUoW, PortfolioRepo, TransactionRepo, SecretVault"]
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    end
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    subgraph Domain["Enterprise Domain Layer (Pure Python)"]
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        DOM["Money, Asset, Liability, Bucket, BalanceSheet, Transaction, AdviceItem, Tenant, User"]
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    end
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    subgraph Adapters["Infrastructure Adapters"]
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        DB_ADAPT["SQLAlchemy / SQLite / Postgres Repositories\n(Tenant-Scoped + RLS)"]
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        KMS_ADAPT["Envelope Secret Vault\n(AES-256-GCM per Tenant)"]
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        OAUTH_ADAPT["Authlib OIDC/OAuth2 Gateway\n(Google, GitHub, Meta)"]
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        ING_ADAPT["KbcCsv, GenericCsv, PdtMcpGateway"]
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        LLM_ADAPT["UniversalAIAdvisorClient\n(Server-Side Only)"]
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    end
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    Delivery --&gt; UseCases
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    UseCases --&gt; Domain
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    Adapters -.implements.-&gt; PORTS
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    Adapters --&gt; Domain
+</code></pre></div>
+<hr />
+<h2 id="4-multi-tenancy-data-architecture-ddia-evaluation">4. Multi-Tenancy &amp; Data Architecture (DDIA Evaluation)</h2>
+<p>To support <strong>both</strong> a lightweight single-container self-hosted install (Raspberry Pi / NAS / VPS) <strong>and</strong> a multi-tenant cloud SaaS from a single codebase:</p>
+<h3 id="41-storage-engine-tradeoff-matrix">4.1 Storage Engine Tradeoff Matrix</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Option</th>
+<th style="text-align: left;">Self-Host Ergonomics</th>
+<th style="text-align: left;">SaaS Multi-Tenant Isolation</th>
+<th style="text-align: left;">Operational Complexity</th>
+<th style="text-align: left;">Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>A. YAML + SQLite (Current)</strong></td>
+<td style="text-align: left;">Easy, human-editable YAML</td>
+<td style="text-align: left;">Unsafe (race conditions, no locks, split-brain state)</td>
+<td style="text-align: left;">Low locally, impossible in SaaS</td>
+<td style="text-align: left;"><strong>Retire YAML as primary store</strong> (keep YAML import/export for power users)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>B. SQLite-per-Tenant (<code>data/tenants/&lt;tenant_id&gt;.db</code>)</strong></td>
+<td style="text-align: left;">Zero external DB container needed; trivial per-user backup</td>
+<td style="text-align: left;">Physical file isolation per tenant; zero cross-tenant query risk</td>
+<td style="text-align: left;">Medium at &gt;5,000 concurrent SaaS tenants</td>
+<td style="text-align: left;"><strong>Best for Self-Host &amp; Early SaaS</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>C. Shared PostgreSQL + <code>tenant_id</code> + Row-Level Security (RLS)</strong></td>
+<td style="text-align: left;">Requires Postgres container</td>
+<td style="text-align: left;">Industry-standard SaaS isolation (<code>SET app.current_tenant_id</code>); horizontal scaling</td>
+<td style="text-align: left;">Standard cloud DB ops + Alembic migrations</td>
+<td style="text-align: left;"><strong>Best for Scale SaaS</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-recommended-unified-persistence-strategy">4.2 Recommended Unified Persistence Strategy</h3>
+<ol>
+<li><strong>Unify YAML + SQLite into a single Relational Schema</strong> managed via <strong>SQLAlchemy 2.0 (Core/ORM) + Alembic</strong>:</li>
+<li>Tables: <code>users</code>, <code>oauth_identities</code>, <code>tenants</code>, <code>tenant_memberships</code>, <code>buckets</code>, <code>bucket_rules</code>, <code>assets</code>, <code>liabilities</code>, <code>transactions</code>, <code>transaction_rules</code>, <code>milestones</code>, <code>tenant_settings</code>, <code>encrypted_secrets</code>.</li>
+<li>Every domain table includes <code>tenant_id TEXT NOT NULL</code> indexed as <code>(tenant_id, id)</code>.</li>
+<li><strong>Dual-Dialect Support (<code>DATABASE_URL</code>)</strong>:</li>
+<li><strong>Self-Hosted Default</strong>: <code>sqlite:////data/wealth_pilot.db</code> (with <code>PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;</code>). Zero extra containers required.</li>
+<li><strong>SaaS Production</strong>: <code>postgresql+psycopg://...</code> with PostgreSQL <strong>Row-Level Security (RLS)</strong> policies (<code>USING (tenant_id = current_setting('app.current_tenant_id'))</code>) as defense-in-depth so even a buggy query cannot read another tenant's rows.</li>
+<li><strong>Automatic One-Time Migration from Legacy <code>~/.wealth_pilot/portfolio.yaml</code></strong>:</li>
+<li>On startup, if <code>portfolio.yaml</code> exists and the default tenant has not been migrated, import buckets, manual assets/liabilities, milestones, rules, and settings into the DB and rename <code>portfolio.yaml</code> to <code>portfolio.yaml.migrated.bak</code>.</li>
+<li><strong>Per-Tenant Envelope Encryption for Secrets (<code>SecretVault</code>)</strong>:</li>
+<li>AI API keys (<code>gemini</code>, <code>openai</code>, <code>anthropic</code>) and PDT OAuth tokens (<code>access_token</code>, <code>refresh_token</code>) are never stored in plaintext.</li>
+<li>Derived per-tenant Data Encryption Key (DEK) via <code>HKDF-SHA256(master_key=WEALTH_PILOT_SECRET_KEY, salt=tenant_id)</code> encrypts each secret with <code>AES-256-GCM</code>.</li>
+<li>Keys never leave the server: <code>GET /api/ai/models</code> uses the stored server-side key for the authenticated tenant; <code>POST /api/ai/advise</code> executes strictly server-side.</li>
+</ol>
+<hr />
+<h2 id="5-identity-oauth2oidc-social-login-deployment-modes">5. Identity, OAuth2/OIDC Social Login &amp; Deployment Modes</h2>
+<h3 id="51-provider-architecture-authlib">5.1 Provider Architecture (<code>Authlib</code>)</h3>
+<p>Use <code>authlib</code> + <code>itsdangerous</code> (Starlette <code>SessionMiddleware</code> + DB-backed session store) with a unified <code>/auth/{provider}/login</code> and <code>/auth/{provider}/callback</code> flow:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Provider</th>
+<th style="text-align: left;">Protocol</th>
+<th style="text-align: left;">Scopes</th>
+<th style="text-align: left;">Production Caveats</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Google</strong></td>
+<td style="text-align: left;">OIDC (<code>accounts.google.com/.well-known/openid-configuration</code>)</td>
+<td style="text-align: left;"><code>openid email profile</code></td>
+<td style="text-align: left;">Seamless setup; returns verified email + <code>sub</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>GitHub</strong></td>
+<td style="text-align: left;">OAuth2 (<code>github.com/login/oauth/authorize</code> + <code>/user</code> + <code>/user/emails</code>)</td>
+<td style="text-align: left;"><code>read:user user:email</code></td>
+<td style="text-align: left;">Fetch primary verified email from <code>/user/emails</code> endpoint in case profile email is private.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Meta (Facebook)</strong></td>
+<td style="text-align: left;">OAuth2 (<code>facebook.com/v19.0/dialog/oauth</code> + Graph <code>/me?fields=id,name,email</code>)</td>
+<td style="text-align: left;"><code>public_profile,email</code></td>
+<td style="text-align: left;">Requires Meta Business Verification &amp; App Review + Privacy Policy/Data Deletion Callback URLs before live non-developer logins work. Make optional via env vars.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Local Passphrase / Magic Link (Fallback)</strong></td>
+<td style="text-align: left;">Argon2id password or Admin Bootstrap Token</td>
+<td style="text-align: left;">Local session</td>
+<td style="text-align: left;">Ensures self-hosters can log in on day 1 before configuring OAuth client IDs.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-account-linking-tenant-resolution">5.2 Account Linking &amp; Tenant Resolution</h3>
+<ul>
+<li><strong>Data Model</strong>:</li>
+<li><code>User (id, primary_email, display_name, avatar_url, created_at)</code></li>
+<li><code>OAuthIdentity (provider, provider_subject_id, user_id, email)</code> — unique on <code>(provider, provider_subject_id)</code>.</li>
+<li><code>Tenant (id, name, plan, created_at)</code></li>
+<li><code>TenantMembership (tenant_id, user_id, role: OWNER | MEMBER | VIEWER)</code> — supports future household sharing!</li>
+<li><strong>Sign-In Flow</strong>:</li>
+<li>Callback verifies <code>state</code> + PKCE <code>code_verifier</code>.</li>
+<li>Look up <code>OAuthIdentity(provider, sub)</code>.</li>
+<li>If not found and email is verified by the IdP, link to existing <code>User</code> with matching <code>primary_email</code> (or create new <code>User</code> + personal <code>Tenant</code> with default buckets).</li>
+<li><strong>Self-Host Guard</strong>: If <code>WEALTH_PILOT_ALLOWED_EMAILS</code> is set (e.g. <code>you@gmail.com,partner@gmail.com</code>), reject any login not in the allow-list with <code>403 Forbidden</code>.</li>
+</ul>
+<hr />
+<h2 id="6-poller-scriptspoll_issuespy-vs-github-action-evaluation">6. Poller (<code>scripts/poll_issues.py</code>) vs. GitHub Action Evaluation</h2>
+<h3 id="findings">Findings</h3>
+<ul>
+<li><code>.github/workflows/issue-worker.yml</code> <strong>actually invokes</strong> <code>scripts/poll_issues.py</code> on line 68 (<code>uv run python scripts/poll_issues.py "${ARGS[@]}"</code>). They are not two independent implementations—<code>poll_issues.py</code> is the CLI script used by the GitHub Action!</li>
+<li><strong>Why it is "half-working"</strong>:</li>
+<li><strong>Stage 1 (<code>process_planning_stage</code>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/scripts/poll_issues.py#L143-L203">poll_issues.py:143-203</a>)</strong>: Writes a static boilerplate template (<code>draft_plan_content</code>) that merely copies <code>issue.body</code> into <code>docs/plans/PLAN-&lt;id&gt;-&lt;slug&gt;.md</code> without any actual codebase analysis or AI planning. Worse, when triggered in GitHub Actions, it commits and pushes to <code>feature/issue-&lt;id&gt;-&lt;slug&gt;</code>, which leaves the local workspace on a dirty branch when run locally.</li>
+<li><strong>Stage 2 (<code>process_approved_stage</code>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/scripts/poll_issues.py#L312-L330">poll_issues.py:312-330</a>)</strong>: Only changes the GitHub label from <code>agent:approved</code> to <code>agent:in-progress</code> and posts a comment saying <em>"Implementation is beginning..."</em> — <strong>it does not actually invoke an agent, create the branch in CI, or run any code!</strong></li>
+</ul>
+<h3 id="recommendation">Recommendation</h3>
+<ul>
+<li><strong>Keep <code>scripts/poll_issues.py</code> as a lightweight CLI helper (<code>wealth-pilot-dev queue</code>) solely for local developer/agent inspection (<code>--status</code>, <code>--start-issue &lt;id&gt;</code>)</strong>, and <strong>simplify <code>.github/workflows/issue-worker.yml</code></strong>:</li>
+<li>Remove the hourly <code>cron: "0 * * * *"</code> schedule from <code>issue-worker.yml</code> (it wastes GitHub Actions minutes every hour since <code>issues: types: [opened, labeled]</code> already triggers immediately on label change).</li>
+<li>Fix <code>poll_issues.py</code> so Stage 2 (<code>--checkout &lt;issue&gt;</code>) cleanly fetches <code>origin/main</code> and checks out <code>feature/issue-&lt;id&gt;-&lt;slug&gt;</code> locally for the developer/agent, rather than pretending to run autonomous implementation inside an unauthenticated Ubuntu runner with no LLM key.</li>
+</ul>
+<hr />
+<h2 id="7-phased-architecture-roadmap">7. Phased Architecture Roadmap</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Phase</th>
+<th style="text-align: left;">ID</th>
+<th style="text-align: left;">Item (Suggested GitHub Issue Title)</th>
+<th style="text-align: left;">Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Phase 1: Foundation &amp; Self-Host Container</strong></td>
+<td style="text-align: left;"><code>P1-1</code></td>
+<td style="text-align: left;"><code>refactor(arch): extract APIRouters and BuildPortfolioOverviewUseCase from fat app.py</code></td>
+<td style="text-align: left;">M</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>P1-2</code></td>
+<td style="text-align: left;"><code>feat(config): add AppSettings with WEALTH_PILOT_DATA_DIR and disable arbitrary host path sync</code></td>
+<td style="text-align: left;">S</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>P1-3</code></td>
+<td style="text-align: left;"><code>feat(ai): enforce server-side AI key usage, tighten CSP, and harden MCP test SSRF check</code></td>
+<td style="text-align: left;">S</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>P1-4</code></td>
+<td style="text-align: left;"><code>feat(docker): add production Dockerfile, docker-compose (Tailscale/Cloudflare/Caddy), and /healthz</code></td>
+<td style="text-align: left;">M</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Phase 2: Social Auth &amp; Account Isolation</strong></td>
+<td style="text-align: left;"><code>P2-1</code></td>
+<td style="text-align: left;"><code>feat(auth): add OAuth2/OIDC login (Google, GitHub, Meta) + local password fallback &amp; email allow-list</code></td>
+<td style="text-align: left;">M</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>P2-2</code></td>
+<td style="text-align: left;"><code>feat(db): unify YAML + SQLite into tenant-scoped relational schema with automatic YAML migration</code></td>
+<td style="text-align: left;">L</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>P2-3</code></td>
+<td style="text-align: left;"><code>feat(security): encrypt per-tenant AI keys and PDT tokens at rest with AES-256-GCM SecretVault</code></td>
+<td style="text-align: left;">M</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Phase 3: Multi-Tenant SaaS Readiness</strong></td>
+<td style="text-align: left;"><code>P3-1</code></td>
+<td style="text-align: left;"><code>feat(saas): add PostgreSQL + Row-Level Security (RLS) adapter and Alembic migrations</code></td>
+<td style="text-align: left;">M</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>P3-2</code></td>
+<td style="text-align: left;"><code>feat(saas): household multi-user tenant memberships, audit logging, and GDPR account export/delete</code></td>
+<td style="text-align: left;">M</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>P3-3</code></td>
+<td style="text-align: left;"><code>chore(ci): remove redundant hourly cron from issue-worker.yml and fix poll_issues.py local checkout</code></td>
+<td style="text-align: left;">S</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

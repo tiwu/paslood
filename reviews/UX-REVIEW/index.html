@@ -1,0 +1,2107 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Strategic Wealth & Asset Allocation Guidance Platform">
+      
+      
+        <meta name="author" content="Wealth Pilot Contributors">
+      
+      
+        <link rel="canonical" href="https://tiwu.github.io/wealth-pilot/reviews/UX-REVIEW/">
+      
+      
+        <link rel="prev" href="../ARCHITECTURE-REVIEW/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>UI/UX Review - Wealth Pilot Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#wealth-pilot-product-uiux-information-architecture-review" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Wealth Pilot Documentation" class="md-header__button md-logo" aria-label="Wealth Pilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Wealth Pilot Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              UI/UX Review
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tiwu/wealth-pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wealth-pilot
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../self-hosting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Self-Hosting & Deployment
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../concepts/buckets/" class="md-tabs__link">
+          
+  
+  
+  Core Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ingestion/kbc-csv/" class="md-tabs__link">
+          
+  
+  
+  Data Ingestion
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guidance/debt-payoff/" class="md-tabs__link">
+          
+  
+  
+  Guidance Engine
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ai-advisor/setup/" class="md-tabs__link">
+          
+  
+  
+  AI Advisor
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../plans/" class="md-tabs__link">
+          
+  
+  
+  Architecture Plans
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../ARCHITECTURE-REVIEW/" class="md-tabs__link">
+          
+  
+  
+  Architecture & UX Reviews
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Wealth Pilot Documentation" class="md-nav__button md-logo" aria-label="Wealth Pilot Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Wealth Pilot Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tiwu/wealth-pilot" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wealth-pilot
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Hosting & Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/buckets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Strategic Buckets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/balance-sheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Balance Sheet & Net Worth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/rebalancing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Buy-Only Rebalancing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Ingestion
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data Ingestion
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ingestion/kbc-csv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    KBC Bank Statements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ingestion/pdt-mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PDT MCP Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ingestion/generic-csv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generic CSV / Excel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ingestion/manual-accounts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manual Accounts & Bunq
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guidance Engine
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guidance Engine
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guidance/debt-payoff/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debt Payoff Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guidance/net-worth-projections/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Net Worth Projections
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guidance/tax-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Belgian Tax Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Advisor
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    AI Advisor
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai-advisor/setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup & API Keys
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Plans
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture Plans
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview & Standards
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-TEMPLATE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plan Template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-3-option-to-exclude-bucket-from-weight-cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #3 - Exclude Bucket from Rebalancing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-7-add-translation-to-nl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #7 - Dutch (NL) Translation and Localization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture & UX Reviews
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture & UX Reviews
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE-REVIEW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI/UX Review
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI/UX Review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary-why-the-app-feels-scattered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary: Why the App Feels Scattered
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-complete-feature-inventory-scattering-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Complete Feature Inventory &amp; Scattering Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-personas-jobs-to-be-done-jtbd-core-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Personas, Jobs-to-be-Done (JTBD) &amp; Core Use Cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Personas, Jobs-to-be-Done (JTBD) &amp; Core Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-target-personas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Target Personas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-core-use-cases-task-flow-friction-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Core Use Cases &amp; Task-Flow Friction Audit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-heuristic-visual-design-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Heuristic &amp; Visual Design Audit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Heuristic &amp; Visual Design Audit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-nielsen-heuristic-scorecard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Nielsen Heuristic Scorecard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-mobile-visual-hierarchy-accessibility-findings-refactoring-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Mobile, Visual Hierarchy &amp; Accessibility Findings (refactoring-ui)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-proposed-information-architecture-task-oriented-consolidation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Proposed Information Architecture (Task-Oriented Consolidation)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Proposed Information Architecture (Task-Oriented Consolidation)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mobile-wireframe-redesigned-overview-bottom-nav-unified-portfolio-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mobile Wireframe: Redesigned Overview + Bottom Nav &amp; Unified Portfolio Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-prioritised-ux-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Prioritised UX Recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary-why-the-app-feels-scattered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary: Why the App Feels Scattered
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-complete-feature-inventory-scattering-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Complete Feature Inventory &amp; Scattering Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-personas-jobs-to-be-done-jtbd-core-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Personas, Jobs-to-be-Done (JTBD) &amp; Core Use Cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Personas, Jobs-to-be-Done (JTBD) &amp; Core Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-target-personas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Target Personas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-core-use-cases-task-flow-friction-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Core Use Cases &amp; Task-Flow Friction Audit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-heuristic-visual-design-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Heuristic &amp; Visual Design Audit
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Heuristic &amp; Visual Design Audit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-nielsen-heuristic-scorecard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Nielsen Heuristic Scorecard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-mobile-visual-hierarchy-accessibility-findings-refactoring-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Mobile, Visual Hierarchy &amp; Accessibility Findings (refactoring-ui)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-proposed-information-architecture-task-oriented-consolidation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Proposed Information Architecture (Task-Oriented Consolidation)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Proposed Information Architecture (Task-Oriented Consolidation)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mobile-wireframe-redesigned-overview-bottom-nav-unified-portfolio-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mobile Wireframe: Redesigned Overview + Bottom Nav &amp; Unified Portfolio Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-prioritised-ux-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Prioritised UX Recommendations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="wealth-pilot-product-uiux-information-architecture-review">Wealth Pilot — Product UI/UX &amp; Information Architecture Review</h1>
+<ul>
+<li><strong>Date</strong>: 2026-10-25</li>
+<li><strong>Lenses Applied</strong>: Usability Heuristics (<code>.agents/skills/ux-heuristics</code>), Visual Hierarchy &amp; Dark UI (<code>.agents/skills/refactoring-ui</code>), Jobs-to-be-Done (<code>.agents/skills/jobs-to-be-done</code>)</li>
+<li><strong>Primary Sources Audited</strong>: <code>src/wealth_pilot/delivery/web/templates/index.html</code> (3,815 lines), <code>src/wealth_pilot/delivery/web/i18n.py</code>, <code>src/wealth_pilot/cli.py</code></li>
+<li><strong>Target Context</strong>: Mobile-first remote access (phone over Tailscale/DDNS) + Multi-Tenant SaaS / Self-Hosted IaaS with Social Login (Google, GitHub, Meta).</li>
+</ul>
+<hr />
+<h2 id="1-executive-summary-why-the-app-feels-scattered">1. Executive Summary: Why the App Feels Scattered</h2>
+<p>Wealth Pilot has strong financial calculators (Buy-Only Rebalancing, Debt vs. Invest APR comparison, Belgian 2026 Capital Gains Tax simulator, Loan Amortization estimator, Compound Trajectory), <strong>but the interface is organized around backend storage mechanisms rather than user tasks</strong>:</p>
+<ol>
+<li><strong>Holdings &amp; Assets are split across 3 different tabs</strong>:</li>
+<li>Broker holdings &amp; bucket mapping live at the bottom of <strong>Buckets</strong> (<code>#tab-buckets</code>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L418-L447">index.html:418-447</a>).</li>
+<li>Manual assets (Real Estate, Cash) and Mortgages live in <strong>Data &amp; Assets</strong> (<code>#tab-cashflow</code>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L622-L684">index.html:622-684</a>).</li>
+<li>Live broker sync (PDT OAuth/MCP) lives inside <strong>Settings</strong> (<code>#tab-settings</code>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L815-L895">index.html:815-895</a>).</li>
+<li><strong>"Guidance" and "AI Advisor" are competing tabs</strong>: Deterministic advice appears in <strong>Overview</strong> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L359">L359</a>), again in <strong>Guidance</strong> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L487">L487</a>), while generative advice is isolated in <strong>AI Advisor</strong> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L743">L743</a>).</li>
+<li><strong>First-Run Onboarding Bug (<code>wizardFinish</code>)</strong>: The setup wizard writes bucket targets using hardcoded IDs <code>b-core-etf</code>, <code>b-conviction</code>, <code>b-gold</code>, <code>b-buffer</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L3708-L3727">index.html:3708-3727</a>), whereas <code>ConfigRepository</code> seeds buckets with IDs <code>core-etf</code>, <code>tech-growth</code>, <code>commodities</code>, <code>cash-buffer</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/config_repo.py#L114-L146">config_repo.py:114-146</a>). Completing the setup wizard creates <strong>4 duplicate buckets</strong> (8 buckets totaling 200% weight!).</li>
+<li><strong>Mobile Navigation Friction</strong>: On phone screens, all 6 sections are hidden inside a top-right hamburger drawer (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L195-L233">index.html:195-233</a>), and core data views rely on 6-to-7-column horizontal-scroll tables.</li>
+</ol>
+<hr />
+<h2 id="2-complete-feature-inventory-scattering-map">2. Complete Feature Inventory &amp; Scattering Map</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Current Location (<code>index.html</code>)</th>
+<th style="text-align: left;">API Route</th>
+<th style="text-align: left;">UX / IA Issue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>KPI Cards</strong> (Net Worth, Assets, Debts, Free Cashflow)</td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L270-L296">L270-296</a>)</td>
+<td style="text-align: left;"><code>GET /api/overview</code></td>
+<td style="text-align: left;">Good placement; lacks "Last synced / updated" indicator and click-through to underlying assets/debts.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Exclude Property Toggle</strong></td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L254-L267">L254-267</a>)</td>
+<td style="text-align: left;"><code>GET /api/overview?exclude_property=</code></td>
+<td style="text-align: left;">Takes a full-width banner above KPIs; should be a compact pill toggle inside the Net Worth header.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Allocation Donut &amp; 30Y Trajectory</strong></td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L299-L337">L299-337</a>)</td>
+<td style="text-align: left;"><code>GET /api/projection</code></td>
+<td style="text-align: left;">Good, but CAGR/Year controls don't show the assumed monthly savings euro amount used in the curve.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>FI Milestones Tracker</strong></td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L340-L356">L340-356</a>) + <code>#milestones-modal</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L1376">L1376</a>)</td>
+<td style="text-align: left;"><code>GET/POST /api/milestones</code></td>
+<td style="text-align: left;">5-column grid (<code>lg:grid-cols-5</code>) stacks into a tall vertical list on mobile.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Immediate Recommendations Preview</strong></td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L359-L372">L359-372</a>)</td>
+<td style="text-align: left;"><code>GET /api/overview</code></td>
+<td style="text-align: left;">Duplicates <code>#debt-advisor-list</code> on <code>#tab-advice</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L487">L487</a>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Strategic Buckets Table &amp; Progress Meters</strong></td>
+<td style="text-align: left;"><code>#tab-buckets</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L388-L415">L388-415</a>)</td>
+<td style="text-align: left;"><code>POST/PUT/DELETE /api/buckets</code></td>
+<td style="text-align: left;">Table (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L390">L390</a>) and Progress Meters (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L410">L410</a>) display the exact same numbers twice on the same screen.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Holdings-to-Bucket Assignment Table</strong></td>
+<td style="text-align: left;"><code>#tab-buckets</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L418-L447">L418-447</a>)</td>
+<td style="text-align: left;"><code>POST /api/buckets/assign-asset</code></td>
+<td style="text-align: left;">Shows all assets, but you cannot add/edit/delete an asset from here—you have to jump to <code>#tab-cashflow</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Smart Buy-Only Deposit Calculator</strong></td>
+<td style="text-align: left;"><code>#tab-advice</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L453-L484">L453-484</a>)</td>
+<td style="text-align: left;">Client-side JS math (!), not calling <code>AdviseContributionUseCase</code></td>
+<td style="text-align: left;"><strong>Bug/Drift</strong>: Web UI computes contribution orders in inline JS while CLI calls <code>AdviseContributionUseCase</code>. Should call a server endpoint <code>/api/advice/contribution</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Belgian 2026 CGT Simulator &amp; PDT Lookup</strong></td>
+<td style="text-align: left;"><code>#tab-advice</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L503-L609">L503-609</a>)</td>
+<td style="text-align: left;"><code>GET /api/tax/lookup-price</code>, <code>POST /api/tax/calculate</code></td>
+<td style="text-align: left;">Pre-filled with hardcoded dummy values (<code>ASML</code>, <code>912.00</code>, <code>1250.00</code>, <code>15</code> shares) instead of letting the user pick one of their actual portfolio holdings from a dropdown!</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Manual Assets &amp; Mortgages CRUD</strong></td>
+<td style="text-align: left;"><code>#tab-cashflow</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L622-L684">L622-684</a>)</td>
+<td style="text-align: left;"><code>/api/assets/manual</code>, <code>/api/liabilities/manual</code></td>
+<td style="text-align: left;">Labelled "Cashflow" in code (<code>#tab-cashflow</code>) and "Data &amp; Assets" in nav; mixes Net Worth balance-sheet items with bank statement CSV uploads.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>CSV Upload &amp; Transaction Categorization</strong></td>
+<td style="text-align: left;"><code>#tab-cashflow</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L687-L739">L687-739</a>)</td>
+<td style="text-align: left;"><code>/api/ingest/kbc</code>, <code>/api/ingest/generic</code>, <code>/api/transactions/rebucket</code></td>
+<td style="text-align: left;">Single dropzone guesses KBC vs Generic CSV by filename (<code>file.name.includes('kbc')</code>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L3663">L3663</a>)—fails if user renames the file!</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>AI Strategic Advisor</strong></td>
+<td style="text-align: left;"><code>#tab-ai</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L743-L805">L743-805</a>)</td>
+<td style="text-align: left;"><code>POST /api/ai/advise</code></td>
+<td style="text-align: left;">Single-turn prompt box; doesn't show what anonymized data payload is sent to the LLM (trust gap).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>PDT OAuth/MCP Sync, AI Keys, Tax Defaults, Language, Vault Backup</strong></td>
+<td style="text-align: left;"><code>#tab-settings</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L808-L1120">L808-1120</a>)</td>
+<td style="text-align: left;"><code>/api/settings</code>, <code>/api/auth/pdt/*</code>, <code>/api/backup/*</code></td>
+<td style="text-align: left;">5 long stacked cards; PDT Sync button is buried in Settings instead of next to Portfolio Holdings.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>First-Time Setup Wizard</strong></td>
+<td style="text-align: left;"><code>#setup-wizard-modal</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L1440-L1630">L1440-1630</a>)</td>
+<td style="text-align: left;">Multiple</td>
+<td style="text-align: left;">Creates duplicate buckets due to ID mismatch (<code>b-core-etf</code> vs <code>core-etf</code>); sets <code>localStorage</code> flag so it re-triggers on every new device/phone browser.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-personas-jobs-to-be-done-jtbd-core-use-cases">3. Personas, Jobs-to-be-Done (JTBD) &amp; Core Use Cases</h2>
+<h3 id="31-target-personas">3.1 Target Personas</h3>
+<ol>
+<li><strong>Pieter (34, Belgian Tech Professional — Mobile Check-In &amp; Monthly ETF Investor)</strong>:</li>
+<li><em>JTBD</em>: "When my salary lands on the 25th, help me see my free cashflow and tell me exactly which ETF bucket to buy on Saxo/Bolero in under 2 minutes on my phone, without selling anything or triggering Belgian CGT."</li>
+<li><strong>Sofie &amp; Lucas (41, Household Planners — Real Estate + Mortgage + Portfolio)</strong>:</li>
+<li><em>JTBD</em>: "When we review our family finances together, let us see both our liquid ETF portfolio and our house + KBC mortgage in one place, and simulate whether extra savings should go to early loan payoff or global equities."</li>
+<li><strong>Marc (48, Self-Hoster / Privacy-Conscious Investor)</strong>:</li>
+<li><em>JTBD</em>: "When I run Wealth Pilot on my home server/NAS via Docker and Tailscale, let me sign in with Google/GitHub from my phone, keep my AI keys and broker tokens encrypted on my server, and export an encrypted backup."</li>
+</ol>
+<h3 id="32-core-use-cases-task-flow-friction-audit">3.2 Core Use Cases &amp; Task-Flow Friction Audit</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Use Case</th>
+<th style="text-align: left;">Current Flow &amp; Friction (Steps)</th>
+<th style="text-align: left;">Target Redesigned Flow (Steps)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>UC-1: Monthly Payday Buy-Only Rebalance (Phone)</strong></td>
+<td style="text-align: left;">1. Open app on phone → 2. Tap hamburger → 3. Tap <em>Data &amp; Assets</em> → 4. Upload KBC CSV → 5. Tap hamburger → 6. Tap <em>Guidance</em> → 7. Type deposit amount manually → 8. Read bucket names → 9. Tap hamburger → 10. Tap <em>Buckets</em> to check which ETF ticker is in that bucket (<strong>10 steps across 3 tabs</strong>).</td>
+<td style="text-align: left;">1. Open <strong>Plan &amp; Rebalance</strong> on bottom nav (pre-filled with free monthly cashflow) → 2. Tap <strong>Calculate Buy Plan</strong> → 3. Each order card shows the bucket <em>and</em> its mapped tickers (<code>VWCE</code>, <code>IWDA</code>) + 1-tap AI second opinion (<strong>3 steps, 1 screen</strong>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UC-2: First-Time Onboarding (SaaS or Self-Host)</strong></td>
+<td style="text-align: left;">Wizard pops up via <code>localStorage</code> → Step 1 CSV upload guesses format by filename → Step 2 creates duplicate buckets (<code>b-core-etf</code>) → No account identity (<strong>Broken</strong>).</td>
+<td style="text-align: left;">1. Social Sign-In (Google/GitHub) → 2. Server-stored onboarding state: pick starting template or connect PDT / upload CSV (with explicit format selector) → 3. Confirm 100% bucket weights updating existing seeded buckets (<strong>3 clean steps</strong>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UC-3: Add/Edit Portfolio Holding &amp; Assign Bucket</strong></td>
+<td style="text-align: left;">Add asset in <em>Data &amp; Assets</em> tab → Switch to <em>Buckets</em> tab → Scroll to bottom table → Use dropdown to assign bucket (<strong>2 tabs, 2 tables</strong>).</td>
+<td style="text-align: left;">Unified <strong>Portfolio</strong> tab: "+ Add Asset" modal includes <strong>Bucket dropdown</strong> directly; Holdings list shows value, weight, and bucket badge in one place (<strong>1 tab</strong>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UC-4: Belgian 2026 CGT Sale Simulation</strong></td>
+<td style="text-align: left;">Open <em>Guidance</em> → Scroll to bottom → Manually type ticker <code>ASML</code>, manually type share count, click Lookup PDT → Click Calculate (<strong>Manual data re-entry</strong>).</td>
+<td style="text-align: left;">In <strong>Plan &amp; Rebalance → Tax Optimizer</strong>, select any existing holding from a dropdown → auto-populates ticker, current value, and PDT Dec 31, 2025 benchmark price (<strong>2 clicks</strong>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UC-5: Sync Live Broker Holdings (PDT)</strong></td>
+<td style="text-align: left;">Open hamburger → <em>Settings</em> → Scroll to PDT card → Click <em>Sync Holdings</em> → Switch back to <em>Overview</em> (<strong>5 steps</strong>).</td>
+<td style="text-align: left;">Persistent <strong>Sync Now</strong> button in top header / Portfolio tab header with live "Synced 2m ago" badge (<strong>1 tap</strong>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UC-6: Ask AI Advisor About a Specific Decision</strong></td>
+<td style="text-align: left;">Go to <em>AI Advisor</em> tab → Pick one of 5 generic prompt buttons → Wait for full balance-sheet dump response.</td>
+<td style="text-align: left;">Keep dedicated advisor view <strong>plus</strong> contextual "✨ Ask AI about this" button inside Rebalancing &amp; Tax Simulator cards, with a collapsible "View anonymized data sent to AI" preview.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-heuristic-visual-design-audit">4. Heuristic &amp; Visual Design Audit</h2>
+<h3 id="41-nielsen-heuristic-scorecard">4.1 Nielsen Heuristic Scorecard</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Heuristic</th>
+<th style="text-align: left;">Score (1–5)</th>
+<th style="text-align: left;">Key Violations &amp; Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>1. Visibility of System Status</strong></td>
+<td style="text-align: left;">3/5</td>
+<td style="text-align: left;">No global indicator of when bank CSV or PDT holdings were last synced on the Dashboard; default <code>bunq-savings</code> (€15,000) is silently pre-seeded (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/adapters/repositories/config_repo.py#L178-L188">config_repo.py:178-188</a>), making new users think demo money is real or wonder where €15k came from.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>2. Match Between System &amp; Real World</strong></td>
+<td style="text-align: left;">3/5</td>
+<td style="text-align: left;">Nav item <code>🏦 Data &amp; Assets</code> has DOM ID <code>tab-cashflow</code>; mixes Net Worth Balance Sheet (Real Estate, Mortgages) with Cashflow (Transactions).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>3. User Control &amp; Freedom</strong></td>
+<td style="text-align: left;">2.5/5</td>
+<td style="text-align: left;">Manual assets cannot be edited once created (only deleted, <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L646">index.html:646</a>, unlike liabilities which have an edit button); no undo on "Reset CSV Cache".</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>4. Consistency &amp; Standards</strong></td>
+<td style="text-align: left;">3/5</td>
+<td style="text-align: left;">Language switcher offers <code>EN</code>, <code>NL</code>, <code>FR</code>, <code>DE</code> in the UI (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L174-L177">index.html:174-177</a>), while backend <code>SUPPORTED_LANGUAGES</code> only verify <code>en</code>/<code>nl</code> in several flows; notification alerts use browser <code>alert()</code>/<code>confirm()</code> in 11 places (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L3212">L3212, L3227, L3257, L3278, L3369, L3400, L3428, L3460, L3618</a>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>5. Error Prevention</strong></td>
+<td style="text-align: left;">2/5</td>
+<td style="text-align: left;">Setup wizard creates duplicate buckets (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L3708">L3708</a>); CSV dropzone uses <code>file.name.toLowerCase().includes('kbc')</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L3663">L3663</a>) instead of content sniffing or an explicit selector.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>6. Recognition Rather Than Recall</strong></td>
+<td style="text-align: left;">2.5/5</td>
+<td style="text-align: left;">Tax simulator requires typing ticker symbols and share counts from memory instead of selecting from loaded holdings; Buy-Only calculator shows bucket names without showing which ETF tickers belong to each bucket.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-mobile-visual-hierarchy-accessibility-findings-refactoring-ui">4.2 Mobile, Visual Hierarchy &amp; Accessibility Findings (<code>refactoring-ui</code>)</h3>
+<ul>
+<li><strong>Bottom Navigation Bar Missing on Mobile</strong>: Relying on a top-right hamburger menu (<code>#btn-mobile-menu</code>, <a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L195">L195</a>) for primary navigation on phones forces two taps in the hardest-to-reach thumb zone for every tab switch. Add a fixed 5-item bottom tab bar (<code>sm:hidden fixed bottom-0 inset-x-0</code>) with <code>pb-20</code> on <code>&lt;main&gt;</code>.</li>
+<li><strong>Redundant Bucket Table + Meters</strong>: <code>#tab-buckets</code> renders a 7-column table (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L390">L390</a>) immediately followed by <code>#bucket-meters-container</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L412">L412</a>) showing the same data. Merge them into responsive <strong>Bucket Cards</strong> where each card has the progress bar, target vs. actual weight, drift badge, and an expandable list of assigned holdings.</li>
+<li><strong>Tailwind Play CDN in Production</strong>: <code>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</code> (<a href="file:///Users/tiwu/Downloads/wealth-pilot/src/wealth_pilot/delivery/web/templates/index.html#L22">L22</a>) parses the 3,815-line DOM in the browser on every page load (~300ms+ main-thread block on mobile phones) and breaks offline PWA usage.</li>
+</ul>
+<hr />
+<h2 id="5-proposed-information-architecture-task-oriented-consolidation">5. Proposed Information Architecture (Task-Oriented Consolidation)</h2>
+<p>Consolidate the 6 scattered tabs into <strong>4 core task-oriented views + Settings/Account</strong>, accessible via a top segmented bar on desktop and a persistent bottom tab bar on mobile:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flowchart TD
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    AUTH["Sign In Screen\n(Google / GitHub / Meta / Local Passphrase)"] --&gt; ONBOARD{"First Login\nfor Tenant?"}
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    ONBOARD --&gt;|Yes| WIZ["3-Step Setup Wizard\n(1. Connect PDT or Upload CSV -&gt; 2. Confirm Bucket Targets -&gt; 3. Tax Defaults)"]
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    ONBOARD --&gt;|No| APP["Wealth Pilot App Shell\n(Header: Sync Status + Account Menu | Mobile: Bottom Tab Bar)"]
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    APP --&gt; T1["1. 📊 Overview\n- Net Worth KPIs (with Liquid-Only pill toggle)\n- Allocation Donut + 30Y Trajectory\n- FI Milestones Bar\n- Top 3 Action Alerts"]
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    APP --&gt; T2["2. 🪣 Portfolio &amp; Buckets\n- Unified Bucket Cards (Progress + Drift + Assigned Tickers)\n- All Assets (Broker + Real Estate + Cash) &amp; Liabilities (Mortgages)\n- 1-Tap PDT Sync &amp; + Add Asset / Loan"]
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    APP --&gt; T3["3. 🧭 Plan &amp; Optimize\n- Smart Buy-Only Rebalancing Calculator (calling Backend UseCase)\n- Debt Payoff vs. Invest Priority Queue\n- Belgian 2026 CGT Simulator (with Holding Selector Dropdown)\n- Contextual 'Ask AI Advisor' Drawer/Panel"]
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    APP --&gt; T4["4. 💳 Cashflow &amp; Import\n- Monthly Income / Expenses / Savings Rate Summary\n- Bank &amp; Portfolio CSV Import (auto-detect content, not filename)\n- Transactions Ledger &amp; Rule Categorizer"]
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    APP --&gt; T5["5. ⚙️ Account &amp; Settings\n- User Profile, Connected OAuth Providers &amp; Household Members\n- Server-Side AI Provider &amp; Encrypted Key Vault\n- Broker / MCP Connections\n- Encrypted Backup Export/Restore &amp; GDPR Delete Account"]
+</code></pre></div>
+<h3 id="mobile-wireframe-redesigned-overview-bottom-nav-unified-portfolio-card">Mobile Wireframe: Redesigned Overview + Bottom Nav &amp; Unified Portfolio Card</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>+---------------------------------------+   +---------------------------------------+
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>| 🧭 Wealth Pilot   [🔄 2m] [🌐NL] [👤] |   | 🧭 Portfolio &amp; Buckets     [+ Add ▾]  |
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>+---------------------------------------+   +---------------------------------------+
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>| NET WORTH           [x] Liquid Only   |   | [Buckets (4)] [Assets (8)] [Debts (1)]|
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>| € 142.500,00        +4.2% MoM         |   +---------------------------------------+
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>| Assets: € 312,5k  •  Debts: € 170,0k  |   | 🔵 Core World ETFs        UNDERWEIGHT |
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>| Free Cashflow: € 1.650 / mo (34%)     |   | € 62.400  •  43.8% / 50.0% (-€ 8.850) |
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>+---------------------------------------+   | [████████████░░░░░░] ±3% tol   [Edit] |
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>| ⚡ NEXT ACTION                        |   |  ├─ VWCE (Saxo)           € 48.200    |
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>| Buy € 1.500 Core World ETFs (-6.2%)   |   |  └─ IWDA (Bolero)         € 14.200    |
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>| [ Open Buy-Only Calculator → ]        |   +---------------------------------------+
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>+---------------------------------------+   | 🟢 High-Conviction Tech      BALANCED |
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>| 📈 30Y Trajectory  [5Y][10Y][20Y][30Y]|   | € 51.000  •  35.8% / 35.0% (+€ 1.140) |
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>| (Chart.js responsive canvas)          |   | [██████████████░░░░] ±5% tol   [Edit] |
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>+---------------------------------------+   +---------------------------------------+
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>| 📊      🪣       🧭       💳      ⚙️  |   | 📊      🪣       🧭       💳      ⚙️  |
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>| Home  Portfolio  Plan  Cashflow Prefs |   | Home  Portfolio  Plan  Cashflow Prefs |
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>+---------------------------------------+   +---------------------------------------+
+</code></pre></div>
+<hr />
+<h2 id="6-prioritised-ux-recommendations">6. Prioritised UX Recommendations</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">ID</th>
+<th style="text-align: left;">Category</th>
+<th style="text-align: left;">Recommendation</th>
+<th style="text-align: left;">Impact</th>
+<th style="text-align: left;">Effort</th>
+<th style="text-align: left;">Suggested GitHub Issue Title</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>UX-01</strong></td>
+<td style="text-align: left;">Quick Win (Bug)</td>
+<td style="text-align: left;">Fix Setup Wizard bucket IDs (<code>core-etf</code>, <code>tech-growth</code>, <code>commodities</code>, <code>cash-buffer</code>) so onboarding updates default buckets instead of creating 4 duplicates totaling 200%.</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">S</td>
+<td style="text-align: left;"><code>fix(ux): align setup wizard bucket IDs with default seeded buckets</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UX-02</strong></td>
+<td style="text-align: left;">Quick Win (Bug)</td>
+<td style="text-align: left;">Detect KBC vs. Generic CSV by inspecting file header content (or explicit radio toggle) instead of <code>file.name.includes('kbc')</code>; add "Edit" action for manual assets.</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">S</td>
+<td style="text-align: left;"><code>fix(ingest): auto-detect CSV format from headers and allow editing manual assets</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UX-03</strong></td>
+<td style="text-align: left;">Quick Win</td>
+<td style="text-align: left;">Remove silent €15,000 <code>bunq-savings</code> demo asset from default new-user state; replace with an explicit "Load Demo Portfolio" button on the empty state.</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">S</td>
+<td style="text-align: left;"><code>feat(ux): replace hardcoded 15k Bunq demo asset with explicit empty state and demo loader</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UX-04</strong></td>
+<td style="text-align: left;">Quick Win</td>
+<td style="text-align: left;">Populate a "Select from Portfolio Holdings" dropdown in the Belgian 2026 CGT Simulator and show mapped tickers inside Buy-Only Rebalancing recommendations.</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">S</td>
+<td style="text-align: left;"><code>feat(ux): link holdings dropdown to CGT simulator and show tickers in buy orders</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UX-05</strong></td>
+<td style="text-align: left;">Next (Mobile)</td>
+<td style="text-align: left;">Add fixed mobile bottom navigation bar (<code>Overview</code>, <code>Portfolio</code>, <code>Plan</code>, <code>Cashflow</code>, <code>Settings</code>) and replace native <code>alert()</code>/<code>confirm()</code> calls with non-blocking toast notifications.</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">M</td>
+<td style="text-align: left;"><code>feat(mobile): add bottom tab bar navigation and toast notification system</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UX-06</strong></td>
+<td style="text-align: left;">Next (IA)</td>
+<td style="text-align: left;">Consolidate Holdings, Manual Assets, Liabilities, and Buckets into a unified <strong>Portfolio &amp; Buckets</strong> workspace; merge redundant Bucket table + progress meters into responsive Bucket Cards.</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">M</td>
+<td style="text-align: left;"><code>refactor(ui): unify buckets, holdings, and manual assets/debts into Portfolio workspace</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UX-07</strong></td>
+<td style="text-align: left;">Strategic (SaaS)</td>
+<td style="text-align: left;">Add branded Social Sign-In page (Google, GitHub, Meta + local fallback), user profile menu, "View anonymized AI prompt" transparency drawer, and server-persisted onboarding state.</td>
+<td style="text-align: left;">High</td>
+<td style="text-align: left;">M</td>
+<td style="text-align: left;"><code>feat(auth-ui): add OAuth login screen, account menu, and AI prompt transparency drawer</code></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
