@@ -35,7 +35,16 @@ jobs:
         run: uv run mkdocs build
 
       - name: Deploy to GitHub Pages
+        id: deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./site
+
+      - name: Generate Documentation Deployment Summary
+        if: always()
+        run: |
+          uv run python scripts/ci_summary.py docs \
+            --status "${{ steps.deploy.outcome }}" \
+            --url "https://tiwu.github.io/wealth-pilot/" \
+            --commit "${{ github.sha }}"

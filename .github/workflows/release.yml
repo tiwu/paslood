@@ -29,7 +29,16 @@ jobs:
         run: uv build
 
       - name: Create GitHub Release
+        id: release
         uses: softprops/action-gh-release@v3
         with:
           files: dist/*
           generate_release_notes: true
+
+      - name: Generate Release Artifact Summary
+        if: always()
+        run: |
+          uv run python scripts/ci_summary.py release \
+            --dist-dir "dist" \
+            --tag "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}"

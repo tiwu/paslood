@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **GitHub Actions Workflow Job & Step Summaries (Issue #15)**:
+  - Added structured Markdown job summaries across CI, documentation, and release workflows.
+  - Added `scripts/ci_summary.py` helper module supporting summary generation for linting, testing, docs deployment, and release distributions.
+  - Enhanced `ci.yml` lint job with breakdown of Ruff linter, Ruff formatter, and MkDocs strict build checks.
+  - Enhanced `ci.yml` test job with test execution status, high-level coverage percentage vs. $\ge 90\%$ target threshold, and full Markdown coverage breakdown table via `coverage report --format=markdown`.
+  - Added documentation deployment summary in `docs.yml` and release distribution artifact listing in `release.yml`.
+  - Added comprehensive unit test suite in `tests/unit/test_ci_summary.py`.
 - **Belgian Multi-Language Internationalization & Dutch Translation (Issue #7)**:
   - Added comprehensive Dutch (NL) translation for all core dashboard sections (Overview, Buckets, Guidance, AI Advisor, Data & Assets, Settings, and Setup Wizard).
   - Added multi-language support framework covering Belgium's official languages: Dutch (`nl`), English (`en`), French (`fr`), and German (`de`).
