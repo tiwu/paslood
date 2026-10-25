@@ -1,16 +1,24 @@
-# Wealth Pilot 🧭
+# Paslood (Wealth Pilot) 🧭
 
-> **Strategic Wealth & Asset Allocation Guidance Platform**
+> **Whole-Life Balance Sheet, PDT Strategic Companion & Belgian Fiscal Shield**
+>
+> *"You can't know where you're going if you don't know where you are."*
 
-Wealth Pilot is a local-first, privacy-respecting financial planning platform designed for mid-to-long term wealth management. It bridges real-world investment portfolios (PDT, brokers) and bank account cashflow (KBC, Bunq, generic CSV) to deliver proactive guidance on asset allocation buckets, debt repayment strategy, Belgian 2026 capital gains tax optimization, and compound net worth trajectories.
+**Paslood** (*in het lood staan* — plumb-line alignment for your personal balance sheet) is a local-first, privacy-respecting financial decision engine. While broker trackers like **Portfolio Dividend Tracker (PDT)** excel at tracking brokerage holdings and dividends, they are blind to the rest of your financial reality: checking and savings accounts (KBC, Bunq), pillar pension savings (*pensioensparen*), primary residence equity, mortgages, consumer/vehicle loans (e.g., Alpha Credit), and recurring employee share purchase plans (e.g., ASML shares on EquatePlus).
+
+Paslood unifies your PDT portfolio with your off-broker balance sheet to answer **what to do next**: keeping your macro allocation buckets level, prioritizing debt payoff against expected portfolio CAGR, and safely de-concentrating employee stock under Belgian tax law.
 
 ---
 
 ## Key Features
 
-- **Strategic Allocation Buckets**: Define macro pillars (Core ETFs, High-Conviction Growth, Gold & Commodities, Emergency Buffer, Real Estate) with drift tolerances and asset-to-bucket classification rules.
+- **Whole-Life Balance Sheet**: Combines PDT MCP brokerage holdings (Saxo, manual stocks) with KBC/Bunq bank accounts, pension savings, real estate, mortgages, and consumer loans.
+- **Strategic Allocation Buckets**: Define macro pillars (Core ETFs, Single-Stock / Employee Shares, Gold & Commodities, Emergency Buffer, Real Estate) with drift tolerances and optional rebalancing exclusion flags.
 - **Buy-Only Rebalancing**: Direct incoming savings deposits to underweight buckets to minimize tracking error without selling assets or triggering capital gains taxes.
-- **Belgian 2026 Capital Gains Tax Optimizer**: FIFO lot tracking with Dec 31, 2025 benchmark price lookup (via PDT timetravel) and €10,000 annual exemption optimization.
+- **Legally Grounded Belgian Fiscal Shield**:
+  - **2026 Meerwaardebelasting (WIB 92 Art. 90/101)**: FIFO lot tracking with `max(Dec 31 2025 Fotomoment, Historical Purchase Price)` loss protection, 5-year exemption carryover (`€10,000` to `€15,000`, doubled for joint filing), and a 1-click **Max Tax-Free Share Trim Solver**.
+  - **EquatePlus (Zurich) vs. Belgian Broker Reconciliation**: Reconciles Equatex AG Zurich settlement statements (`0.35%` commission + `0.15%` Swiss stamp duty, historical FMV gain vs. 31 Dec 2025 fotomoment) and flags unwithheld **Belgian TOB (`0.35%`)** requiring bi-monthly MyMinfin self-declaration.
+  - **TOB & Reynders Tax (WDRT Art. 120 & WIB 92 Art. 19bis)**: Full support for `0.12%` / `0.35%` / `1.32%` TOB statutory caps and the `30%` Reynders tax on fixed-income/mixed funds (`>10%` debt claims).
 - **Consolidated Balance Sheet & Debt Avalanche**: Unified priority queue comparing debt APRs against expected portfolio CAGR (7.0%) alongside active drift alerts.
 - **Server-Side AI Advisor**: Pluggable private advisors (Gemini, Claude, GPT-4o, Ollama) with disk envelope encryption; zero client-side credential exposure.
 - **Privacy & Security First**:

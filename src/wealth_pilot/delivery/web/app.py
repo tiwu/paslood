@@ -169,7 +169,15 @@ class TaxCalculationRequest(BaseModel):
     shares_pre_benchmark: float | None = None
     shares_post_benchmark: float = 0.0
     actual_purchase_price: float | None = None
+    pre_benchmark_purchase_price: float | None = None
     available_annual_exemption: float | None = None
+    annual_exemption: float | None = None
+    tax_rate_pct: float | None = None
+    carryover_years: int = 0
+    is_joint_filing: bool = False
+    tob_tier: str = "0.35"
+    broker_profile: str = "BELGIAN_BROKER"
+    bond_weight_pct: float = 0.0
 
 
 class BackupExportRequest(BaseModel):
@@ -1440,6 +1448,17 @@ def create_app(
                 "date": date,
                 "price": float(price.amount),
                 "price_formatted": price.format(),
+                "source": "PDT MCP",
+            }
+        if symbol.strip().upper().startswith("ASML") and date == "2025-12-31":
+            asml_bench = Money(Decimal("921.40"), "EUR")
+            return {
+                "status": "success",
+                "symbol": symbol,
+                "date": date,
+                "price": float(asml_bench.amount),
+                "price_formatted": asml_bench.format(),
+                "source": "Euronext Amsterdam Official Fotomoment (31 Dec 2025)",
             }
         return {
             "status": "not_found",
@@ -1453,23 +1472,37 @@ def create_app(
     async def calculate_tax(req: TaxCalculationRequest):
         s = repo.load_settings()
         tax_cfg = s.get("tax", {})
-        default_bench = Decimal(str(tax_cfg.get("benchmark_price", 900.0)))
+        default_bench = Decimal(str(tax_cfg.get("benchmark_price", 921.40)))
         default_exemption = Decimal(str(tax_cfg.get("annual_exemption", 10000.0)))
-        default_rate = Decimal(str(tax_cfg.get("tax_rate_pct", 10.0)))
+        default_rate = Decimal(
+            str(
+                req.tax_rate_pct
+                if req.tax_rate_pct is not None
+                else tax_cfg.get("tax_rate_pct", 10.0)
+            )
+        )
 
         bench_price = (
             Money.from_val(req.benchmark_price)
             if req.benchmark_price is not None
             else Money(default_bench)
         )
-        exemption = (
-            Money.from_val(req.available_annual_exemption)
+        raw_exemption = (
+            req.available_annual_exemption
             if req.available_annual_exemption is not None
-            else Money(default_exemption)
+            else req.annual_exemption
+        )
+        exemption = (
+            Money.from_val(raw_exemption) if raw_exemption is not None else Money(default_exemption)
         )
         actual_buy_p = (
             Money.from_val(req.actual_purchase_price)
             if req.actual_purchase_price is not None
+            else None
+        )
+        pre_buy_p = (
+            Money.from_val(req.pre_benchmark_purchase_price)
+            if req.pre_benchmark_purchase_price is not None
             else None
         )
 
@@ -1484,18 +1517,37 @@ def create_app(
             ),
             shares_post_benchmark=Decimal(str(req.shares_post_benchmark)),
             actual_purchase_price=actual_buy_p,
+            pre_benchmark_purchase_price=pre_buy_p,
             available_annual_exemption=exemption,
             tax_rate_pct=default_rate,
+            carryover_years=req.carryover_years,
+            is_joint_filing=req.is_joint_filing,
+            tob_tier=req.tob_tier,
+            broker_profile=req.broker_profile,
+            bond_weight_pct=Decimal(str(req.bond_weight_pct)),
         )
 
         return {
             "shares_to_sell": float(res["shares_to_sell"]),
-            "shares_pre_benchmark": float(res["shares_pre_benchmark"]),
+            "shares_pre_benchmark": float(res["shares_pre_benchmark"] or 0.0),
             "shares_post_benchmark": float(res["shares_post_benchmark"]),
+            "effective_pre_benchmark_basis": float(res["effective_pre_benchmark_basis"].amount),
+            "effective_pre_benchmark_basis_formatted": res[
+                "effective_pre_benchmark_basis"
+            ].format(),
+            "effective_annual_exemption": float(res["effective_annual_exemption"].amount),
+            "effective_annual_exemption_formatted": res["effective_annual_exemption"].format(),
             "gain_pre_benchmark": float(res["gain_pre_benchmark"].amount),
             "gain_pre_benchmark_formatted": res["gain_pre_benchmark"].format(),
             "gain_post_benchmark": float(res["gain_post_benchmark"].amount),
             "gain_post_benchmark_formatted": res["gain_post_benchmark"].format(),
+            "historical_fmv_gain": float(res["historical_fmv_gain"].amount),
+            "historical_fmv_gain_formatted": res["historical_fmv_gain"].format(),
+            "fotomoment_exemption_saved": float(res["fotomoment_exemption_saved"].amount),
+            "fotomoment_exemption_saved_formatted": res["fotomoment_exemption_saved"].format(),
+            "reynders_taxable_gain": float(res["reynders_taxable_gain"].amount),
+            "reynders_tax": float(res["reynders_tax"].amount),
+            "reynders_tax_formatted": res["reynders_tax"].format(),
             "total_taxable_gain": float(res["total_taxable_gain"].amount),
             "total_taxable_gain_formatted": res["total_taxable_gain"].format(),
             "used_exemption": float(res["used_exemption"].amount),
@@ -1506,6 +1558,29 @@ def create_app(
             "tax_due": float(res["tax_to_pay"].amount),
             "tax_to_pay_formatted": res["tax_to_pay"].format(),
             "is_fully_exempt": res["is_fully_exempt"],
+            "gross_proceeds": float(res["gross_proceeds"].amount),
+            "gross_proceeds_formatted": res["gross_proceeds"].format(),
+            "broker_commission": float(res["broker_commission"].amount),
+            "broker_commission_formatted": res["broker_commission"].format(),
+            "foreign_stamp_tax": float(res["foreign_stamp_tax"].amount),
+            "foreign_stamp_tax_formatted": res["foreign_stamp_tax"].format(),
+            "tob_tax": float(res["tob_tax"].amount),
+            "tob_tax_formatted": res["tob_tax"].format(),
+            "tob_withheld_by_broker": res["tob_withheld_by_broker"],
+            "tob_self_declaration_required": res["tob_self_declaration_required"],
+            "broker_payout_before_belgian_tax": float(
+                res["broker_payout_before_belgian_tax"].amount
+            ),
+            "broker_payout_before_belgian_tax_formatted": res[
+                "broker_payout_before_belgian_tax"
+            ].format(),
+            "total_tax_drag": float(res["total_tax_drag"].amount),
+            "total_tax_drag_formatted": res["total_tax_drag"].format(),
+            "net_proceeds": float(res["net_proceeds"].amount),
+            "net_proceeds_formatted": res["net_proceeds"].format(),
+            "max_tax_free_shares": float(res["max_tax_free_shares"]),
+            "max_tax_free_whole_shares": int(res["max_tax_free_whole_shares"]),
+            "legal_citations": res["legal_citations"],
         }
 
     @app.get("/api/health")

@@ -546,14 +546,14 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span data-i18n="guidance.tax_title">🇧🇪 Belgian Capital Gains Tax Optimizer & Historical Benchmark</span>
+              <span data-i18n="guidance.tax_title">🇧🇪 Belgian Fiscal Shield — 2026 CGT, TOB, Reynders & EquatePlus Optimizer</span>
             </h3>
             <p data-i18n="guidance.tax_desc" class="text-xs text-slate-400 mt-0.5">
-              Shares acquired on or before Dec 31, 2025 are taxed against the Dec 31, 2025 closing price (lookable via PDT timetravel). Buys after Dec 31, 2025 are taxed on their actual buying price. Annual capital gains exemption is € 10,000.
+              Pre-2026 shares use <code>max(Dec 31 2025 Fotomoment, Historical Buy Price)</code> as cost basis (ASML Dec 31, 2025 = € 921,40). Includes WDRT Art. 120 TOB caps, Art. 19bis Reynders Tax (30%), and Equatex AG Zurich fee/stamp duty reconciliation.
             </p>
           </div>
           <span data-i18n="guidance.tax_badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
-            10% Tax Above Exemption
+            10% CGT • TOB • Art. 19bis
           </span>
         </div>
 
@@ -582,53 +582,111 @@
           <!-- Benchmark Price on Dec 31, 2025 -->
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label data-i18n="guidance.tax_bench_label" class="text-slate-300 font-medium">Dec 31, 2025 Benchmark Price (€)</label>
+              <label data-i18n="guidance.tax_bench_label" class="text-slate-300 font-medium">Dec 31, 2025 Fotomoment Price (€)</label>
               <span data-i18n="guidance.tax_user_editable" class="text-[10px] text-emerald-400">User Editable</span>
             </div>
-            <input type="number" id="sim-tax-bench-price" value="912.00" step="0.01" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
-            <span data-i18n="guidance.tax_bench_help" class="text-[10px] text-slate-500 mt-1 block">Base cost for shares bought on or before Dec 31, 2025</span>
+            <input type="number" id="sim-tax-bench-price" value="921.40" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <span data-i18n="guidance.tax_bench_help" class="text-[10px] text-slate-500 mt-1 block">Official ASML Dec 31, 2025 closing price: € 921,40</span>
           </div>
 
           <!-- Current Market Price -->
           <div>
             <label data-i18n="guidance.tax_current_price_label" class="block text-slate-300 font-medium mb-1">Current Sale Market Price (€)</label>
-            <input type="number" id="sim-tax-current-price" value="1250.00" step="0.01" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <input type="number" id="sim-tax-current-price" value="1646.00" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
             <span data-i18n="guidance.tax_current_price_help" class="text-[10px] text-slate-500 mt-1 block">Expected execution price per share</span>
+          </div>
+        </div>
+
+        <!-- Broker Profile, TOB Tier, Exemption Carryover & Reynders Bond % -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 text-xs">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Custodian / Broker Profile</label>
+            <select id="sim-tax-broker-profile" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
+              <option value="EQUATEPLUS_CH" selected>EquatePlus / Equatex AG (Zurich)</option>
+              <option value="BELGIAN_BROKER">Belgian Broker (Saxo / Bolero / KBC)</option>
+              <option value="FOREIGN_DIY">Foreign Broker (DEGIRO / IBKR - Manual TOB)</option>
+            </select>
+            <span class="text-[10px] text-slate-500 mt-0.5 block">EquatePlus: 0.35% fee + 0.15% CH stamp; manual BE TOB</span>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Belgian TOB Rate (WDRT Art. 120)</label>
+            <select id="sim-tax-tob-tier" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+              <option value="0.35" selected>0.35% — Stocks / ASML (Cap €1,600)</option>
+              <option value="0.12">0.12% — EEA Dist ETF / Bonds (Cap €1,300)</option>
+              <option value="1.32">1.32% — BE Reg Accum ETF (Cap €4,000)</option>
+              <option value="0.00">0.00% — Exempt</option>
+            </select>
+            <span class="text-[10px] text-slate-500 mt-0.5 block">Statutory transaction tax & plafond</span>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Exemption Carry-Over & Filing</label>
+            <div class="flex items-center gap-1.5">
+              <select id="sim-tax-carryover-years" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-white">
+                <option value="0" selected>0 yrs (€10k base)</option>
+                <option value="1">+1 yr (€11k)</option>
+                <option value="2">+2 yrs (€12k)</option>
+                <option value="3">+3 yrs (€13k)</option>
+                <option value="4">+4 yrs (€14k)</option>
+                <option value="5">+5 yrs (€15k max)</option>
+              </select>
+              <label class="flex items-center gap-1 text-[11px] text-slate-300 whitespace-nowrap cursor-pointer">
+                <input type="checkbox" id="sim-tax-joint-filing" onchange="runTaxSimulation()" class="rounded border-slate-700 bg-slate-900">
+                <span>Joint (2x)</span>
+              </label>
+            </div>
+            <span class="text-[10px] text-slate-500 mt-0.5 block">Art. 101 WIB 92 (+€1k/yr up to 5 yrs)</span>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Fund Bond/Cash % (Art. 19bis)</label>
+            <input type="number" id="sim-tax-bond-pct" value="0" min="0" max="100" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+            <span class="text-[10px] text-slate-500 mt-0.5 block">&gt;10% triggers 30% Reynders tax on bond part</span>
           </div>
         </div>
 
         <!-- Lots Breakdown (Pre-2026 vs Post-2025) -->
         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 text-xs">
-          <div class="font-semibold text-white flex items-center justify-between">
-            <span data-i18n="guidance.tax_lots_title">Holding Lots Acquisition Breakdown</span>
-            <span data-i18n="guidance.tax_lots_sub" class="text-[11px] text-slate-400">Pre vs Post Benchmark Date Allocation</span>
+          <div class="font-semibold text-white flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <span data-i18n="guidance.tax_lots_title">Holding Lots Acquisition Breakdown (FIFO)</span>
+            <span data-i18n="guidance.tax_lots_sub" class="text-[11px] text-slate-400">Pre-2026 cost basis is legally <code>max(Dec 31 2025 Fotomoment, Historical Grant/Buy Price)</code></span>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
             <div>
               <label data-i18n="guidance.tax_pre_shares_label" class="block text-slate-400 mb-1">Pre-2026 Shares Held</label>
-              <input type="number" id="sim-tax-shares-pre" value="15.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
-              <span data-i18n="guidance.tax_pre_shares_help" class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs Dec 31, 2025 price</span>
+              <input type="number" id="sim-tax-shares-pre" value="15.0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
+              <span data-i18n="guidance.tax_pre_shares_help" class="text-[10px] text-slate-500 mt-0.5 block">Acquired &le; Dec 31, 2025</span>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Pre-2026 Grant/Buy FMV (€)</label>
+              <input type="number" id="sim-tax-pre-buy-price" value="271.55" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+              <span class="text-[10px] text-slate-500 mt-0.5 block">Historical FMV (e.g. Equatex statement)</span>
             </div>
             <div>
               <label data-i18n="guidance.tax_post_shares_label" class="block text-slate-400 mb-1">Post-2025 Shares Held</label>
-              <input type="number" id="sim-tax-shares-post" value="5.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
+              <input type="number" id="sim-tax-shares-post" value="5.0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
               <span data-i18n="guidance.tax_post_shares_help" class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs actual buy price</span>
             </div>
             <div>
-              <label data-i18n="guidance.tax_post_price_label" class="block text-slate-400 mb-1">Actual Purchase Price (Post-2025) (€)</label>
-              <input type="number" id="sim-tax-post-buy-price" value="1050.00" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+              <label data-i18n="guidance.tax_post_price_label" class="block text-slate-400 mb-1">Post-2025 Purchase Price (€)</label>
+              <input type="number" id="sim-tax-post-buy-price" value="1050.00" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
               <span data-i18n="guidance.tax_post_price_help" class="text-[10px] text-slate-500 mt-0.5 block">Cost basis for post-2025 buys</span>
             </div>
             <div>
               <label data-i18n="guidance.tax_sell_qty_label" class="block text-slate-400 mb-1">Planned Shares to Sell</label>
-              <input type="number" id="sim-tax-sell-qty" value="10.0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-bold text-blue-400">
+              <input type="number" id="sim-tax-sell-qty" value="4.0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-bold text-blue-400">
               <span data-i18n="guidance.tax_sell_qty_help" class="text-[10px] text-slate-500 mt-0.5 block">Total rebalance quantity</span>
             </div>
           </div>
 
-          <div class="flex justify-end pt-1">
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+            <div class="flex items-center gap-2">
+              <button onclick="applyMaxTaxFreeShares()" id="btn-apply-max-tax-free" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-medium text-xs flex items-center gap-1.5 transition">
+                <span>🎯 Apply Max Tax-Free Trim</span>
+                <span id="badge-max-tax-free-shares" class="font-mono font-bold text-emerald-400">(13 shares)</span>
+              </button>
+              <span class="text-[11px] text-slate-400">Solves exact share count for € 0,00 Belgian CGT</span>
+            </div>
             <button onclick="runTaxSimulation()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1.5 shadow">
-              <span data-i18n="guidance.tax_calc_btn">⚡ Calculate Realized Gain & Tax</span>
+              <span data-i18n="guidance.tax_calc_btn">⚡ Calculate Realized Gain & Net Payout</span>
             </button>
           </div>
         </div>
@@ -636,24 +694,70 @@
         <!-- Simulation Results Cards -->
         <div id="tax-sim-results" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 text-xs">
           <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
-            <div data-i18n="guidance.res_pre_gain_label" class="text-slate-400">Pre-2026 Gain (vs Benchmark)</div>
-            <div id="res-gain-pre" class="text-base font-bold text-white mt-0.5">€ 3.380,00</div>
-            <div data-i18n="guidance.res_pre_gain_help" class="text-[10px] text-slate-500 mt-0.5">Dec 31, 2025 basis applied</div>
+            <div data-i18n="guidance.res_pre_gain_label" class="text-slate-400">Pre-2026 Gain (vs Fotomoment)</div>
+            <div id="res-gain-pre" class="text-base font-bold text-white mt-0.5">€ 2.898,40</div>
+            <div id="res-fotomoment-saved" class="text-[10px] text-emerald-400 mt-0.5">Saves € 2.599,40 vs Equatex FMV (€ 5.497,80)</div>
           </div>
           <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
-            <div data-i18n="guidance.res_post_gain_label" class="text-slate-400">Post-2025 Gain (vs Buy Price)</div>
+            <div data-i18n="guidance.res_post_gain_label" class="text-slate-400">Post-2025 Gain / Reynders (30%)</div>
             <div id="res-gain-post" class="text-base font-bold text-white mt-0.5">€ 0,00</div>
-            <div data-i18n="guidance.res_post_gain_help" class="text-[10px] text-slate-500 mt-0.5">Actual purchase price applied</div>
+            <div id="res-reynders-tax" class="text-[10px] text-slate-500 mt-0.5">Art. 19bis Reynders Tax: € 0,00</div>
           </div>
           <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
-            <div data-i18n="guidance.res_total_gain_label" class="text-slate-400">Total Realized Gain / Exemption</div>
-            <div id="res-taxable-gain" class="text-base font-bold text-emerald-400 mt-0.5">€ 3.380,00</div>
-            <div id="res-remaining-exemption" class="text-[10px] text-emerald-400 mt-0.5">€ 6.620,00 exemption left</div>
+            <div data-i18n="guidance.res_total_gain_label" class="text-slate-400">Belgian Taxable Gain / Exemption</div>
+            <div id="res-taxable-gain" class="text-base font-bold text-emerald-400 mt-0.5">€ 2.898,40</div>
+            <div id="res-remaining-exemption" class="text-[10px] text-emerald-400 mt-0.5">€ 7.101,60 exemption left</div>
           </div>
           <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800">
-            <div data-i18n="guidance.res_tax_due_label" class="text-slate-400">Tax Due & Status</div>
+            <div data-i18n="guidance.res_tax_due_label" class="text-slate-400">2026 CGT Due & Status</div>
             <div id="res-tax-due" class="text-base font-bold text-white mt-0.5">€ 0,00</div>
             <div id="res-tax-status" class="text-[10px] text-emerald-400 mt-0.5 font-semibold">🟢 100% Tax-Exempt</div>
+          </div>
+        </div>
+
+        <!-- Broker Settlement, TOB Self-Declaration & True Net Cash Breakdown -->
+        <div class="bg-slate-950/90 p-4 rounded-xl border border-slate-800 space-y-3 text-xs">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2">
+            <div class="font-semibold text-white">🧾 Settlement Reconciliation (Gross Sale → KBC Wire → True Net After Belgian Taxes)</div>
+            <div id="res-tob-declaration-badge" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              ⚠️ Foreign Broker: Declare € 23,04 Belgian TOB to FOD Financiën (Deadline: end of month M+2)
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div>
+              <div class="text-slate-400">Gross Sale Proceeds</div>
+              <div id="res-gross-proceeds" class="font-mono font-bold text-white text-sm mt-0.5">€ 6.584,00</div>
+            </div>
+            <div>
+              <div class="text-slate-400">Broker Fee + CH Stamp</div>
+              <div id="res-broker-fees" class="font-mono font-semibold text-slate-300 text-sm mt-0.5">-€ 32,92</div>
+              <div id="res-broker-fees-sub" class="text-[10px] text-slate-500">€ 23,04 fee + € 9,88 CH stamp</div>
+            </div>
+            <div>
+              <div class="text-slate-400">Wire Payout to Bank</div>
+              <div id="res-broker-payout" class="font-mono font-bold text-blue-400 text-sm mt-0.5">€ 6.551,08</div>
+              <div class="text-[10px] text-slate-500">Netto-opbrengst on PDF</div>
+            </div>
+            <div>
+              <div class="text-slate-400">Belgian TOB (WDRT)</div>
+              <div id="res-tob-tax" class="font-mono font-semibold text-amber-400 text-sm mt-0.5">-€ 23,04</div>
+              <div id="res-tob-sub" class="text-[10px] text-amber-400/80">Self-declare via MyMinfin</div>
+            </div>
+            <div>
+              <div class="text-slate-400">True Net Cash (After All Tax)</div>
+              <div id="res-net-proceeds" class="font-mono font-bold text-emerald-400 text-sm mt-0.5">€ 6.528,04</div>
+              <div class="text-[10px] text-slate-500">Ready for ETF reinvestment</div>
+            </div>
+          </div>
+
+          <!-- Official Belgian Government Legal Sources -->
+          <div class="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+            <span class="font-medium text-slate-300">📚 Official Statutory Sources (FOD Financiën):</span>
+            <div class="flex flex-wrap items-center gap-3">
+              <a href="https://financien.belgium.be/nl/particulieren/belastingen/inkomstenbelastingen/meerwaardebelasting" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Meerwaardebelasting 2026 (WIB 92 Art. 90/101) ↗</a>
+              <a href="https://financien.belgium.be/nl/particulieren/internationaal/buitenlandse-inkomsten-en-rekeningen/taks-op-beursverrichtingen" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">TOB Tarieven & Plafonds (WDRT Art. 120-126/2) ↗</a>
+              <a href="https://eservices.minfin.fgov.be/myminfin-web/pages/public/fisconet" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Reynderstaks 30% (WIB 92 Art. 19bis) ↗</a>
+            </div>
           </div>
         </div>
       </div>

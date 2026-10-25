@@ -248,4 +248,33 @@ async def test_tax_endpoints(test_app):
         assert c_data["gain_post_benchmark"] == 300.0
         assert c_data["total_taxable_gain"] == 3300.0
         assert c_data["tax_due"] == 0.0
+
+        # 3. EquatePlus Zurich forensic sale calculation via API
+        eq_resp = await client.post(
+            "/api/tax/calculate",
+            json={
+                "symbol": "ASML",
+                "current_price": 1646.0,
+                "benchmark_price": 921.40,
+                "pre_benchmark_purchase_price": 271.55,
+                "shares_pre_benchmark": 4.0,
+                "shares_post_benchmark": 0.0,
+                "shares_to_sell": 4.0,
+                "broker_profile": "EQUATEPLUS_CH",
+                "tob_tier": "0.35",
+            },
+        )
+        assert eq_resp.status_code == 200
+        eq_data = eq_resp.json()
+        assert eq_data["gross_proceeds"] == 6584.0
+        assert eq_data["broker_commission"] == 23.04
+        assert eq_data["foreign_stamp_tax"] == 9.88
+        assert eq_data["broker_payout_before_belgian_tax"] == 6551.08
+        assert eq_data["tob_tax"] == 23.04
+        assert eq_data["tob_self_declaration_required"] is True
+        assert eq_data["historical_fmv_gain"] == 5497.80
+        assert eq_data["total_taxable_gain"] == 2898.40
+        assert eq_data["fotomoment_exemption_saved"] == 2599.40
+        assert eq_data["net_proceeds"] == 6528.04
+        assert len(eq_data["legal_citations"]) >= 3
         assert c_data["remaining_exemption"] == 6700.0
