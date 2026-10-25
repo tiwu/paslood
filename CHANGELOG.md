@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.5.0] - 2026-10-25
+
+### Added
 - **Frontend JS Integrity & Playwright E2E UI Testing**:
   - Added `tests/delivery/test_frontend_integrity.py` to validate JavaScript syntax (`node --check`), static asset serving, inline HTML event handler function bindings, and Node.js unit execution across all frontend modules.
   - Added `tests/e2e/test_ui_workflows.py` and `tests/e2e/conftest.py` using Playwright headless Chromium to verify dashboard data hydration, tab navigation, allocation visualizer toggles, modals, language switching, and theme toggling with strict zero-tolerance listeners for `pageerror`, `console.error`, and local HTTP 4xx/5xx responses.
@@ -169,7 +179,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/tiwu/wealth-pilot/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/tiwu/wealth-pilot/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/tiwu/wealth-pilot/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/tiwu/wealth-pilot/compare/v0.1.0...v0.2.0
