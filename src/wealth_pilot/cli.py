@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import typer
@@ -13,10 +14,13 @@ from rich.table import Table
 from wealth_pilot.adapters.ingestion.generic_csv import GenericCsvGateway
 from wealth_pilot.adapters.ingestion.kbc_csv import KbcCsvGateway
 from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.domain.balance_sheet import BalanceSheet, MonthlyCashflow
+from wealth_pilot.adapters.repositories.local_db import LocalDbRepository
+from wealth_pilot.adapters.settings import AppSettings
+from wealth_pilot.domain.balance_sheet import BalanceSheet
 from wealth_pilot.domain.money import Money
 from wealth_pilot.use_cases.advise_contribution import AdviseContributionUseCase
 from wealth_pilot.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
+from wealth_pilot.use_cases.build_overview import BuildPortfolioOverviewUseCase
 from wealth_pilot.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
 
 app = typer.Typer(
@@ -32,17 +36,71 @@ def web(
     host: str = typer.Option("127.0.0.1", help="Host address to bind the web server"),
     port: int = typer.Option(8000, help="Port to listen on"),
     reload: bool = typer.Option(False, help="Enable auto-reload for development"),
+    allow_unauthenticated: bool = typer.Option(
+        False, help="Allow binding to non-localhost address without authentication (DANGEROUS)"
+    ),
 ) -> None:
     """Launch the local interactive Web Dashboard."""
+    settings = AppSettings.from_env()
+    if (
+        host not in ("127.0.0.1", "localhost")
+        and settings.auth_mode == "none"
+        and not settings.has_password
+        and not settings.has_oauth
+        and not allow_unauthenticated
+    ):
+        console.print(
+            Panel.fit(
+                "[bold red]SECURITY REFUSAL: Cannot bind to external host without authentication![/bold red]\n\n"
+                "Wealth Pilot stores financial balances and private API keys.\n"
+                "To expose this server remotely (via LAN, container, or Dynamic DNS):\n"
+                "1. Run [bold green]wealth-pilot set-password[/bold green] to configure a login password, OR\n"
+                "2. Set [bold cyan]WEALTH_PILOT_AUTH_MODE=password[/bold cyan] in your environment, OR\n"
+                "3. Configure Google/GitHub OAuth credentials in your environment.\n\n"
+                "If you are certain you want an unauthenticated server on your network,\n"
+                "re-run with [bold yellow]--allow-unauthenticated[/bold yellow].",
+                border_style="red",
+            )
+        )
+        raise typer.Exit(1)
+
     console.print(
         Panel.fit(
             f"[bold blue]🧭 Wealth Pilot Dashboard[/bold blue]\n"
             f"Server running at: [bold green]http://{host}:{port}[/bold green]\n"
+            f"Auth mode: [bold cyan]{settings.auth_mode}[/bold cyan]\n"
             f"Press [bold red]Ctrl+C[/bold red] to stop.",
             border_style="blue",
         )
     )
     uvicorn.run("wealth_pilot.delivery.web.app:app", host=host, port=port, reload=reload)
+
+
+@app.command("set-password")
+def set_password(
+    password: str = typer.Option(
+        None, prompt=True, hide_input=True, confirmation_prompt=True, help="New master passphrase"
+    ),
+) -> None:
+    """Set or update the master admin password for remote access."""
+    from wealth_pilot.delivery.web.auth import hash_password
+
+    hashed = hash_password(password)
+    settings = AppSettings.from_env()
+    settings.data_dir.mkdir(parents=True, exist_ok=True)
+    env_file = settings.data_dir / ".env"
+    with open(env_file, "a", encoding="utf-8") as f:
+        f.write(f"\nWEALTH_PILOT_ADMIN_PASSWORD_HASH={hashed}\nWEALTH_PILOT_AUTH_MODE=password\n")
+    if os.name != "nt":
+        env_file.chmod(0o600)
+    console.print(
+        Panel.fit(
+            f"[bold green]Password set successfully![/bold green]\n"
+            f"Stored in: [cyan]{env_file}[/cyan]\n"
+            f"Auth mode enabled: [bold white]password[/bold white]",
+            border_style="green",
+        )
+    )
 
 
 @app.command()
@@ -51,21 +109,34 @@ def status(
 ) -> None:
     """Display consolidated Balance Sheet, Net Worth, and Bucket Allocation summary."""
     repo = ConfigRepository(config_path=config)
+    db = LocalDbRepository(db_path=repo.config_path.parent / "wealth_pilot.db")
     buckets = repo.load_buckets()
     assets = repo.load_manual_assets()
     liabilities = repo.load_manual_liabilities()
 
+    # Merge discovered assets from DB
+    existing_asset_ids = {a.id for a in assets}
+    for da in db.get_discovered_assets():
+        if da.id not in existing_asset_ids:
+            assets.append(da)
+            existing_asset_ids.add(da.id)
+
+    # Merge discovered liabilities from DB
+    existing_liab_ids = {liab.id for liab in liabilities}
+    for dl in db.get_discovered_liabilities():
+        if dl.id not in existing_liab_ids:
+            liabilities.append(dl)
+            existing_liab_ids.add(dl.id)
+
+    cashflow = db.get_monthly_cashflow()
     bs = BalanceSheet(
         assets=assets,
         liabilities=liabilities,
-        cashflow=MonthlyCashflow(
-            monthly_income=Money.from_val(4800.0),
-            fixed_costs=Money.from_val(1200.0),
-            debt_payments=Money.from_val(1553.92) if liabilities else Money.from_val(0.0),
-            living_expenses=Money.from_val(800.0),
-        ),
+        cashflow=cashflow,
     )
 
+    overview_builder = BuildPortfolioOverviewUseCase()
+    overview_builder.execute(balance_sheet=bs, buckets=buckets)
     alloc_calc = CalculateBucketAllocationUseCase()
     allocations = alloc_calc.execute(assets=assets, buckets=buckets)
 

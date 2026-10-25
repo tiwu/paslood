@@ -178,3 +178,19 @@ def test_run_cycle_prioritizes_approved_over_planning():
     poller.run_cycle()
     poller.process_approved_stage.assert_called_once_with(approved_issue)
     poller.process_planning_stage.assert_not_called()
+
+
+def test_checkout_issue():
+    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    issue = GitHubIssue(number=15, title="feat: cool-feature", body="", labels=[], url="")
+    poller.get_issue = MagicMock(return_value=issue)
+
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0)
+        poller.checkout_issue(15)
+        mock_run.assert_called_with(
+            ["git", "checkout", "feature/issue-15-cool-feature"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )

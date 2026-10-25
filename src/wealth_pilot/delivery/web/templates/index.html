@@ -191,6 +191,13 @@
         <button onclick="openHelpModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800" title="In-App Help Guide" aria-label="Help Guide">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><path stroke-width="2" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3m.08 4h.01"></path></svg>
         </button>
+        <!-- Auth Header: User Email and Logout -->
+        <div id="auth-header-container" class="hidden items-center gap-1.5 pl-2 border-l border-slate-800">
+          <span id="user-display-email" class="text-[11px] text-slate-400 font-mono hidden sm:inline max-w-[130px] truncate"></span>
+          <a href="/auth/logout" class="text-xs text-rose-400 hover:text-rose-300 p-1.5 rounded-lg hover:bg-rose-500/10 transition flex items-center gap-1" title="Log Out">
+            <span>🚪</span><span class="hidden md:inline text-[11px]">Logout</span>
+          </a>
+        </div>
         <!-- Hamburger Button for Small/Phone Screens -->
         <button onclick="toggleMobileMenu()" id="btn-mobile-menu" class="lg:hidden p-2 rounded-lg border border-slate-700 bg-slate-800/80 text-slate-200 hover:text-white focus:outline-none" aria-label="Toggle Navigation Menu" aria-expanded="false">
           <svg id="hamburger-icon-open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -234,7 +241,7 @@
   </header>
 
   <!-- Main Content Container -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 sm:pb-6">
 
     <!-- Global Celebration / Toast Banner -->
     <div id="oauth-success-banner" class="hidden mb-6 p-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center justify-between shadow-lg shadow-emerald-950/40">
@@ -513,6 +520,14 @@
           <span data-i18n="guidance.tax_badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
             10% Tax Above Exemption
           </span>
+        </div>
+
+        <!-- Holding Quick-Selector -->
+        <div class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 text-xs">
+          <label class="block text-slate-300 font-medium mb-1">Select Holding from Portfolio (Auto-populates ticker & current price)</label>
+          <select id="sim-tax-holding-select" onchange="onSelectTaxHolding(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <option value="">-- Choose from your loaded holdings --</option>
+          </select>
         </div>
 
         <!-- Simulation Inputs -->
@@ -1162,11 +1177,12 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span data-i18n="modals.asset_title">🏠 Add Real Estate or Asset</span>
+          <span id="modal-asset-title" data-i18n="modals.asset_title">🏠 Add Real Estate or Asset</span>
         </h3>
         <button onclick="closeAddAssetModal()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
 
+      <input type="hidden" id="manual-asset-id" value="">
       <div class="space-y-3 text-xs">
         <div>
           <label data-i18n="modals.asset_name_label" class="block font-medium text-slate-300 mb-1">Asset Name</label>
@@ -1790,6 +1806,21 @@
         renderManualAssetsAndDebts(currentData);
         renderAdvice(currentData);
         renderTransactions(currentData);
+
+        if (currentData.current_user) {
+          const authContainer = document.getElementById('auth-header-container');
+          const emailEl = document.getElementById('user-display-email');
+          if (authContainer && emailEl) {
+            if (currentData.current_user.auth_mode !== 'none') {
+              emailEl.textContent = currentData.current_user.email;
+              authContainer.classList.remove('hidden');
+              authContainer.classList.add('flex');
+            } else {
+              authContainer.classList.add('hidden');
+            }
+          }
+        }
+        populateTaxHoldingDropdown(currentData);
       } catch (err) {
         console.error('Failed to load overview:', err);
       }
@@ -2241,35 +2272,46 @@
       recalculateContribution();
     }
 
-    function recalculateContribution() {
+    async function recalculateContribution() {
       if (!currentData || !currentData.allocations) return;
       const depositAmt = parseFloat(document.getElementById('input-deposit-amount').value || 0);
-      const underweight = currentData.allocations.filter(a => a.diff_value < 0);
       const ordersContainer = document.getElementById('contribution-orders-list');
-      ordersContainer.innerHTML = '';
+      if (!ordersContainer) return;
+      ordersContainer.innerHTML = '<div class="text-xs text-slate-400">Calculating optimal contribution...</div>';
 
-      if (underweight.length === 0) {
-        ordersContainer.innerHTML = `<div class="text-xs text-slate-400">${escapeHtml(I18N.t('guidance.all_balanced', 'All buckets are balanced! You can distribute this deposit proportionally across your targets.'))}</div>`;
-        return;
+      try {
+        const res = await fetch('/api/advice/contribution', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deposit: depositAmt })
+        });
+        if (!res.ok) throw new Error('Failed to calculate contribution');
+        const data = await res.json();
+        ordersContainer.innerHTML = '';
+        if (!data.orders || data.orders.length === 0) {
+          ordersContainer.innerHTML = `<div class="text-xs text-slate-400">${escapeHtml(I18N.t('guidance.all_balanced', 'All buckets are balanced! You can distribute this deposit proportionally across your targets.'))}</div>`;
+          return;
+        }
+
+        data.orders.forEach(o => {
+          const matchingAlloc = (currentData.allocations || []).find(a => a.id === o.bucket_id);
+          const color = matchingAlloc ? matchingAlloc.color : '#3b82f6';
+          const div = document.createElement('div');
+          div.className = 'flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs';
+          div.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(color)}"></span>
+              <span class="font-semibold text-white">${escapeHtml(o.bucket_name)}</span>
+              <span class="text-slate-500 font-mono">(${o.percentage_of_deposit}% of deposit)</span>
+            </div>
+            <div class="text-emerald-400 font-bold text-sm font-mono">+${escapeHtml(o.amount_formatted)}</div>
+          `;
+          ordersContainer.appendChild(div);
+        });
+      } catch (err) {
+        console.error('Contribution calculation error:', err);
+        ordersContainer.innerHTML = `<div class="text-xs text-red-400">Failed to calculate buy orders: ${escapeHtml(err.message)}</div>`;
       }
-
-      const totalDeficit = underweight.reduce((acc, a) => acc + Math.abs(a.diff_value), 0);
-      underweight.forEach(a => {
-        const share = (depositAmt * (Math.abs(a.diff_value) / totalDeficit));
-        const div = document.createElement('div');
-        div.className = 'flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs';
-        const deficitFmt = Math.abs(a.diff_value).toLocaleString('de-DE', {minimumFractionDigits: 2});
-        const shareFmt = share.toLocaleString('de-DE', {minimumFractionDigits: 2});
-        div.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(a.color)}"></span>
-            <span class="font-semibold text-white">${escapeHtml(a.name)}</span>
-            <span class="text-slate-500">${escapeHtml(I18N.t('guidance.deficit_label', { amount: deficitFmt, _fallback: `(Deficit: € ${deficitFmt})` }))}</span>
-          </div>
-          <div class="text-emerald-400 font-bold text-sm">${escapeHtml(I18N.t('guidance.buy_action', { amount: shareFmt, _fallback: `BUY € ${shareFmt}` }))}</div>
-        `;
-        ordersContainer.appendChild(div);
-      });
     }
 
     function renderTransactions(data) {
@@ -2326,6 +2368,25 @@
       if (e.target.files.length > 0) uploadFile(e.target.files[0]);
     }
 
+    async function detectCsvEndpoint(file) {
+      try {
+        const textSlice = await file.slice(0, 1024).text();
+        const firstLine = textSlice.split(/\r?\n/)[0].toLowerCase();
+        if (
+          firstLine.includes('rekeningnummer') ||
+          firstLine.includes('afschriftnummer') ||
+          firstLine.includes('rubrieknaam') ||
+          firstLine.includes('tegenpartij') ||
+          file.name.toLowerCase().includes('kbc')
+        ) {
+          return '/api/ingest/kbc';
+        }
+      } catch (e) {
+        // Fallback to name check
+      }
+      return file.name.toLowerCase().includes('kbc') ? '/api/ingest/kbc' : '/api/ingest/generic';
+    }
+
     async function uploadFile(file) {
       const status = document.getElementById('upload-status');
       status.className = 'text-xs py-2 px-3 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30';
@@ -2336,8 +2397,7 @@
       formData.append('file', file);
 
       try {
-        const isKbc = file.name.toLowerCase().includes('kbc');
-        const endpoint = isKbc ? '/api/ingest/kbc' : '/api/ingest/generic';
+        const endpoint = await detectCsvEndpoint(file);
         const res = await fetch(endpoint, { method: 'POST', body: formData });
         const result = await res.json();
         if (res.ok) {
@@ -2659,7 +2719,8 @@
               <td class="py-2.5 font-medium text-white">${safeName}</td>
               <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${safeClass}</span></td>
               <td class="py-2.5 font-mono text-emerald-400">${safeVal}</td>
-              <td class="py-2.5 text-right">
+              <td class="py-2.5 text-right whitespace-nowrap">
+                <button onclick="editManualAsset('${safeId}')" class="text-blue-400 hover:text-blue-300 text-xs px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1">${escapeHtml(I18N.t('common.edit', 'Edit'))}</button>
                 <button onclick="deleteManualAsset('${safeId}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">${escapeHtml(I18N.t('common.delete', 'Delete'))}</button>
               </td>
             `;
@@ -2730,10 +2791,43 @@
     }
 
 
-    function openAddAssetModal() { document.getElementById('add-asset-modal').classList.remove('hidden'); }
-    function closeAddAssetModal() { document.getElementById('add-asset-modal').classList.add('hidden'); }
+    function openAddAssetModal(editAsset = null) {
+      const modal = document.getElementById('add-asset-modal');
+      const title = document.getElementById('modal-asset-title');
+      if (editAsset) {
+        if (title) title.textContent = '✏️ Edit Asset';
+        document.getElementById('manual-asset-id').value = editAsset.id || '';
+        document.getElementById('manual-asset-name').value = editAsset.name || '';
+        document.getElementById('manual-asset-class').value = editAsset.asset_class || 'REAL_ESTATE';
+        document.getElementById('manual-asset-val').value = editAsset.current_value || (editAsset.current_value_formatted ? parseFloat(editAsset.current_value_formatted.replace(/[^0-9.-]/g, '')) : '');
+        document.getElementById('manual-asset-inst').value = editAsset.institution || 'Manual';
+        document.getElementById('manual-asset-sym').value = editAsset.symbol || '';
+      } else {
+        if (title) title.textContent = '🏠 Add Real Estate or Asset';
+        document.getElementById('manual-asset-id').value = '';
+        document.getElementById('manual-asset-name').value = '';
+        document.getElementById('manual-asset-class').value = 'REAL_ESTATE';
+        document.getElementById('manual-asset-val').value = '';
+        document.getElementById('manual-asset-inst').value = '';
+        document.getElementById('manual-asset-sym').value = '';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function editManualAsset(assetId) {
+      const asset = (currentData?.assets || []).find(a => a.id === assetId);
+      if (asset) {
+        openAddAssetModal(asset);
+      }
+    }
+
+    function closeAddAssetModal() {
+      document.getElementById('add-asset-modal').classList.add('hidden');
+      document.getElementById('manual-asset-id').value = '';
+    }
 
     async function saveManualAsset() {
+      const assetId = document.getElementById('manual-asset-id').value.trim();
       const name = document.getElementById('manual-asset-name').value.trim();
       const assetClass = document.getElementById('manual-asset-class').value;
       const val = parseFloat(document.getElementById('manual-asset-val').value) || 0;
@@ -2746,23 +2840,27 @@
       }
 
       try {
+        const payload = {
+          name: name,
+          asset_class: assetClass,
+          current_value: val,
+          institution: inst,
+          symbol: sym || null
+        };
+        if (assetId) payload.id = assetId;
+
         const res = await fetch('/api/assets/manual', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: name,
-            asset_class: assetClass,
-            current_value: val,
-            institution: inst,
-            symbol: sym || null
-          })
+          body: JSON.stringify(payload)
         });
         if (res.ok) {
           closeAddAssetModal();
+          document.getElementById('manual-asset-id').value = '';
           document.getElementById('manual-asset-name').value = '';
           document.getElementById('manual-asset-val').value = '';
           await loadOverview();
-          showToast('Asset added successfully!');
+          showToast(assetId ? 'Asset updated successfully!' : 'Asset added successfully!');
         }
       } catch (err) {
         console.error('Failed to save manual asset:', err);
@@ -3452,6 +3550,42 @@
     }
 
     // --- Belgian Capital Gains Tax Simulator & PDT Lookup ---
+    function populateTaxHoldingDropdown(data) {
+      const select = document.getElementById('sim-tax-holding-select');
+      if (!select) return;
+      const prevVal = select.value;
+      select.innerHTML = '<option value="">-- Choose from your loaded holdings --</option>';
+      const assets = data?.assets || [];
+      const stockOrEtf = assets.filter(a => a.symbol);
+      stockOrEtf.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.symbol;
+        opt.textContent = `${a.symbol} - ${a.name} (${a.current_value_formatted})`;
+        opt.dataset.symbol = a.symbol;
+        const price = (a.current_price && a.current_price > 0) ? a.current_price : (a.current_value / (a.quantity || 1));
+        opt.dataset.price = price;
+        opt.dataset.quantity = a.quantity || 0;
+        select.appendChild(opt);
+      });
+      if (prevVal) select.value = prevVal;
+    }
+
+    function onSelectTaxHolding(symbol) {
+      if (!symbol) return;
+      const select = document.getElementById('sim-tax-holding-select');
+      const opt = select.options[select.selectedIndex];
+      if (!opt) return;
+      document.getElementById('sim-tax-symbol').value = symbol;
+      if (opt.dataset.price && parseFloat(opt.dataset.price) > 0) {
+        document.getElementById('sim-tax-current-price').value = parseFloat(opt.dataset.price).toFixed(2);
+      }
+      if (opt.dataset.quantity && parseFloat(opt.dataset.quantity) > 0) {
+        document.getElementById('sim-tax-shares-pre').value = parseFloat(opt.dataset.quantity);
+        document.getElementById('sim-tax-shares-post').value = 0;
+      }
+      lookupTaxPrice();
+    }
+
     async function lookupTaxPrice() {
       const symbol = document.getElementById('sim-tax-symbol').value.trim();
       const btn = document.getElementById('btn-lookup-tax-price');
@@ -3660,7 +3794,7 @@
 
         const formData = new FormData();
         formData.append('file', file);
-        const endpoint = file.name.toLowerCase().includes('kbc') ? '/api/ingest/kbc' : '/api/ingest/generic';
+        const endpoint = await detectCsvEndpoint(file);
 
         try {
           const res = await fetch(endpoint, { method: 'POST', body: formData });
@@ -3682,8 +3816,8 @@
     async function wizardFinish() {
       // 1. Save Buckets
       const b1 = parseFloat(document.getElementById('wiz-b1').value || 50);
-      const b2 = parseFloat(document.getElementById('wiz-b2').value || 30);
-      const b3 = parseFloat(document.getElementById('wiz-b3').value || 10);
+      const b2 = parseFloat(document.getElementById('wiz-b2').value || 35);
+      const b3 = parseFloat(document.getElementById('wiz-b3').value || 5);
       const b4 = parseFloat(document.getElementById('wiz-b4').value || 10);
 
       // 2. Save Tax Settings
@@ -3704,26 +3838,26 @@
           })
         });
 
-        // Update default buckets
+        // Update default buckets without duplicating IDs
         await fetch('/api/buckets/target', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bucket_id: 'b-core-etf', name: 'Core Global Equities', target_weight_pct: b1 })
+          body: JSON.stringify({ bucket_id: 'core-etf', name: 'Core World ETFs', target_weight_pct: b1 })
         });
         await fetch('/api/buckets/target', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bucket_id: 'b-conviction', name: 'Conviction Growth', target_weight_pct: b2 })
+          body: JSON.stringify({ bucket_id: 'tech-growth', name: 'High-Conviction Tech', target_weight_pct: b2 })
         });
         await fetch('/api/buckets/target', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bucket_id: 'b-gold', name: 'Gold & Hard Assets', target_weight_pct: b3 })
+          body: JSON.stringify({ bucket_id: 'commodities', name: 'Gold & Commodities', target_weight_pct: b3 })
         });
         await fetch('/api/buckets/target', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bucket_id: 'b-buffer', name: 'Cash Buffer', target_weight_pct: b4 })
+          body: JSON.stringify({ bucket_id: 'cash-buffer', name: 'Cash & Emergency Buffer', target_weight_pct: b4 })
         });
 
         localStorage.setItem('wealth_pilot_setup_completed', 'true');
@@ -3811,5 +3945,29 @@
       }
     });
   </script>
+
+  <!-- Mobile Bottom Quick Navigation Bar -->
+  <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur border-t border-slate-800 py-1.5 px-3 flex justify-between items-center shadow-2xl" aria-label="Mobile Navigation">
+    <button onclick="switchTab('dashboard')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
+      <span class="text-base leading-none mb-1">📊</span>
+      <span>Overview</span>
+    </button>
+    <button onclick="switchTab('buckets')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
+      <span class="text-base leading-none mb-1">🪣</span>
+      <span>Buckets</span>
+    </button>
+    <button onclick="switchTab('advice')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
+      <span class="text-base leading-none mb-1">💡</span>
+      <span>Guidance</span>
+    </button>
+    <button onclick="switchTab('cashflow')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
+      <span class="text-base leading-none mb-1">🏦</span>
+      <span>Data</span>
+    </button>
+    <button onclick="switchTab('settings')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
+      <span class="text-base leading-none mb-1">⚙️</span>
+      <span>Settings</span>
+    </button>
+  </nav>
 </body>
 </html>

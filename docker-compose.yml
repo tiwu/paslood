@@ -1,0 +1,95 @@
+services:
+  wealth-pilot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wealth-pilot:latest
+    container_name: wealth-pilot
+    restart: unless-stopped
+    environment:
+      - WEALTH_PILOT_MODE=${WEALTH_PILOT_MODE:-self_host}
+      - WEALTH_PILOT_DATA_DIR=/data
+      - WEALTH_PILOT_SECRET_KEY=${WEALTH_PILOT_SECRET_KEY}
+      - WEALTH_PILOT_AUTH_MODE=${WEALTH_PILOT_AUTH_MODE:-both}
+      - WEALTH_PILOT_ALLOWED_EMAILS=${WEALTH_PILOT_ALLOWED_EMAILS:-}
+      - WEALTH_PILOT_TRUSTED_ORIGINS=${WEALTH_PILOT_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+      - WEALTH_PILOT_GOOGLE_CLIENT_ID=${WEALTH_PILOT_GOOGLE_CLIENT_ID:-}
+      - WEALTH_PILOT_GOOGLE_CLIENT_SECRET=${WEALTH_PILOT_GOOGLE_CLIENT_SECRET:-}
+      - WEALTH_PILOT_GITHUB_CLIENT_ID=${WEALTH_PILOT_GITHUB_CLIENT_ID:-}
+      - WEALTH_PILOT_GITHUB_CLIENT_SECRET=${WEALTH_PILOT_GITHUB_CLIENT_SECRET:-}
+      - WEALTH_PILOT_META_CLIENT_ID=${WEALTH_PILOT_META_CLIENT_ID:-}
+      - WEALTH_PILOT_META_CLIENT_SECRET=${WEALTH_PILOT_META_CLIENT_SECRET:-}
+    volumes:
+      - wealthpilot_data:/data
+    ports:
+      - "${PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # Profile: tailscale
+  # Enables secure private WireGuard mesh access from mobile phone / laptop without exposing open ports
+  # Usage: docker compose --profile tailscale up -d
+  tailscale:
+    image: tailscale/tailscale:latest
+    profiles: ["tailscale"]
+    container_name: wealth-pilot-tailscale
+    hostname: wealth-pilot
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - tailscale_data:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    network_mode: "service:wealth-pilot"
+    restart: unless-stopped
+    depends_on:
+      - wealth-pilot
+
+  # Profile: cloudflared
+  # Enables zero-trust remote access through Cloudflare Tunnel
+  # Usage: docker compose --profile cloudflared up -d
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["cloudflared"]
+    container_name: wealth-pilot-cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - wealth-pilot
+
+  # Profile: ddns
+  # Automatic TLS reverse proxy via Caddy for DuckDNS or custom domain
+  # Usage: docker compose --profile ddns up -d
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["ddns"]
+    container_name: wealth-pilot-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DUCKDNS_DOMAIN=${DUCKDNS_DOMAIN}
+      - ACME_EMAIL=${ACME_EMAIL}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - wealth-pilot
+
+volumes:
+  wealthpilot_data:
+  tailscale_data:
+  caddy_data:
+  caddy_config:
