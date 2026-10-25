@@ -9,11 +9,12 @@ from typing import Any
 
 import httpx
 
+from wealth_pilot import __version__
 from wealth_pilot.domain.asset import Asset, AssetClass
 from wealth_pilot.domain.money import Money
 
 DEFAULT_MCP_URL = "https://mcp.portfoliodividendtracker.com"
-USER_AGENT = "WealthPilot/0.1.0 (Strategic Wealth Guidance Platform; Python httpx)"
+USER_AGENT = f"WealthPilot/{__version__} (Strategic Wealth Guidance Platform; Python httpx)"
 
 
 class PdtMcpGateway:

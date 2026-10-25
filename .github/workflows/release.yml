@@ -2,8 +2,17 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: "Version bump type (auto, patch, minor, major) or explicit semver"
+        required: false
+        default: "auto"
+        type: string
 
 permissions:
   contents: write
@@ -12,8 +21,11 @@ jobs:
   release:
     name: Build & Publish Release
     runs-on: ubuntu-24.04
+    if: "!contains(github.event.head_commit.message, 'chore(release):') && !contains(github.event.head_commit.message, '[skip release]')"
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v10.3.0
@@ -25,20 +37,68 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Determine Release Mode & Action
+        id: prep
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+            VER="${TAG#v}"
+            echo "mode=tag" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "version=$VER" >> $GITHUB_OUTPUT
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "Checking CHANGELOG.md for unreleased changes..."
+            if uv run python scripts/release.py check-unreleased; then
+              BUMP_TYPE="${{ inputs.bump_type || 'auto' }}"
+              echo "Unreleased changes found. Bumping with type: $BUMP_TYPE"
+              OUTPUT=$(uv run python scripts/release.py bump "$BUMP_TYPE")
+              NEW_VER="${OUTPUT#new_version=}"
+              TAG="v$NEW_VER"
+
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git add pyproject.toml src/wealth_pilot/__init__.py CHANGELOG.md
+              git commit -m "chore(release): $TAG [skip ci]"
+              git tag "$TAG"
+              git push origin main --tags
+
+              echo "mode=main" >> $GITHUB_OUTPUT
+              echo "tag=$TAG" >> $GITHUB_OUTPUT
+              echo "version=$NEW_VER" >> $GITHUB_OUTPUT
+              echo "should_release=true" >> $GITHUB_OUTPUT
+            else
+              echo "No unreleased changes found in CHANGELOG.md. Skipping release."
+              echo "should_release=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Extract Release Notes
+        if: steps.prep.outputs.should_release == 'true'
+        run: |
+          uv run python scripts/release.py extract-notes \
+            --version "${{ steps.prep.outputs.version }}" \
+            --output "RELEASE_NOTES.md"
+
       - name: Build Package Distributions
+        if: steps.prep.outputs.should_release == 'true'
         run: uv build
 
       - name: Create GitHub Release
+        if: steps.prep.outputs.should_release == 'true'
         id: release
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: "${{ steps.prep.outputs.tag }}"
+          name: "${{ steps.prep.outputs.tag }}"
+          body_path: RELEASE_NOTES.md
           files: dist/*
           generate_release_notes: true
 
       - name: Generate Release Artifact Summary
-        if: always()
+        if: steps.prep.outputs.should_release == 'true'
         run: |
           uv run python scripts/ci_summary.py release \
             --dist-dir "dist" \
-            --tag "${{ github.ref_name }}" \
+            --tag "${{ steps.prep.outputs.tag }}" \
             --repo "${{ github.repository }}"
