@@ -1248,32 +1248,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#problem-motivation" class="md-nav__link">
+  <a href="#proposed-solution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Problem &amp; Motivation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#proposed-solution-requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Proposed Solution &amp; Requirements
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#autonomous-agent-lifecycle" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Autonomous Agent Lifecycle
+        Proposed Solution
       
     </span>
   </a>
@@ -1331,21 +1309,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#33-adapters-repositories-srcwealth_pilotadapters" class="md-nav__link">
+  <a href="#33-delivery-frameworks-srcwealth_pilotdelivery" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.3 Adapters &amp; Repositories (src/wealth_pilot/adapters/)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#34-delivery-frameworks-srcwealth_pilotdelivery" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3.4 Delivery Frameworks (src/wealth_pilot/delivery/)
+        3.3 Delivery Frameworks (src/wealth_pilot/delivery/)
       
     </span>
   </a>
@@ -1577,32 +1544,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#problem-motivation" class="md-nav__link">
+  <a href="#proposed-solution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Problem &amp; Motivation
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#proposed-solution-requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Proposed Solution &amp; Requirements
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#autonomous-agent-lifecycle" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Autonomous Agent Lifecycle
+        Proposed Solution
       
     </span>
   </a>
@@ -1660,21 +1605,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#33-adapters-repositories-srcwealth_pilotadapters" class="md-nav__link">
+  <a href="#33-delivery-frameworks-srcwealth_pilotdelivery" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.3 Adapters &amp; Repositories (src/wealth_pilot/adapters/)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#34-delivery-frameworks-srcwealth_pilotdelivery" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3.4 Delivery Frameworks (src/wealth_pilot/delivery/)
+        3.3 Delivery Frameworks (src/wealth_pilot/delivery/)
       
     </span>
   </a>
@@ -1731,68 +1665,56 @@
 <h1 id="architecture-plan-issue-3-feat-option-to-exclude-bucket-from-weight-calculation">Architecture Plan: [Issue #3] feat: option to exclude bucket from weight calculation</h1>
 <ul>
 <li><strong>Issue</strong>: <a href="https://github.com/tiwu/wealth-pilot/issues/3">#3</a></li>
-<li><strong>Status</strong>: Plan Review</li>
+<li><strong>Status</strong>: Completed</li>
 <li><strong>Author</strong>: Autonomous Issue Worker</li>
 <li><strong>Date</strong>: 2026-10-14</li>
 <li><strong>Target Branch</strong>: <code>feature/issue-3-option-to-exclude-bucket-from-weight-cal</code></li>
 </ul>
 <hr />
 <h2 id="1-problem-statement-motivation">1. Problem Statement &amp; Motivation</h2>
-<h3 id="problem-motivation">Problem &amp; Motivation</h3>
-<p>I want to exclude the value of my house from the bucket calculations to rebalance my portfolio. Now my house takes up 80% of the pie and it's harder to balance the others relative to each other like this.</p>
-<p><img width="1253" height="796" alt="Image" src="https://github.com/user-attachments/assets/109c056d-7d17-421e-a6e3-e04f0ba3faa2" /></p>
-<h3 id="proposed-solution-requirements">Proposed Solution &amp; Requirements</h3>
-<p>Buckets should have a checkbox to include/exclude them from calculations</p>
-<hr />
-<h3 id="autonomous-agent-lifecycle">Autonomous Agent Lifecycle</h3>
-<p>Wealth Pilot uses a two-stage autonomous agent queue:
-1. <strong>Planning Stage (<code>agent:plan</code>)</strong>: The agent will inspect this issue, formulate an architecture plan in <code>docs/plans/</code>, post it as a comment below, and transition the label to <code>agent:plan-review</code>.
-2. <strong>Implementation Stage (<code>agent:approved</code>)</strong>: After reviewing the plan, apply the label <code>agent:approved</code> to authorize the agent to implement code, run tests, and open a linked PR (<code>agent:review-ready</code>).
-3. <strong>Manual Only</strong>: To keep this issue human-only, remove <code>agent:plan</code> or add <code>agent:manual</code>.</p>
+<p>Allow users to exclude illiquid or anchor assets (such as a primary residence) from dynamic portfolio rebalancing calculations. For example, if a primary residence represents 80% of total assets, including it in liquid allocation buckets skews target rebalancing calculations across liquid investments.</p>
+<h3 id="proposed-solution">Proposed Solution</h3>
+<p>Add an <code>excluded</code> boolean flag to <code>Bucket</code> models and provide a toggle in the UI so excluded buckets are omitted from target allocation weights and deposit rebalancing math while still being counted toward total net worth.</p>
 <hr />
 <h2 id="2-requirements-acceptance-criteria">2. Requirements &amp; Acceptance Criteria</h2>
 <ul>
-<li>[ ] Address core requirements stated in Issue #3</li>
-<li>[ ] Maintain Clean Architecture boundaries (Domain pure, Use Cases isolated, Adapters modular)</li>
-<li>[ ] Implement unit and integration tests with $\ge 90\%$ test coverage</li>
-<li>[ ] Verify zero linting errors (<code>uv run ruff check</code>) and documentation build (<code>uv run mkdocs build</code>)</li>
+<li>[x] Add <code>excluded: bool = False</code> to <code>Bucket</code> domain model</li>
+<li>[x] Update <code>CalculateBucketAllocationUseCase</code> to omit excluded buckets when computing target weights and buy recommendations</li>
+<li>[x] Maintain total net worth tracking across all assets regardless of bucket exclusion status</li>
+<li>[x] Add UI checkbox toggle in the Add/Edit Bucket modal</li>
+<li>[x] Unit and integration tests cover exclusion scenarios with $\ge 90\%$ test coverage</li>
+<li>[x] Zero linting errors (<code>uv run ruff check</code>) and documentation build (<code>uv run mkdocs build</code>)</li>
 </ul>
 <hr />
 <h2 id="3-hexagonal-architecture-impact">3. Hexagonal Architecture Impact</h2>
 <h3 id="31-domain-layer-srcwealth_pilotdomain">3.1 Domain Layer (<code>src/wealth_pilot/domain/</code>)</h3>
 <ul>
-<li>Ensure all financial math uses <code>Money</code> / <code>Decimal</code> (no floats)</li>
-<li>Avoid zero-value truthiness trap (<code>value or fallback</code>)</li>
+<li><code>Bucket</code>: added <code>excluded: bool = False</code> attribute</li>
+<li>Maintained pure Python and <code>Decimal</code> financial arithmetic</li>
 </ul>
 <h3 id="32-use-cases-layer-srcwealth_pilotuse_cases">3.2 Use Cases Layer (<code>src/wealth_pilot/use_cases/</code>)</h3>
 <ul>
-<li>Application orchestrators receive domain entities and return typed outputs</li>
+<li><code>CalculateBucketAllocationUseCase</code>: filters out excluded buckets during allocation proportion and rebalance calculation</li>
 </ul>
-<h3 id="33-adapters-repositories-srcwealth_pilotadapters">3.3 Adapters &amp; Repositories (<code>src/wealth_pilot/adapters/</code>)</h3>
+<h3 id="33-delivery-frameworks-srcwealth_pilotdelivery">3.3 Delivery Frameworks (<code>src/wealth_pilot/delivery/</code>)</h3>
 <ul>
-<li>Persistence via <code>LocalDbRepository</code> (SQLite) or <code>ConfigRepository</code> (YAML)</li>
-</ul>
-<h3 id="34-delivery-frameworks-srcwealth_pilotdelivery">3.4 Delivery Frameworks (<code>src/wealth_pilot/delivery/</code>)</h3>
-<ul>
-<li>REST APIs in <code>src/wealth_pilot/delivery/web/app.py</code></li>
-<li>Web UI in <code>src/wealth_pilot/delivery/web/templates/index.html</code></li>
+<li>Web UI in <code>src/wealth_pilot/delivery/web/templates/index.html</code> updated with excluded badge and modal toggle</li>
 </ul>
 <hr />
 <h2 id="4-test-driven-development-tdd-plan">4. Test-Driven Development (TDD) Plan</h2>
 <ol>
-<li><strong>Red</strong>: Write test cases in <code>tests/</code> reproducing requirements and verifying failure.</li>
-<li><strong>Green</strong>: Write minimal implementation satisfying the tests.</li>
-<li><strong>Refactor</strong>: Clean up and verify full test suite passes with $\ge 90\%$ coverage.</li>
+<li><strong>Red</strong>: Unit test verifying that an excluded bucket receives 0.00% target allocation and 0 euro contribution recommendation.</li>
+<li><strong>Green</strong>: Filter out <code>bucket.excluded</code> in allocation calculation.</li>
+<li><strong>Refactor</strong>: Clean up and verify all tests pass with $\ge 90\%$ coverage.</li>
 </ol>
 <hr />
 <h2 id="5-verification-checklist">5. Verification Checklist</h2>
 <ul>
-<li>[ ] <code>uv run ruff check src tests</code></li>
-<li>[ ] <code>uv run ruff format --check src tests</code></li>
-<li>[ ] <code>uv run mkdocs build --strict</code></li>
-<li>[ ] <code>uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90</code></li>
-<li>[ ] <code>CHANGELOG.md</code> updated under <code>[Unreleased]</code></li>
-<li>[ ] PR created with <code>Closes #3</code></li>
+<li>[x] <code>uv run ruff check src tests</code></li>
+<li>[x] <code>uv run ruff format --check src tests</code></li>
+<li>[x] <code>uv run mkdocs build --strict</code></li>
+<li>[x] <code>uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90</code></li>
+<li>[x] PR merged with <code>Closes #3</code></li>
 </ul>
 
 
