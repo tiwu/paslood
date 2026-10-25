@@ -8,7 +8,106 @@ const I18N = {
   currentLang: 'en',
   supportedLanguages: ['en', 'nl', 'fr', 'de'],
   translations: {},
+  regionalFormat: 'auto',
   _initPromise: null,
+
+  getEffectiveLocale() {
+    if (this.regionalFormat && this.regionalFormat !== 'auto') {
+      return this.regionalFormat;
+    }
+    const map = {
+      'nl': 'nl-BE',
+      'fr': 'fr-BE',
+      'de': 'de-DE',
+      'en': 'en-US'
+    };
+    return map[this.currentLang] || 'nl-BE';
+  },
+
+  parseNumber(val) {
+    if (val === null || val === undefined) return NaN;
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+      const cleaned = val.replace(/[^0-9.-]/g, '');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? NaN : num;
+    }
+    return NaN;
+  },
+
+  formatNumber(val, decimals = 2) {
+    if (val === null || val === undefined) return '—';
+    const num = typeof val === 'number' ? val : this.parseNumber(val);
+    if (isNaN(num)) return String(val);
+    const loc = this.getEffectiveLocale();
+    return num.toLocaleString(loc, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  },
+
+  formatPercent(val, decimals = 2) {
+    if (val === null || val === undefined) return '—';
+    const num = typeof val === 'number' ? val : this.parseNumber(val);
+    if (isNaN(num)) return String(val);
+    return this.formatNumber(num, decimals) + '%';
+  },
+
+  formatCurrency(val, currency = 'EUR', decimals = 2) {
+    if (val === null || val === undefined) return '—';
+    const num = typeof val === 'number' ? val : this.parseNumber(val);
+    if (isNaN(num)) return String(val);
+    const sym = currency === 'EUR' ? '€' : (currency === 'USD' ? '$' : currency);
+    return `${sym} ${this.formatNumber(num, decimals)}`;
+  },
+
+  formatDate(dateVal) {
+    if (!dateVal) return '—';
+    try {
+      let d = null;
+      if (dateVal instanceof Date) {
+        d = dateVal;
+      } else if (typeof dateVal === 'string') {
+        const trimmed = dateVal.trim();
+        const parts = trimmed.split(/[/.-]/);
+        if (parts.length === 3 && parts[0].length <= 2 && parts[2].length === 4) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const year = parseInt(parts[2], 10);
+          d = new Date(year, month, day);
+        } else if (parts.length === 3 && parts[0].length === 4) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          d = new Date(year, month, day);
+        } else {
+          d = new Date(trimmed);
+        }
+      }
+      if (!d || isNaN(d.getTime())) return String(dateVal);
+      const loc = this.getEffectiveLocale();
+      return d.toLocaleDateString(loc, { year: 'numeric', month: '2-digit', day: '2-digit' });
+    } catch (e) {
+      return String(dateVal);
+    }
+  },
+
+  setRegionalFormat(fmt, persist = true) {
+    this.regionalFormat = fmt || 'auto';
+    if (persist) {
+      try {
+        localStorage.setItem('wealth_pilot_regional_format', this.regionalFormat);
+        fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ regional_format: this.regionalFormat })
+        }).catch(() => {});
+      } catch (e) {}
+    }
+    const sel = document.getElementById('settings-regional-format-select');
+    if (sel && sel.value !== this.regionalFormat) sel.value = this.regionalFormat;
+    window.dispatchEvent(new CustomEvent('regionalFormatChanged', { detail: { format: this.regionalFormat } }));
+  },
 
   /**
    * Resolves a dot-notated key (e.g., 'nav.overview') with optional {param} interpolation.
@@ -123,6 +222,10 @@ const I18N = {
       let saved = null;
       try {
         saved = localStorage.getItem('wealth_pilot_language');
+        const savedFormat = localStorage.getItem('wealth_pilot_regional_format');
+        if (savedFormat) {
+          this.regionalFormat = savedFormat;
+        }
         if (!saved) {
           const navLang = (navigator.language || navigator.userLanguage || '').toLowerCase().slice(0, 2);
           if (this.supportedLanguages.includes(navLang)) {
