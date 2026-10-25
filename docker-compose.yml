@@ -1,24 +1,24 @@
 services:
-  wealth-pilot:
+  paslood:
     build:
       context: .
       dockerfile: Dockerfile
-    image: wealth-pilot:latest
-    container_name: wealth-pilot
+    image: paslood:latest
+    container_name: paslood
     restart: unless-stopped
     environment:
-      - WEALTH_PILOT_MODE=${WEALTH_PILOT_MODE:-self_host}
-      - WEALTH_PILOT_DATA_DIR=/data
-      - WEALTH_PILOT_SECRET_KEY=${WEALTH_PILOT_SECRET_KEY}
-      - WEALTH_PILOT_AUTH_MODE=${WEALTH_PILOT_AUTH_MODE:-both}
-      - WEALTH_PILOT_ALLOWED_EMAILS=${WEALTH_PILOT_ALLOWED_EMAILS:-}
-      - WEALTH_PILOT_TRUSTED_ORIGINS=${WEALTH_PILOT_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
-      - WEALTH_PILOT_GOOGLE_CLIENT_ID=${WEALTH_PILOT_GOOGLE_CLIENT_ID:-}
-      - WEALTH_PILOT_GOOGLE_CLIENT_SECRET=${WEALTH_PILOT_GOOGLE_CLIENT_SECRET:-}
-      - WEALTH_PILOT_GITHUB_CLIENT_ID=${WEALTH_PILOT_GITHUB_CLIENT_ID:-}
-      - WEALTH_PILOT_GITHUB_CLIENT_SECRET=${WEALTH_PILOT_GITHUB_CLIENT_SECRET:-}
-      - WEALTH_PILOT_META_CLIENT_ID=${WEALTH_PILOT_META_CLIENT_ID:-}
-      - WEALTH_PILOT_META_CLIENT_SECRET=${WEALTH_PILOT_META_CLIENT_SECRET:-}
+      - PASLOOD_MODE=${PASLOOD_MODE:-${WEALTH_PILOT_MODE:-self_host}}
+      - PASLOOD_DATA_DIR=/data
+      - PASLOOD_SECRET_KEY=${PASLOOD_SECRET_KEY:-${WEALTH_PILOT_SECRET_KEY:-}}
+      - PASLOOD_AUTH_MODE=${PASLOOD_AUTH_MODE:-${WEALTH_PILOT_AUTH_MODE:-both}}
+      - PASLOOD_ALLOWED_EMAILS=${PASLOOD_ALLOWED_EMAILS:-${WEALTH_PILOT_ALLOWED_EMAILS:-}}
+      - PASLOOD_TRUSTED_ORIGINS=${PASLOOD_TRUSTED_ORIGINS:-${WEALTH_PILOT_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}}
+      - PASLOOD_GOOGLE_CLIENT_ID=${PASLOOD_GOOGLE_CLIENT_ID:-${WEALTH_PILOT_GOOGLE_CLIENT_ID:-}}
+      - PASLOOD_GOOGLE_CLIENT_SECRET=${PASLOOD_GOOGLE_CLIENT_SECRET:-${WEALTH_PILOT_GOOGLE_CLIENT_SECRET:-}}
+      - PASLOOD_GITHUB_CLIENT_ID=${PASLOOD_GITHUB_CLIENT_ID:-${WEALTH_PILOT_GITHUB_CLIENT_ID:-}}
+      - PASLOOD_GITHUB_CLIENT_SECRET=${PASLOOD_GITHUB_CLIENT_SECRET:-${WEALTH_PILOT_GITHUB_CLIENT_SECRET:-}}
+      - PASLOOD_META_CLIENT_ID=${PASLOOD_META_CLIENT_ID:-${WEALTH_PILOT_META_CLIENT_ID:-}}
+      - PASLOOD_META_CLIENT_SECRET=${PASLOOD_META_CLIENT_SECRET:-${WEALTH_PILOT_META_CLIENT_SECRET:-}}
     volumes:
       - wealthpilot_data:/data
     ports:
@@ -36,8 +36,8 @@ services:
   tailscale:
     image: tailscale/tailscale:latest
     profiles: ["tailscale"]
-    container_name: wealth-pilot-tailscale
-    hostname: wealth-pilot
+    container_name: paslood-tailscale
+    hostname: paslood
     environment:
       - TS_AUTHKEY=${TAILSCALE_AUTHKEY}
       - TS_EXTRA_ARGS=--advertise-tags=tag:container
@@ -48,10 +48,10 @@ services:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - NET_ADMIN
-    network_mode: "service:wealth-pilot"
+    network_mode: "service:paslood"
     restart: unless-stopped
     depends_on:
-      - wealth-pilot
+      - paslood
 
   # Profile: cloudflared
   # Enables zero-trust remote access through Cloudflare Tunnel
@@ -59,13 +59,13 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     profiles: ["cloudflared"]
-    container_name: wealth-pilot-cloudflared
+    container_name: paslood-cloudflared
     restart: unless-stopped
     command: tunnel run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
-      - wealth-pilot
+      - paslood
 
   # Profile: ddns
   # Automatic TLS reverse proxy via Caddy for DuckDNS or custom domain
@@ -73,7 +73,7 @@ services:
   caddy:
     image: caddy:2-alpine
     profiles: ["ddns"]
-    container_name: wealth-pilot-caddy
+    container_name: paslood-caddy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -86,7 +86,7 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - wealth-pilot
+      - paslood
 
 volumes:
   wealthpilot_data:

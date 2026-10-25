@@ -14,7 +14,9 @@ from wealth_pilot.domain.asset import Asset, AssetClass
 from wealth_pilot.domain.money import Money
 
 DEFAULT_MCP_URL = "https://mcp.portfoliodividendtracker.com"
-USER_AGENT = f"WealthPilot/{__version__} (Strategic Wealth Guidance Platform; Python httpx)"
+USER_AGENT = (
+    f"Paslood/{__version__} (Whole-Life Balance Sheet & Belgian Fiscal Shield; Python httpx)"
+)
 
 
 class PdtMcpGateway:

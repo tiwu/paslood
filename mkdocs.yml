@@ -1,10 +1,10 @@
-site_name: Wealth Pilot Documentation
-site_description: Strategic Wealth & Asset Allocation Guidance Platform
-site_author: Wealth Pilot Contributors
-site_url: https://tiwu.github.io/wealth-pilot/
+site_name: Paslood (Wealth Pilot) Documentation
+site_description: Whole-Life Balance Sheet, PDT Strategic Companion & Belgian Fiscal Shield
+site_author: Paslood Contributors
+site_url: https://tiwu.github.io/paslood/
 
-repo_name: wealth-pilot
-repo_url: https://github.com/tiwu/wealth-pilot
+repo_name: paslood
+repo_url: https://github.com/tiwu/paslood
 
 theme:
   name: material

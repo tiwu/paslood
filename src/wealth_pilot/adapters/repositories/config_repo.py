@@ -169,15 +169,16 @@ class ConfigRepository:
         if config_path:
             self.config_path = Path(config_path)
         else:
-            raw_env_dir = os.getenv("WEALTH_PILOT_DATA_DIR")
+            raw_env_dir = os.getenv("PASLOOD_DATA_DIR") or os.getenv("WEALTH_PILOT_DATA_DIR")
+            paslood_dir = Path.home() / ".paslood"
+            legacy_dir = Path.home() / ".wealth_pilot"
+            default_home_dir = (
+                legacy_dir if (legacy_dir.exists() and not paslood_dir.exists()) else paslood_dir
+            )
             base_dir = (
                 Path(data_dir).expanduser().resolve()
                 if data_dir
-                else (
-                    Path(raw_env_dir).expanduser().resolve()
-                    if raw_env_dir
-                    else Path.home() / ".wealth_pilot"
-                )
+                else (Path(raw_env_dir).expanduser().resolve() if raw_env_dir else default_home_dir)
             )
             if tenant_id != "default":
                 self.config_path = base_dir / "tenants" / tenant_id / "portfolio.yaml"

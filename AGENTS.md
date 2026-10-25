@@ -1,12 +1,12 @@
-# AGENTS.md — Agent & Developer Guide for Wealth Pilot
+# AGENTS.md — Agent & Developer Guide for Paslood (formerly Wealth Pilot)
 
-This guide provides architectural principles, engineering standards, tooling commands, development recipes, and prompt templates for any automated agent or human developer contributing to **Wealth Pilot**.
+This guide provides architectural principles, engineering standards, tooling commands, development recipes, and prompt templates for any automated agent or human developer contributing to **Paslood**.
 
 ---
 
 ## 1. Project Overview & Clean Architecture
 
-**Wealth Pilot** is a local-first, privacy-respecting strategic wealth planning and asset allocation platform. It helps users manage macro asset allocation, track portfolio drift, simulate compound wealth trajectories, optimize capital gains tax (such as the Belgian 2026 tax framework), and receive strategic advice via pluggable AI advisors.
+**Paslood** (*in het lood staan* — plumb-line alignment for your personal balance sheet) is a local-first, privacy-respecting strategic wealth planning and asset allocation platform. It unifies brokerage portfolios (PDT MCP) with off-broker bank accounts (KBC, Bunq), pension savings, real estate, loans (mortgages, consumer/vehicle loans), and employee share purchase plans (ASML on EquatePlus) to manage macro asset allocation, track portfolio drift, simulate compound wealth trajectories, optimize Belgian taxes (2026 Meerwaardebelasting, TOB, Reynders Art. 19bis), and receive strategic advice via pluggable AI advisors.
 
 ### Architectural Philosophy: Pure Clean Architecture
 

@@ -39,3 +39,18 @@ def test_settings_from_env(monkeypatch, tmp_path: Path):
     assert not s.has_github_oauth
     assert s.is_email_allowed("user1@test.com")
     assert not s.is_email_allowed("intruder@test.com")
+
+
+def test_paslood_env_variables_take_precedence(monkeypatch, tmp_path: Path):
+    monkeypatch.setenv("PASLOOD_MODE", "self_host")
+    monkeypatch.setenv("PASLOOD_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("PASLOOD_AUTH_MODE", "hybrid")
+    monkeypatch.setenv("PASLOOD_ALLOWED_EMAILS", "tim@paslood.be")
+    monkeypatch.setenv("PASLOOD_SECRET_KEY", "super-secret-paslood-key")
+
+    s = AppSettings.from_env()
+    assert s.mode == "self_host"
+    assert s.auth_mode == "hybrid"
+    assert s.data_dir == tmp_path
+    assert s.secret_key == "super-secret-paslood-key"
+    assert s.is_email_allowed("tim@paslood.be")

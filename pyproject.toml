@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "wealth-pilot"
+name = "paslood"
 version = "0.7.0"
-description = "Strategic Wealth & Asset Allocation Guidance Platform"
+description = "Paslood — Whole-Life Balance Sheet, PDT Strategic Companion & Belgian Fiscal Shield"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
-    { name = "Wealth Pilot Contributors" }
+    { name = "Paslood Contributors" }
 ]
 dependencies = [
     "textual>=0.80.0",
@@ -39,6 +39,7 @@ dev = [
 ]
 
 [project.scripts]
+paslood = "wealth_pilot.cli:app"
 wealth-pilot = "wealth_pilot.cli:app"
 
 [tool.hatch.build.targets.wheel]
