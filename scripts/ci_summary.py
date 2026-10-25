@@ -67,18 +67,32 @@ def extract_coverage_percentage(markdown_table: str) -> float | None:
 
 def generate_test_summary(
     status: str = "success",
+    ui_status: str = "success",
     coverage_markdown: str = "",
     target_threshold: float = 90.0,
     run_id: str = "",
     repo: str = "tiwu/wealth-pilot",
 ) -> str:
-    """Generate Markdown summary for test suite and coverage reporting."""
+    """Generate Markdown summary for test suite, UI E2E tests, and coverage reporting."""
     lines = [
         "## 🧪 Test Suite & Coverage Summary",
         "",
+        "| Suite | Status |",
+        "| :--- | :--- |",
+        f"| Unit, Integration & Delivery Tests | {_status_badge(status)} |",
+        f"| Frontend JS & Playwright UI E2E | {_status_badge(ui_status)} |",
+        "",
     ]
 
-    is_success = status.strip().lower() in ("success", "passed", "true")
+    is_success = status.strip().lower() in (
+        "success",
+        "passed",
+        "true",
+    ) and ui_status.strip().lower() in (
+        "success",
+        "passed",
+        "true",
+    )
     if is_success:
         lines.append("✅ **All tests passed successfully!**")
     else:
@@ -222,6 +236,7 @@ def main(argv: list[str] | None = None) -> int:
     # test
     test_p = subparsers.add_parser("test", help="Generate test & coverage summary")
     test_p.add_argument("--status", default="success", help="Pytest execution status")
+    test_p.add_argument("--ui-status", default="success", help="Playwright UI E2E execution status")
     test_p.add_argument("--coverage-file", default=None, help="Path to markdown coverage file")
     test_p.add_argument("--threshold", type=float, default=90.0, help="Target coverage threshold")
     test_p.add_argument("--run-id", default="", help="GitHub run ID")
@@ -276,6 +291,7 @@ def main(argv: list[str] | None = None) -> int:
 
         summary = generate_test_summary(
             status=args.status,
+            ui_status=args.ui_status,
             coverage_markdown=cov_markdown,
             target_threshold=args.threshold,
             run_id=args.run_id,

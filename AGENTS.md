@@ -46,8 +46,10 @@ Always use `uv` for package management, running tests, linting, formatting, and 
 | Task | Command |
 | :--- | :--- |
 | **Install all dependencies** | `uv sync --all-extras --dev` |
+| **Install Playwright Chromium** | `uv run playwright install chromium` |
 | **Run all tests** | `uv run pytest` |
 | **Run tests with coverage** | `uv run pytest --cov=src/wealth_pilot --cov-report=term-missing` |
+| **Run Frontend JS & E2E UI tests** | `uv run pytest tests/delivery/test_frontend_integrity.py tests/e2e/test_ui_workflows.py` |
 | **Run specific test file** | `uv run pytest tests/delivery/test_new_features.py` |
 | **Run single test function** | `uv run pytest tests/delivery/test_web.py -k test_web_index_and_overview` |
 | **Lint checks** | `uv run ruff check src tests` |
@@ -98,8 +100,10 @@ We strictly follow the **Red-Green-Refactor** methodology for all new features a
 - **Portfolio Holding & Bucket Assignment**:
   - When assigning assets to buckets, matching criteria priority is: `symbols` > `isins` > `name_keywords` > `asset_classes`.
   - Re-assigning an asset cleans up matching symbols from other buckets to prevent ambiguous multi-bucket allocation.
-- **Headless Web Testing**:
-  - FastAPI endpoints are tested headlessly in memory using `httpx.ASGITransport(app=test_app)`. Do not spawn a live background server process during automated testing.
+- **Headless Web & Browser E2E UI Testing**:
+  - FastAPI endpoints are tested in memory using `httpx.ASGITransport(app=test_app)`.
+  - Frontend JavaScript is modularized under `src/wealth_pilot/delivery/web/static/js/` (`core.js`, `dashboard.js`, `buckets.js`, `guidance.js`, `assets_cashflow.js`, `settings_wizard.js`) — do not dump large inline `<script>` blocks into `index.html`.
+  - Every UI change MUST pass both `tests/delivery/test_frontend_integrity.py` (Node.js syntax, handler contract & unit tests) and `tests/e2e/test_ui_workflows.py` (Playwright headless Chromium E2E tests with zero `pageerror` / `console.error`).
 - **Tailwind UI Standards**:
   - Use dark mode by default (`bg-slate-950`, cards `bg-slate-900 border border-slate-800`).
   - Keep modals centered with `fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4`.
@@ -136,11 +140,11 @@ Architecture Guidelines:
 ```text
 Task: Add or update <Widget Name> in the web dashboard.
 Guidelines:
-1. Modify src/wealth_pilot/delivery/web/templates/index.html adhering to the slate-950 dark theme.
+1. Modify src/wealth_pilot/delivery/web/templates/index.html and the corresponding module in src/wealth_pilot/delivery/web/static/js/ adhering to the slate-950 dark theme.
 2. Ensure any new API responses are parsed safely (check res.ok, handle errors gracefully without crashing JSON.parse).
 3. Provide keyboard accessibility and auto-updating state on modal dismissal.
-4. Add delivery integration tests in tests/delivery/ asserting endpoint contracts and returned keys.
-5. Verify with 'uv run ruff check src tests' and 'uv run ruff format --check src tests'.
+4. Add delivery integration tests in tests/delivery/ and E2E browser assertions in tests/e2e/test_ui_workflows.py.
+5. Verify with 'uv run pytest tests/delivery/test_frontend_integrity.py tests/e2e/test_ui_workflows.py', 'uv run ruff check src tests', and 'uv run ruff format --check src tests'.
 ```
 
 ---

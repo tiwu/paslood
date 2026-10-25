@@ -86,6 +86,7 @@ When `stage` is `"implementation"`:
 5. **Verification**:
    ```bash
    uv run pytest --cov=src/wealth_pilot
+   uv run pytest tests/delivery/test_frontend_integrity.py tests/e2e/test_ui_workflows.py
    uv run ruff check src tests
    uv run ruff format --check src tests
    uv run mkdocs build --strict

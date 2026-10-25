@@ -71,19 +71,24 @@ def test_generate_test_summary_success_and_threshold():
     )
     summary_met = generate_test_summary(
         status="success",
+        ui_status="success",
         coverage_markdown=cov_table,
         target_threshold=90.0,
     )
     assert "## 🧪 Test Suite & Coverage Summary" in summary_met
+    assert "| Unit, Integration & Delivery Tests | ✅ Passed |" in summary_met
+    assert "| Frontend JS & Playwright UI E2E | ✅ Passed |" in summary_met
     assert "✅ **All tests passed successfully!**" in summary_met
     assert "🎯 Coverage: **91.0%** (Target: $\\ge 90.0\\%$ — Met ✅)" in summary_met
     assert cov_table in summary_met
 
     summary_failed = generate_test_summary(
         status="failure",
+        ui_status="failure",
         coverage_markdown="| **TOTAL** | **100** | **20** | **80%** |\n",
         target_threshold=90.0,
     )
+    assert "| Frontend JS & Playwright UI E2E | ❌ Failed |" in summary_failed
     assert "❌ **Test suite or coverage checks failed!**" in summary_failed
     assert "⚠️ Coverage: **80.0%** (Target: $\\ge 90.0\\%$ — Below Threshold ❌)" in summary_failed
 

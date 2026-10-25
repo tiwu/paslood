@@ -34,12 +34,16 @@ async def test_allocation_visualizer_dom_elements(test_app):
         assert 'id="bucket-meters-container"' in html
         assert 'id="bucket-drift-container"' in html
         assert 'id="bucket-excluded-section"' in html
+        assert '/static/js/buckets.js"' in html
 
-        # Verify JS rendering handles tolerance bands and target markers
-        assert "target-pin" in html
-        assert "tolerance-zone" in html
-        assert "renderBulletMeters" in html
-        assert "renderDriftChart" in html
+        # Verify extracted buckets.js handles tolerance bands and target markers
+        js_resp = await client.get("/static/js/buckets.js")
+        assert js_resp.status_code == 200
+        js_code = js_resp.text
+        assert "target-pin" in js_code
+        assert "tolerance-zone" in js_code
+        assert "renderBulletMeters" in js_code
+        assert "renderDriftChart" in js_code
 
 
 def test_i18n_locales_contain_allocation_keys():
