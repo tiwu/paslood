@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import base64
 import contextlib
+import hashlib
+import hmac
+import json
 import os
+import secrets
 import uuid
 from decimal import Decimal
 from pathlib import Path
@@ -15,6 +20,79 @@ from wealth_pilot.domain.asset import Asset, AssetClass
 from wealth_pilot.domain.bucket import AllocationRule, Bucket
 from wealth_pilot.domain.liability import Liability, LoanType
 from wealth_pilot.domain.money import Money
+
+
+def _is_masked_secret(val: Any) -> bool:
+    """Checks whether a secret string is a UI masked placeholder (e.g. '••••1234')."""
+    if not isinstance(val, str):
+        return False
+    stripped = val.strip()
+    return "•" in stripped or stripped.startswith("****")
+
+
+def encrypt_vault_payload(payload_dict: dict[str, Any], passphrase: str) -> dict[str, Any]:
+    """Encrypts a dictionary payload using PBKDF2-HMAC-SHA256 + CTR-XOR stream + HMAC-SHA256."""
+    if not passphrase or len(passphrase.strip()) < 4:
+        raise ValueError("Passphrase must be at least 4 characters long.")
+
+    salt = secrets.token_bytes(16)
+    nonce = secrets.token_bytes(16)
+    derived = hashlib.pbkdf2_hmac("sha256", passphrase.encode("utf-8"), salt, 200_000, dklen=64)
+    enc_key = derived[:32]
+    mac_key = derived[32:]
+
+    plaintext = json.dumps(payload_dict, ensure_ascii=False).encode("utf-8")
+
+    # Generate keystream via HMAC-SHA256 counter mode
+    keystream = bytearray()
+    block_count = (len(plaintext) + 31) // 32
+    for counter in range(block_count):
+        counter_bytes = nonce + counter.to_bytes(8, "big")
+        keystream.extend(hmac.new(enc_key, counter_bytes, hashlib.sha256).digest())
+
+    ciphertext = bytes(p ^ k for p, k in zip(plaintext, keystream[: len(plaintext)], strict=False))
+    tag = hmac.new(mac_key, salt + nonce + ciphertext, hashlib.sha256).hexdigest()
+
+    return {
+        "format": "wealth-pilot-encrypted-vault-v1",
+        "encrypted": True,
+        "kdf": "PBKDF2-HMAC-SHA256-200000",
+        "salt": base64.b64encode(salt).decode("ascii"),
+        "nonce": base64.b64encode(nonce).decode("ascii"),
+        "ciphertext": base64.b64encode(ciphertext).decode("ascii"),
+        "mac": tag,
+    }
+
+
+def decrypt_vault_payload(bundle: dict[str, Any], passphrase: str) -> dict[str, Any]:
+    """Verifies HMAC and decrypts an encrypted vault bundle."""
+    if not bundle.get("encrypted"):
+        raise ValueError("Invalid vault bundle: not marked as encrypted.")
+
+    try:
+        salt = base64.b64decode(bundle["salt"])
+        nonce = base64.b64decode(bundle["nonce"])
+        ciphertext = base64.b64decode(bundle["ciphertext"])
+        expected_mac = str(bundle["mac"])
+    except Exception as e:
+        raise ValueError("Malformed vault bundle fields.") from e
+
+    derived = hashlib.pbkdf2_hmac("sha256", passphrase.encode("utf-8"), salt, 200_000, dklen=64)
+    enc_key = derived[:32]
+    mac_key = derived[32:]
+
+    actual_mac = hmac.new(mac_key, salt + nonce + ciphertext, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(actual_mac, expected_mac):
+        raise ValueError("Decryption failed: invalid passphrase or tampered backup file.")
+
+    keystream = bytearray()
+    block_count = (len(ciphertext) + 31) // 32
+    for counter in range(block_count):
+        counter_bytes = nonce + counter.to_bytes(8, "big")
+        keystream.extend(hmac.new(enc_key, counter_bytes, hashlib.sha256).digest())
+
+    plaintext = bytes(c ^ k for c, k in zip(ciphertext, keystream[: len(ciphertext)], strict=False))
+    return json.loads(plaintext.decode("utf-8"))
 
 
 def _secure_file_perms(path: Path) -> None:
@@ -433,20 +511,50 @@ class ConfigRepository:
                 "benchmark_price": float(settings.get("tax", {}).get("benchmark_price", 900.0)),
                 "tax_rate_pct": float(settings.get("tax", {}).get("tax_rate_pct", 10.0)),
             },
+            "cloud_sync": {
+                "sync_dir": settings.get("cloud_sync", {}).get("sync_dir", ""),
+                "last_backup": settings.get("cloud_sync", {}).get("last_backup"),
+            },
             "language": settings.get("language", "en"),
         }
 
     def save_settings(self, settings_dict: dict[str, Any]) -> None:
-        """Saves or updates system settings in portfolio.yaml."""
+        """Saves or updates system settings in portfolio.yaml, preserving existing secrets if masked."""
         with open(self.config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
 
         current_settings = data.get("settings", {})
-        current_settings.update(settings_dict)
+
+        for key, val in settings_dict.items():
+            if isinstance(val, dict) and isinstance(current_settings.get(key), dict):
+                merged = dict(current_settings[key])
+                for sub_k, sub_v in val.items():
+                    if sub_k in ("api_key", "auth_token", "refresh_token") and (
+                        _is_masked_secret(sub_v) or sub_v is None or sub_v == ""
+                    ):
+                        # Only clear if explicitly requested via disconnect_pdt or if no previous secret existed
+                        if sub_v is None and key == "pdt" or sub_k not in merged:
+                            merged[sub_k] = None
+                        continue
+                    merged[sub_k] = sub_v
+                current_settings[key] = merged
+            elif isinstance(val, dict):
+                cleaned = {}
+                for sub_k, sub_v in val.items():
+                    if sub_k in ("api_key", "auth_token", "refresh_token") and _is_masked_secret(
+                        sub_v
+                    ):
+                        continue
+                    cleaned[sub_k] = sub_v
+                current_settings[key] = cleaned
+            else:
+                current_settings[key] = val
+
         data["settings"] = current_settings
 
         with open(self.config_path, "w", encoding="utf-8") as f:
             yaml.dump(data, f, sort_keys=False, indent=2)
+        _secure_file_perms(self.config_path)
 
     def save_pdt_tokens(self, tokens: dict[str, Any]) -> None:
         """Stores received PDT OAuth tokens in settings and standalone pdt_auth.json."""
@@ -678,3 +786,29 @@ class ConfigRepository:
         data["milestones"] = milestones
         with open(self.config_path, "w", encoding="utf-8") as f:
             yaml.dump(data, f, sort_keys=False, indent=2)
+
+    def export_raw_config(self) -> dict[str, Any]:
+        """Exports portfolio.yaml and rules.yaml dictionaries for encrypted vault backups."""
+        portfolio_data: dict[str, Any] = {}
+        if self.config_path.exists():
+            with open(self.config_path, encoding="utf-8") as f:
+                portfolio_data = yaml.safe_load(f) or {}
+        rules_data: list[dict[str, Any]] = []
+        if self.rules_path.exists():
+            with open(self.rules_path, encoding="utf-8") as f:
+                rules_data = yaml.safe_load(f) or []
+        return {
+            "portfolio": portfolio_data,
+            "rules": rules_data,
+        }
+
+    def import_raw_config(self, config_bundle: dict[str, Any]) -> None:
+        """Restores portfolio.yaml and rules.yaml from decrypted vault backup."""
+        if "portfolio" in config_bundle and isinstance(config_bundle["portfolio"], dict):
+            with open(self.config_path, "w", encoding="utf-8") as f:
+                yaml.dump(config_bundle["portfolio"], f, sort_keys=False, indent=2)
+            _secure_file_perms(self.config_path)
+        if "rules" in config_bundle and isinstance(config_bundle["rules"], list):
+            with open(self.rules_path, "w", encoding="utf-8") as f:
+                yaml.dump(config_bundle["rules"], f, sort_keys=False, indent=2)
+            _secure_file_perms(self.rules_path)

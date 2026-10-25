@@ -103,3 +103,34 @@ async def test_ai_call_ollama():
         )
         res = await ai_client._call_ollama(http_client, prompt="Review cashflow")
         assert "Ollama Local Advice" in res
+
+
+@pytest.mark.asyncio
+async def test_anthropic_live_models_and_error_detail():
+    import respx
+
+    with respx.mock:
+        respx.get("https://api.anthropic.com/v1/models").respond(
+            200,
+            json={
+                "data": [
+                    {"id": "claude-sonnet-4-20250514", "display_name": "Claude Sonnet 4"},
+                    {"id": "claude-3-7-sonnet-latest", "display_name": "Claude 3.7 Sonnet"},
+                ]
+            },
+        )
+        models = await UniversalAIAdvisorClient.fetch_available_models(
+            provider="anthropic", api_key="sk-ant-test-key"
+        )
+        assert any(m["id"] == "claude-sonnet-4-20250514" for m in models)
+
+        # Test that Anthropic 404/400 error returns detailed message
+        respx.post("https://api.anthropic.com/v1/messages").respond(
+            404,
+            json={"error": {"type": "not_found_error", "message": "model: claude-old not found"}},
+        )
+        client = UniversalAIAdvisorClient(
+            provider="anthropic", api_key="sk-ant-test-key", model="claude-old"
+        )
+        with pytest.raises(RuntimeError, match="Anthropic API error"):
+            await client.generate_advice(prompt="Test")

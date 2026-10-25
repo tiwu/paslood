@@ -27,7 +27,12 @@ from wealth_pilot.adapters.ingestion.generic_csv import GenericCsvGateway
 from wealth_pilot.adapters.ingestion.kbc_csv import KbcCsvGateway
 from wealth_pilot.adapters.ingestion.pdt_auth import PdtAuthManager, generate_pkce_pair
 from wealth_pilot.adapters.ingestion.pdt_mcp import PdtMcpGateway
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
+from wealth_pilot.adapters.repositories.config_repo import (
+    ConfigRepository,
+    _is_masked_secret,
+    decrypt_vault_payload,
+    encrypt_vault_payload,
+)
 from wealth_pilot.adapters.repositories.local_db import LocalDbRepository
 from wealth_pilot.delivery.web.i18n import (
     DEFAULT_LANGUAGE,
@@ -154,6 +159,21 @@ class TaxCalculationRequest(BaseModel):
     shares_post_benchmark: float = 0.0
     actual_purchase_price: float | None = None
     available_annual_exemption: float | None = None
+
+
+class BackupExportRequest(BaseModel):
+    passphrase: str
+
+
+class BackupImportRequest(BaseModel):
+    bundle: dict[str, Any]
+    passphrase: str
+
+
+class CloudSyncRequest(BaseModel):
+    sync_dir: str
+    passphrase: str
+    action: str = "push"  # "push" or "pull"
 
 
 def create_app(
@@ -329,7 +349,6 @@ def create_app(
     async def get_overview(exclude_property: bool = False):
         bs = _get_consolidated_balance_sheet()
         buckets = repo.load_buckets()
-        allocations = alloc_calc.execute(assets=bs.assets, buckets=buckets)
 
         # Determine effective assets for net worth & growth projections
         effective_assets: list[Asset] = []
@@ -342,6 +361,8 @@ def create_app(
             ):
                 continue
             effective_assets.append(a)
+
+        allocations = alloc_calc.execute(assets=effective_assets, buckets=buckets)
 
         effective_bs = BalanceSheet(
             assets=effective_assets, liabilities=bs.liabilities, cashflow=bs.cashflow
@@ -657,7 +678,7 @@ def create_app(
             header_key = header_key or auth_header.removeprefix("Bearer ").strip()
 
         effective_key = header_key or api_key
-        if not effective_key:
+        if not effective_key or _is_masked_secret(effective_key):
             s = repo.load_settings()
             effective_key = s.get("ai", {}).get("api_key")
         models = await UniversalAIAdvisorClient.fetch_available_models(
@@ -675,7 +696,7 @@ def create_app(
         )
 
         effective_key = req.api_key
-        if not effective_key:
+        if not effective_key or _is_masked_secret(effective_key):
             s = repo.load_settings()
             effective_key = s.get("ai", {}).get("api_key")
 
@@ -972,6 +993,9 @@ def create_app(
                 )
                 assets = await gateway.fetch_portfolio_assets()
                 state["pdt_assets"] = assets
+                if assets:
+                    db.delete_discovered_assets_by_source("pdt_mcp")
+                    db.save_discovered_assets(assets, source="pdt_mcp")
                 repo.update_pdt_sync_timestamp()
                 synced_count = len(assets)
             except Exception:
@@ -998,25 +1022,67 @@ def create_app(
     async def disconnect_pdt():
         repo.disconnect_pdt()
         state["pdt_assets"] = []
+        db.delete_discovered_assets_by_source("pdt_mcp")
         return {"status": "disconnected"}
+
+    async def _get_valid_pdt_token(
+        pdt_cfg: dict[str, Any], force_refresh: bool = False
+    ) -> str | None:
+        token = pdt_cfg.get("auth_token")
+        refresh_tok = pdt_cfg.get("refresh_token")
+        client_id = pdt_cfg.get("client_id") or "wealth-pilot-client"
+        expires_at = pdt_cfg.get("expires_at")
+
+        should_refresh = force_refresh or (
+            expires_at is not None and float(expires_at) < (time.time() + 60)
+        )
+        if should_refresh and refresh_tok:
+            try:
+                new_tokens = await PdtAuthManager.refresh_tokens(
+                    client_id=client_id, refresh_token=refresh_tok
+                )
+                if not new_tokens.get("refresh_token"):
+                    new_tokens["refresh_token"] = refresh_tok
+                repo.save_pdt_tokens(new_tokens)
+                return str(new_tokens.get("access_token") or token)
+            except Exception:
+                pass
+        return token
 
     @app.post("/api/mcp/pdt/sync")
     async def sync_pdt_holdings():
         s = repo.load_settings()
         pdt_cfg = s.get("pdt", {})
-        token = pdt_cfg.get("auth_token")
+        token = await _get_valid_pdt_token(pdt_cfg)
         if not token:
             raise HTTPException(
                 status_code=400,
                 detail="PDT is not connected. Please connect via OAuth or provide an API token in Settings.",
             )
-        gateway = PdtMcpGateway(
-            mcp_url=pdt_cfg.get("mcp_url", "https://mcp.portfoliodividendtracker.com"),
-            auth_token=token,
-        )
-        assets = await gateway.fetch_portfolio_assets()
-        state["pdt_assets"] = assets
-        repo.update_pdt_sync_timestamp()
+        mcp_url = pdt_cfg.get("mcp_url", "https://mcp.portfoliodividendtracker.com")
+        gateway = PdtMcpGateway(mcp_url=mcp_url, auth_token=token)
+        try:
+            assets = await gateway.fetch_portfolio_assets(raise_on_auth_error=True)
+        except httpx.HTTPStatusError:
+            # Attempt token refresh on 401/403
+            refreshed = await _get_valid_pdt_token(pdt_cfg, force_refresh=True)
+            if refreshed and refreshed != token:
+                gateway = PdtMcpGateway(mcp_url=mcp_url, auth_token=refreshed)
+                assets = await gateway.fetch_portfolio_assets()
+            else:
+                assets = []
+
+        if assets:
+            state["pdt_assets"] = assets
+            db.delete_discovered_assets_by_source("pdt_mcp")
+            db.save_discovered_assets(assets, source="pdt_mcp")
+            repo.update_pdt_sync_timestamp()
+        else:
+            # Fallback to cached PDT assets in SQLite if live sync returned 0 items
+            cached_pdt = [a for a in db.get_discovered_assets() if a.id.startswith("pdt-")]
+            if cached_pdt:
+                assets = cached_pdt
+
         total_val = sum((a.current_value.amount for a in assets), Decimal("0.00"))
         return {
             "status": "success",
@@ -1187,6 +1253,103 @@ def create_app(
     @app.get("/api/health")
     async def health_check():
         return {"status": "healthy", "service": "wealth-pilot"}
+
+    # Encrypted Vault Backup & Multi-Device Cloud Drive Sync Endpoints
+    @app.get("/api/backup/info")
+    async def get_backup_storage_info():
+        s = repo.load_settings()
+        cloud_cfg = s.get("cloud_sync", {})
+        return {
+            "config_dir": str(repo.config_path.parent),
+            "portfolio_yaml": str(repo.config_path),
+            "sqlite_db": str(db.db_path),
+            "rules_yaml": str(repo.rules_path),
+            "cloud_sync_dir": cloud_cfg.get("sync_dir", ""),
+            "last_backup": cloud_cfg.get("last_backup"),
+        }
+
+    @app.post("/api/backup/export")
+    async def export_encrypted_backup(req: BackupExportRequest):
+        try:
+            payload = {
+                "config": repo.export_raw_config(),
+                "database": db.export_state_dict(),
+                "exported_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            bundle = encrypt_vault_payload(payload, req.passphrase)
+            return bundle
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+
+    @app.post("/api/backup/import")
+    async def import_encrypted_backup(req: BackupImportRequest):
+        try:
+            decrypted = decrypt_vault_payload(req.bundle, req.passphrase)
+            if "config" in decrypted:
+                repo.import_raw_config(decrypted["config"])
+            if "database" in decrypted:
+                db.import_state_dict(decrypted["database"])
+            return {"status": "success", "exported_at": decrypted.get("exported_at")}
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+
+    @app.post("/api/backup/cloud-sync")
+    async def sync_encrypted_vault_with_cloud_folder(req: CloudSyncRequest):
+        if not req.sync_dir or not req.sync_dir.strip():
+            raise HTTPException(status_code=400, detail="Please specify a Cloud Drive folder path.")
+        sync_path = Path(req.sync_dir.strip()).expanduser().resolve()
+        vault_file = sync_path / "wealth_pilot_vault.wpbackup"
+
+        try:
+            if req.action == "pull":
+                if not vault_file.exists():
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"No vault file found at {vault_file}",
+                    )
+                import json
+
+                with open(vault_file, encoding="utf-8") as f:
+                    bundle = json.load(f)
+                decrypted = decrypt_vault_payload(bundle, req.passphrase)
+                if "config" in decrypted:
+                    repo.import_raw_config(decrypted["config"])
+                if "database" in decrypted:
+                    db.import_state_dict(decrypted["database"])
+                now_str = time.strftime("%Y-%m-%d %H:%M:%S")
+                repo.save_settings(
+                    {"cloud_sync": {"sync_dir": str(sync_path), "last_backup": now_str}}
+                )
+                return {
+                    "status": "success",
+                    "action": "pull",
+                    "vault_file": str(vault_file),
+                    "last_backup": now_str,
+                }
+            else:
+                sync_path.mkdir(parents=True, exist_ok=True)
+                payload = {
+                    "config": repo.export_raw_config(),
+                    "database": db.export_state_dict(),
+                    "exported_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                bundle = encrypt_vault_payload(payload, req.passphrase)
+                import json
+
+                with open(vault_file, "w", encoding="utf-8") as f:
+                    json.dump(bundle, f, indent=2)
+                now_str = time.strftime("%Y-%m-%d %H:%M:%S")
+                repo.save_settings(
+                    {"cloud_sync": {"sync_dir": str(sync_path), "last_backup": now_str}}
+                )
+                return {
+                    "status": "success",
+                    "action": "push",
+                    "vault_file": str(vault_file),
+                    "last_backup": now_str,
+                }
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
 
     return app
 

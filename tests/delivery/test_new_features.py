@@ -339,6 +339,12 @@ async def test_exclude_property_from_net_worth_and_projection(test_app):
         assert ov_incl["total_assets_value"] - ov_excl["total_assets_value"] == 400000.0
         assert ov_incl["net_worth_value"] - ov_excl["net_worth_value"] == 400000.0
 
+        # Allocations when excluded must not contain the 400k real estate value
+        re_bucket_excl = next(
+            b for b in ov_excl["allocations"] if b["bucket_id"] == "real-estate-bucket"
+        )
+        assert re_bucket_excl["current_value"] == 0.0
+
         # Projection with exclude_property=true vs false
         proj_incl = (
             await client.get("/api/projection?years=10&cagr=7.0&exclude_property=false")
@@ -385,3 +391,170 @@ async def test_responsive_ui_and_ux_improvements_rendered(test_app):
         # 5. Regional tax explanation banner
         assert "Why is this here" in html
         assert "Meerwaardebelasting" in html
+
+
+@pytest.mark.asyncio
+async def test_masked_api_key_preservation_and_advise_fallback(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # 1. Save real API key
+        await client.post(
+            "/api/settings",
+            json={
+                "ai": {
+                    "provider": "anthropic",
+                    "model": "claude-sonnet-4-20250514",
+                    "api_key": "sk-ant-real-secret-9999",
+                }
+            },
+        )
+        s1 = (await client.get("/api/settings")).json()
+        masked_key = s1["ai"]["api_key"]
+        assert "••••9999" in masked_key
+
+        # 2. Save settings again passing the masked key (simulating UI save) or updating tax only
+        await client.post(
+            "/api/settings",
+            json={
+                "ai": {
+                    "provider": "anthropic",
+                    "model": "claude-3-7-sonnet-latest",
+                    "api_key": masked_key,
+                },
+                "tax": {"annual_exemption": 15000.0},
+            },
+        )
+
+        # Verify underlying ConfigRepository still holds the real secret key!
+        raw_settings = test_app.state.repo.load_settings()
+        assert raw_settings["ai"]["api_key"] == "sk-ant-real-secret-9999"
+        assert raw_settings["ai"]["model"] == "claude-3-7-sonnet-latest"
+
+        # 3. Call /api/ai/advise with masked key in request payload -> should use stored real key
+        with patch(
+            "wealth_pilot.adapters.ai.llm_client.UniversalAIAdvisorClient.generate_advice",
+            new_callable=AsyncMock,
+            return_value="Claude Strategic Advice",
+        ):
+            adv_resp = await client.post(
+                "/api/ai/advise",
+                json={
+                    "provider": "anthropic",
+                    "api_key": masked_key,
+                    "question": "Check my liquidity",
+                },
+            )
+            assert adv_resp.status_code == 200
+            assert adv_resp.json()["advice"] == "Claude Strategic Advice"
+
+
+@pytest.mark.asyncio
+async def test_pdt_persistence_in_sqlite_and_token_refresh(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Save expired token with refresh_token
+        test_app.state.repo.save_pdt_tokens(
+            {
+                "access_token": "expired-token",
+                "refresh_token": "valid-refresh-token",
+                "client_id": "pdt-client-1",
+                "expires_at": 1000.0,  # in the past
+            }
+        )
+
+        mock_asset = Asset(
+            id="pdt-persisted-1",
+            name="Persisted ETF",
+            symbol="VWCE",
+            asset_class=AssetClass.ETF,
+            current_value=Money.from_val(22000.0),
+        )
+
+        with (
+            patch(
+                "wealth_pilot.adapters.ingestion.pdt_auth.PdtAuthManager.refresh_tokens",
+                new_callable=AsyncMock,
+                return_value={
+                    "access_token": "fresh-access-token",
+                    "refresh_token": "fresh-refresh-token",
+                    "client_id": "pdt-client-1",
+                    "expires_at": 9999999999.0,
+                },
+            ) as mock_refresh,
+            patch(
+                "wealth_pilot.adapters.ingestion.pdt_mcp.PdtMcpGateway.fetch_portfolio_assets",
+                new_callable=AsyncMock,
+                return_value=[mock_asset],
+            ),
+        ):
+            sync_resp = await client.post("/api/mcp/pdt/sync")
+            assert sync_resp.status_code == 200
+            assert sync_resp.json()["asset_count"] == 1
+            mock_refresh.assert_called_once()
+
+        # Clear in-memory state to simulate server restart / new session
+        test_app.state.local_db.get_discovered_assets()
+        ov_resp = await client.get("/api/overview")
+        assert any(a["id"] == "pdt-persisted-1" for a in ov_resp.json()["assets"])
+
+
+@pytest.mark.asyncio
+async def test_encrypted_backup_export_and_import_and_cloud_sync_path(test_app, tmp_path):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Add a custom manual asset
+        await client.post(
+            "/api/assets/manual",
+            json={
+                "id": "backup-test-asset",
+                "name": "Backup Test Gold",
+                "symbol": "GOLD",
+                "asset_class": "COMMODITY",
+                "current_value": 12345.0,
+            },
+        )
+
+        # 1. Export encrypted backup with passphrase
+        exp_resp = await client.post(
+            "/api/backup/export",
+            json={"passphrase": "StrongPassword123!"},
+        )
+        assert exp_resp.status_code == 200
+        bundle = exp_resp.json()
+        assert bundle["encrypted"] is True
+        assert "ciphertext" in bundle
+        assert "salt" in bundle
+
+        # Delete the asset locally
+        await client.delete("/api/assets/manual/backup-test-asset")
+        ov_after_del = (await client.get("/api/overview")).json()
+        assert not any(a["id"] == "backup-test-asset" for a in ov_after_del["assets"])
+
+        # 2. Import with wrong passphrase should fail with 400
+        bad_imp = await client.post(
+            "/api/backup/import",
+            json={"bundle": bundle, "passphrase": "WrongPassword"},
+        )
+        assert bad_imp.status_code == 400
+
+        # 3. Import with correct passphrase restores asset
+        good_imp = await client.post(
+            "/api/backup/import",
+            json={"bundle": bundle, "passphrase": "StrongPassword123!"},
+        )
+        assert good_imp.status_code == 200
+        ov_restored = (await client.get("/api/overview")).json()
+        assert any(a["id"] == "backup-test-asset" for a in ov_restored["assets"])
+
+        # 4. Configure Cloud Sync Folder mirror
+        sync_folder = tmp_path / "ProtonDriveSync"
+        sync_resp = await client.post(
+            "/api/backup/cloud-sync",
+            json={
+                "sync_dir": str(sync_folder),
+                "passphrase": "StrongPassword123!",
+                "action": "push",
+            },
+        )
+        assert sync_resp.status_code == 200
+        assert (sync_folder / "wealth_pilot_vault.wpbackup").exists()

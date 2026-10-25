@@ -1053,6 +1053,70 @@
           </div>
         </div>
       </div>
+
+      <!-- Section: Encrypted Vault Backup & Multi-Device Cloud Sync -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-5">
+        <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>🔐</span>
+              <span data-i18n="settings.vault_title">Encrypted Vault Backup & Multi-Device Cloud Sync</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5" data-i18n="settings.vault_desc">All user data is stored locally in <code class="text-blue-400">~/.wealth_pilot/</code> (<code class="text-slate-300">portfolio.yaml</code>, <code class="text-slate-300">wealth_pilot.db</code>, <code class="text-slate-300">rules.yaml</code>). Export an encrypted vault or sync directly with your Proton Drive, Google Drive, or OneDrive folder.</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-medium self-start sm:self-auto">PBKDF2-SHA256 Zero-Knowledge</span>
+        </div>
+
+        <!-- Storage Paths Summary -->
+        <div class="bg-slate-950 p-3.5 rounded-lg border border-slate-800 text-xs grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <div class="text-slate-400">Local Config & Buckets</div>
+            <div id="vault-path-yaml" class="font-mono text-white text-[11px] truncate mt-0.5">~/.wealth_pilot/portfolio.yaml</div>
+          </div>
+          <div>
+            <div class="text-slate-400">Local SQLite Database</div>
+            <div id="vault-path-db" class="font-mono text-white text-[11px] truncate mt-0.5">~/.wealth_pilot/wealth_pilot.db</div>
+          </div>
+          <div>
+            <div class="text-slate-400">Last Encrypted Sync</div>
+            <div id="vault-last-backup" class="text-emerald-400 font-medium text-[11px] mt-0.5">Never</div>
+          </div>
+        </div>
+
+        <!-- Encryption Passphrase & Cloud Drive Sync Folder -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Vault Encryption Passphrase (Required)</label>
+            <input type="password" id="vault-passphrase" placeholder="Enter strong passphrase to encrypt/decrypt your data" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <span class="text-[10px] text-slate-500 mt-1 block">Your financial balances and API keys are encrypted before leaving this app.</span>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Cloud Drive Folder Path (Proton Drive / Google Drive / OneDrive)</label>
+            <input type="text" id="vault-cloud-dir" placeholder="e.g. ~/Proton Drive/WealthPilot or ~/Google Drive/My Drive/WealthPilot" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <span class="text-[10px] text-slate-500 mt-1 block">Reads/writes <code class="text-slate-400">wealth_pilot_vault.wpbackup</code> in your synced cloud folder.</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="downloadEncryptedBackup()" class="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition">
+              ⬇️ Download Encrypted Backup (.wpbackup)
+            </button>
+            <label class="px-3.5 py-2 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium cursor-pointer transition">
+              ⬆️ Restore from File (.wpbackup)
+              <input type="file" accept=".wpbackup,.json" class="hidden" onchange="uploadEncryptedBackup(event)">
+            </label>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="syncCloudDriveVault('push')" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition">
+              ☁️ Push Encrypted Vault to Cloud Drive
+            </button>
+            <button type="button" onclick="syncCloudDriveVault('pull')" class="px-3.5 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-medium transition">
+              📥 Pull & Restore from Cloud Drive
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -3063,6 +3127,23 @@
         document.getElementById('settings-tax-price').value = tax.benchmark_price || 900;
         document.getElementById('settings-tax-rate').value = tax.tax_rate_pct || 10.0;
 
+        // Cloud Sync / Vault Info
+        const cloud = s.cloud_sync || {};
+        const cloudDirInput = document.getElementById('vault-cloud-dir');
+        if (cloudDirInput && cloud.sync_dir) cloudDirInput.value = cloud.sync_dir;
+        const lastBackupEl = document.getElementById('vault-last-backup');
+        if (lastBackupEl) lastBackupEl.textContent = cloud.last_backup || 'Never';
+        try {
+          const infoRes = await fetch('/api/backup/info');
+          if (infoRes.ok) {
+            const info = await infoRes.json();
+            const yamlEl = document.getElementById('vault-path-yaml');
+            const dbEl = document.getElementById('vault-path-db');
+            if (yamlEl && info.portfolio_yaml) yamlEl.textContent = info.portfolio_yaml;
+            if (dbEl && info.sqlite_db) dbEl.textContent = info.sqlite_db;
+          }
+        } catch (e) {}
+
         // Language & Localization Settings
         if (s.language && typeof I18N !== 'undefined') {
           const localLang = localStorage.getItem('wealth_pilot_language');
@@ -3279,6 +3360,94 @@
         }
       } catch (err) {
         showSettingsAlert(`Error saving tax settings: ${err.message}`, true);
+      }
+    }
+
+    async function downloadEncryptedBackup() {
+      const passphrase = (document.getElementById('vault-passphrase')?.value || '').trim();
+      if (passphrase.length < 4) {
+        alert('Please enter an encryption passphrase (at least 4 characters) to protect your backup.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/backup/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Export failed');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wealth_pilot_vault_${new Date().toISOString().slice(0, 10)}.wpbackup`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showSettingsAlert('✓ Encrypted vault backup downloaded!');
+      } catch (err) {
+        showSettingsAlert(`Export Error: ${err.message}`, true);
+      }
+    }
+
+    async function uploadEncryptedBackup(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const passphrase = (document.getElementById('vault-passphrase')?.value || '').trim();
+      if (passphrase.length < 4) {
+        alert('Please enter your vault passphrase first before selecting the backup file.');
+        event.target.value = '';
+        return;
+      }
+      try {
+        const text = await file.text();
+        const bundle = JSON.parse(text);
+        const res = await fetch('/api/backup/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bundle, passphrase })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Restore failed');
+        showSettingsAlert('✓ Encrypted vault restored successfully!');
+        await loadSettings();
+        await loadOverview();
+      } catch (err) {
+        showSettingsAlert(`Restore Error: ${err.message}`, true);
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function syncCloudDriveVault(action) {
+      const passphrase = (document.getElementById('vault-passphrase')?.value || '').trim();
+      const syncDir = (document.getElementById('vault-cloud-dir')?.value || '').trim();
+      if (passphrase.length < 4) {
+        alert('Please enter your vault encryption passphrase.');
+        return;
+      }
+      if (!syncDir) {
+        alert('Please enter your local Cloud Drive folder path (e.g. ~/Proton Drive/WealthPilot).');
+        return;
+      }
+      try {
+        const res = await fetch('/api/backup/cloud-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sync_dir: syncDir, passphrase, action })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Cloud sync failed');
+        const msg = action === 'pull'
+          ? `✓ Pulled and decrypted vault from ${data.vault_file}`
+          : `✓ Pushed encrypted vault to ${data.vault_file}`;
+        showSettingsAlert(msg);
+        await loadSettings();
+        await loadOverview();
+      } catch (err) {
+        showSettingsAlert(`Cloud Sync Error: ${err.message}`, true);
       }
     }
 
@@ -3579,6 +3748,18 @@
       await loadSettings();
       await runTaxSimulation();
       await refreshAiModels();
+
+      // Auto-sync PDT in background if connected and no PDT assets cached in SQLite yet
+      try {
+        const hasPdtAssets = (currentData?.assets || []).some(a => (a.id || '').startsWith('pdt-'));
+        const pdtPill = document.getElementById('pdt-status-pill');
+        const isConnected = pdtPill && !pdtPill.textContent.toLowerCase().includes('disconnected');
+        if (isConnected && !hasPdtAssets) {
+          fetch('/api/mcp/pdt/sync', { method: 'POST' }).then(res => {
+            if (res.ok) loadOverview();
+          }).catch(() => {});
+        }
+      } catch (e) {}
 
       // Check first-time setup
       if (localStorage.getItem('wealth_pilot_setup_completed') !== 'true') {
