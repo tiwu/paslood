@@ -139,6 +139,7 @@ class SettingsUpdateRequest(BaseModel):
     tax: dict[str, Any] | None = None
     pdt: dict[str, Any] | None = None
     language: str | None = None
+    regional_format: str | None = None
 
 
 class PdtManualTokenRequest(BaseModel):

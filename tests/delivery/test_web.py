@@ -25,6 +25,20 @@ async def test_web_index_and_overview(test_app):
         resp = await client.get("/")
         assert resp.status_code == 200
         assert "Wealth Pilot" in resp.text
+        # Header brand must be shrink-0 to prevent overlap with nav items
+        assert "flex items-center space-x-2.5 shrink-0" in resp.text
+        # Section labels must be hidden on compact viewports to prevent overflow
+        assert 'data-i18n="nav.explore" class="hidden 2xl:inline' in resp.text
+        assert 'data-i18n="nav.manage" class="hidden 2xl:inline' in resp.text
+        # Secondary quick action buttons hidden on < xl to avoid header overflow
+        assert 'openSetupWizard()" class="hidden xl:flex' in resp.text
+        assert (
+            'href="/guide/index.html" target="_blank" rel="noopener" class="hidden xl:flex'
+            in resp.text
+        )
+        # Ensure numerical values and currency fields in tables never wrap onto multiple lines
+        assert "td.font-mono, th.font-mono" in resp.text
+        assert "white-space: nowrap !important;" in resp.text
 
         # Check overview API
         overview_resp = await client.get("/api/overview")

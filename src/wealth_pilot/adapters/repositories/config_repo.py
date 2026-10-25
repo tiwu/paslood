@@ -552,6 +552,7 @@ class ConfigRepository:
                 "last_backup": settings.get("cloud_sync", {}).get("last_backup"),
             },
             "language": settings.get("language", "en"),
+            "regional_format": settings.get("regional_format", "auto"),
         }
 
     def save_settings(self, settings_dict: dict[str, Any]) -> None:

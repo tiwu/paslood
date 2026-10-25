@@ -164,6 +164,7 @@ class BuildPortfolioOverviewUseCase:
             "total_assets_formatted": effective_bs.total_assets.format(),
             "total_liabilities_value": float(effective_bs.total_liabilities.amount),
             "total_liabilities_formatted": effective_bs.total_liabilities.format(),
+            "free_cashflow_value": float(effective_bs.free_monthly_cashflow.amount),
             "free_cashflow_formatted": effective_bs.free_monthly_cashflow.format(),
             "debt_to_asset_ratio": float(effective_bs.debt_to_asset_ratio),
             "savings_rate_pct": float(effective_bs.cashflow.savings_rate_pct),

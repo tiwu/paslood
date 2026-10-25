@@ -160,3 +160,42 @@ def test_config_repo_language(temp_config_repo):
     temp_config_repo.save_settings({"language": "nl"})
     updated = temp_config_repo.load_settings()
     assert updated.get("language") == "nl"
+
+
+@pytest.mark.asyncio
+async def test_settings_regional_format_persistence(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        # Default regional_format should be "auto"
+        res = await client.get("/api/settings")
+        assert res.status_code == 200
+        settings = res.json()
+        assert settings.get("regional_format") == "auto"
+
+        # Update regional_format to "nl-BE"
+        update_res = await client.post("/api/settings", json={"regional_format": "nl-BE"})
+        assert update_res.status_code == 200
+
+        # Verify persisted regional format
+        res_after = await client.get("/api/settings")
+        assert res_after.status_code == 200
+        assert res_after.json().get("regional_format") == "nl-BE"
+
+
+def test_i18n_js_contains_regional_formatters():
+    i18n_file = (
+        Path(__file__).resolve().parents[2]
+        / "src"
+        / "wealth_pilot"
+        / "delivery"
+        / "web"
+        / "static"
+        / "i18n.js"
+    )
+    content = i18n_file.read_text(encoding="utf-8")
+    assert "formatNumber" in content
+    assert "formatPercent" in content
+    assert "formatCurrency" in content
+    assert "formatDate" in content
+    assert "setRegionalFormat" in content
+    assert "getEffectiveLocale" in content

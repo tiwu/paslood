@@ -64,6 +64,9 @@
       container-type: inline-size;
       -webkit-overflow-scrolling: touch;
     }
+    td.font-mono, th.font-mono, .whitespace-nowrap-numbers {
+      white-space: nowrap !important;
+    }
     /* Light Theme Overrides */
     html.light-theme body {
       background-color: #f8fafc !important;
@@ -131,25 +134,25 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-[100dvh] flex flex-col font-sans antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-[100dvh] flex flex-col font-sans antialiased overflow-x-hidden">
 
   <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
-      <div class="flex items-center space-x-2.5 min-w-0">
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 w-full">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-6 xl:px-8 h-16 flex items-center justify-between gap-2">
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center space-x-2.5 shrink-0">
         <div class="h-9 w-9 shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-xl shadow-lg shadow-blue-500/30">🧭</div>
-        <div class="truncate">
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5 truncate">
+        <div class="min-w-0">
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-1.5 whitespace-nowrap">
             <span>Wealth Pilot</span>
-            <span data-i18n="header.badge" class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 hidden xs:inline-block">Local Core</span>
           </h1>
-          <p data-i18n="header.subtitle" class="text-[11px] text-slate-400 hidden xl:block truncate">Strategic Allocation & Wealth Guidance</p>
+          <p data-i18n="header.subtitle" class="text-[11px] text-slate-400 hidden 2xl:block truncate">Strategic Allocation & Wealth Guidance</p>
         </div>
       </div>
 
       <!-- Desktop Navigation Tabs: Explore vs Manage -->
-      <nav class="hidden lg:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800" aria-label="Main Navigation">
-        <span data-i18n="nav.explore" class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-2 select-none">Explore</span>
+      <nav class="hidden lg:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800 shrink-0" aria-label="Main Navigation">
+        <span data-i18n="nav.explore" class="hidden 2xl:inline text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-2 select-none">Explore</span>
         <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 whitespace-nowrap transition" data-i18n="nav.overview">📊 Overview</button>
         <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.buckets">🪣 Buckets</button>
         <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.guidance">💡 Guidance</button>
@@ -157,7 +160,7 @@
           <span data-i18n="nav.ai">🤖 AI Advisor</span>
         </button>
         <div class="h-4 w-px bg-slate-800 mx-1"></div>
-        <span data-i18n="nav.manage" class="text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-1.5 select-none">Manage</span>
+        <span data-i18n="nav.manage" class="hidden 2xl:inline text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-1.5 select-none">Manage</span>
         <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.cashflow">🏦 Data & Assets</button>
         <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
           <span data-i18n="nav.settings">⚙️ Settings</span>
@@ -180,12 +183,12 @@
 
         <button onclick="toggleThemeScheme()" id="btn-theme-toggle" class="p-2 rounded-lg border border-slate-700 bg-slate-800/60 text-slate-300 hover:text-white transition text-xs flex items-center gap-1" title="Switch Light / Dark Theme" aria-label="Switch color theme">
           <span id="theme-toggle-icon">☀️</span>
-          <span id="theme-toggle-label" class="hidden xl:inline">Light</span>
+          <span id="theme-toggle-label" class="hidden 2xl:inline">Light</span>
         </button>
-        <button onclick="openSetupWizard()" class="hidden sm:flex text-xs text-amber-400 hover:text-amber-300 px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 items-center gap-1 hover:border-amber-500 transition font-medium" title="Launch Interactive Setup Wizard">
+        <button onclick="openSetupWizard()" class="hidden xl:flex text-xs text-amber-400 hover:text-amber-300 px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 items-center gap-1 hover:border-amber-500 transition font-medium" title="Launch Interactive Setup Wizard">
           <span data-i18n="nav.setup">🚀 Setup</span>
         </button>
-        <a href="/guide/index.html" target="_blank" rel="noopener" class="hidden md:flex text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 items-center gap-1 hover:border-slate-500 transition" title="Built-in Documentation">
+        <a href="/guide/index.html" target="_blank" rel="noopener" class="hidden xl:flex text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 items-center gap-1 hover:border-slate-500 transition" title="Built-in Documentation">
           <span data-i18n="nav.docs">📖 Docs</span>
         </a>
         <button onclick="openHelpModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800" title="In-App Help Guide" aria-label="Help Guide">
@@ -397,13 +400,13 @@
           <table class="w-full text-left text-sm">
             <thead class="bg-slate-850 text-slate-400 text-xs font-semibold border-b border-slate-800">
               <tr>
-                <th data-i18n="buckets.th_bucket" class="px-4 py-3">Bucket</th>
-                <th data-i18n="buckets.th_current_val" class="px-4 py-3">Current Value</th>
-                <th data-i18n="buckets.th_current_weight" class="px-4 py-3">Current Weight</th>
-                <th data-i18n="buckets.th_target_weight" class="px-4 py-3">Target Weight</th>
-                <th data-i18n="buckets.th_diff" class="px-4 py-3">Difference (€)</th>
-                <th data-i18n="buckets.th_status" class="px-4 py-3">Status</th>
-                <th data-i18n="buckets.th_actions" class="px-4 py-3 text-right">Actions</th>
+                <th data-i18n="buckets.th_bucket" class="px-4 py-3 whitespace-nowrap">Bucket</th>
+                <th data-i18n="buckets.th_current_val" class="px-4 py-3 whitespace-nowrap">Current Value</th>
+                <th data-i18n="buckets.th_current_weight" class="px-4 py-3 whitespace-nowrap">Current Weight</th>
+                <th data-i18n="buckets.th_target_weight" class="px-4 py-3 whitespace-nowrap">Target Weight</th>
+                <th data-i18n="buckets.th_diff" class="px-4 py-3 whitespace-nowrap">Difference (€)</th>
+                <th data-i18n="buckets.th_status" class="px-4 py-3 whitespace-nowrap">Status</th>
+                <th data-i18n="buckets.th_actions" class="px-4 py-3 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody id="buckets-table-body" class="divide-y divide-slate-800 text-slate-200">
@@ -438,12 +441,12 @@
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-850 text-slate-400 border-b border-slate-800">
               <tr>
-                <th data-i18n="buckets.th_holding_name" class="px-3 py-2.5">Holding Name</th>
-                <th data-i18n="buckets.th_symbol_isin" class="px-3 py-2.5">Symbol / ISIN</th>
-                <th data-i18n="buckets.th_institution" class="px-3 py-2.5">Institution</th>
-                <th data-i18n="buckets.th_value" class="px-3 py-2.5">Value</th>
-                <th data-i18n="buckets.th_current_bucket" class="px-3 py-2.5">Current Bucket</th>
-                <th data-i18n="buckets.th_assign_bucket" class="px-3 py-2.5">Assign To Bucket</th>
+                <th data-i18n="buckets.th_holding_name" class="px-3 py-2.5 whitespace-nowrap">Holding Name</th>
+                <th data-i18n="buckets.th_symbol_isin" class="px-3 py-2.5 whitespace-nowrap">Symbol / ISIN</th>
+                <th data-i18n="buckets.th_institution" class="px-3 py-2.5 whitespace-nowrap">Institution</th>
+                <th data-i18n="buckets.th_value" class="px-3 py-2.5 whitespace-nowrap">Value</th>
+                <th data-i18n="buckets.th_current_bucket" class="px-3 py-2.5 whitespace-nowrap">Current Bucket</th>
+                <th data-i18n="buckets.th_assign_bucket" class="px-3 py-2.5 whitespace-nowrap">Assign To Bucket</th>
               </tr>
             </thead>
             <tbody id="holdings-mapping-tbody" class="divide-y divide-slate-800 text-slate-200">
@@ -1062,10 +1065,20 @@
               <option value="de">Deutsch (Belgien / Deutschland)</option>
             </select>
           </div>
-          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-400 space-y-1">
-            <div data-i18n="settings.language_info_title" class="text-slate-200 font-medium">Taalkeuze & Lokalisatie</div>
-            <p data-i18n="settings.language_info_body">Wealth Pilot past zich direct aan naar uw voorkeurstaal. Alle macro-allocaties, grafieken, belastingkaders en adviezen worden naadloos gelokaliseerd.</p>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1" data-i18n="settings.regional_format_label">Regional Number & Date Format</label>
+            <select id="settings-regional-format-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white" onchange="I18N.setRegionalFormat(this.value)">
+              <option value="auto" data-i18n="settings.regional_auto">Auto (Match Interface Language)</option>
+              <option value="nl-BE" data-i18n="settings.regional_nl_be">Belgian / Dutch (1.234,56 € • 48,04% • 31/12/2026)</option>
+              <option value="de-DE" data-i18n="settings.regional_de_de">German (1.234,56 € • 48,04% • 31.12.2026)</option>
+              <option value="fr-BE" data-i18n="settings.regional_fr_be">French Belgian (1 234,56 € • 48,04% • 31/12/2026)</option>
+              <option value="en-US" data-i18n="settings.regional_en_us">US / International (€ 1,234.56 • 48.04% • 12/31/2026)</option>
+            </select>
           </div>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-slate-400 space-y-1 text-xs">
+          <div data-i18n="settings.language_info_title" class="text-slate-200 font-medium">Taalkeuze & Lokalisatie</div>
+          <p data-i18n="settings.language_info_body">Wealth Pilot past zich direct aan naar uw voorkeurstaal. Alle macro-allocaties, grafieken, belastingkaders en adviezen worden naadloos gelokaliseerd.</p>
         </div>
       </div>
 
@@ -1695,8 +1708,8 @@
       }
     }
 
-    // Language Change Listener to re-render localized UI
-    window.addEventListener('languageChanged', () => {
+    // Language & Regional Format Change Listener to re-render localized UI
+    function reRenderAllLocalizedUI() {
       syncThemeToggleUI();
       if (currentData) {
         renderDashboard(currentData);
@@ -1709,7 +1722,10 @@
       }
       runTaxSimulation();
       updateWizardStepUI();
-    });
+    }
+
+    window.addEventListener('languageChanged', reRenderAllLocalizedUI);
+    window.addEventListener('regionalFormatChanged', reRenderAllLocalizedUI);
 
     function toggleThemeScheme() {
       const root = document.documentElement;
@@ -1738,16 +1754,22 @@
       const drawer = document.getElementById('mobile-nav-drawer');
       const btn = document.getElementById('btn-mobile-menu');
       const icon = document.getElementById('mobile-menu-icon');
+      const openIcon = document.getElementById('hamburger-icon-open');
+      const closeIcon = document.getElementById('hamburger-icon-close');
       if (!drawer) return;
       const isHidden = drawer.classList.contains('hidden');
       if (forceClose || !isHidden) {
         drawer.classList.add('hidden');
         if (btn) btn.setAttribute('aria-expanded', 'false');
         if (icon) icon.textContent = '☰';
+        if (openIcon) openIcon.classList.remove('hidden');
+        if (closeIcon) closeIcon.classList.add('hidden');
       } else {
         drawer.classList.remove('hidden');
         if (btn) btn.setAttribute('aria-expanded', 'true');
         if (icon) icon.textContent = '✕';
+        if (openIcon) openIcon.classList.add('hidden');
+        if (closeIcon) closeIcon.classList.remove('hidden');
       }
     }
 
@@ -1827,12 +1849,17 @@
     }
 
     function renderDashboard(data) {
-      document.getElementById('kpi-net-worth').textContent = data.net_worth_formatted;
-      document.getElementById('kpi-total-assets').textContent = data.total_assets_formatted;
-      document.getElementById('kpi-total-debts').textContent = data.total_liabilities_formatted;
-      document.getElementById('kpi-surplus').textContent = data.free_cashflow_formatted;
-      document.getElementById('kpi-debt-ratio').textContent = I18N.t('dashboard.debt_ratio', { ratio: data.debt_to_asset_ratio, _fallback: `Debt ratio: ${data.debt_to_asset_ratio}%` });
-      document.getElementById('kpi-savings-rate').textContent = I18N.t('dashboard.savings_rate', { rate: data.savings_rate_pct, _fallback: `Savings rate: ${data.savings_rate_pct}%` });
+      const nw = data.net_worth_value !== undefined ? data.net_worth_value : data.net_worth;
+      const ta = data.total_assets_value !== undefined ? data.total_assets_value : data.total_assets;
+      const tl = data.total_liabilities_value !== undefined ? data.total_liabilities_value : data.total_liabilities;
+      const fc = data.free_cashflow_value !== undefined ? data.free_cashflow_value : (data.free_monthly_cashflow || 0);
+
+      document.getElementById('kpi-net-worth').textContent = I18N.formatCurrency(nw, 'EUR');
+      document.getElementById('kpi-total-assets').textContent = I18N.formatCurrency(ta, 'EUR');
+      document.getElementById('kpi-total-debts').textContent = I18N.formatCurrency(tl, 'EUR');
+      document.getElementById('kpi-surplus').textContent = I18N.formatCurrency(fc, 'EUR');
+      document.getElementById('kpi-debt-ratio').textContent = I18N.t('dashboard.debt_ratio', { ratio: I18N.formatNumber(data.debt_to_asset_ratio, 1), _fallback: `Debt ratio: ${I18N.formatPercent(data.debt_to_asset_ratio, 1)}` });
+      document.getElementById('kpi-savings-rate').textContent = I18N.t('dashboard.savings_rate', { rate: I18N.formatNumber(data.savings_rate_pct, 1), _fallback: `Savings rate: ${I18N.formatPercent(data.savings_rate_pct, 1)}` });
       document.getElementById('kpi-asset-count').textContent = data.exclude_property
         ? I18N.t('dashboard.liquid_assets_count', { count: data.asset_count, _fallback: `Liquid assets (${data.asset_count} total in portfolio)` })
         : I18N.t('dashboard.across_assets_count', { count: data.asset_count, _fallback: `Across ${data.asset_count} assets & cash` });
@@ -1894,7 +1921,7 @@
             tooltip: {
               callbacks: {
                 label: function(c) {
-                  return ` ${c.label}: € ${c.raw.toLocaleString('de-DE', {minimumFractionDigits: 2})}`;
+                  return ` ${c.label}: ${I18N.formatCurrency(c.raw, 'EUR')}`;
                 }
               }
             }
@@ -1915,7 +1942,7 @@
             <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(a.color)}"></span>
             <span class="text-slate-300">${escapeHtml(a.name)}</span>
           </div>
-          <div class="font-medium text-white">${a.current_weight_pct}% <span class="text-slate-500 font-normal">(${escapeHtml(tgtShort)} ${a.target_weight_pct}%)</span></div>
+          <div class="font-medium text-white">${I18N.formatPercent(a.current_weight_pct)} <span class="text-slate-500 font-normal">(${escapeHtml(tgtShort)} ${I18N.formatPercent(a.target_weight_pct)})</span></div>
         `;
         legendContainer.appendChild(row);
       });
@@ -1968,7 +1995,7 @@
             tooltip: {
               callbacks: {
                 label: function(c) {
-                  return ` ${c.dataset.label}: € ${c.raw.toLocaleString('de-DE', {minimumFractionDigits: 0})}`;
+                  return ` ${c.dataset.label}: ${I18N.formatCurrency(c.raw, 'EUR', 0)}`;
                 }
               }
             }
@@ -2185,9 +2212,9 @@
             : (a.drift_status === 'UNDERWEIGHT'
               ? `<span class="px-2 py-0.5 rounded text-xs bg-blue-500/20 text-blue-400">${escapeHtml(I18N.t('buckets.status_underweight', 'Underweight'))}</span>`
               : `<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">${escapeHtml(I18N.t('buckets.status_overweight', 'Overweight'))}</span>`));
-        const diffDisplay = isExcluded ? '—' : `${a.diff_value > 0 ? '+' : ''}€ ${a.diff_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}`;
-        const weightDisplay = isExcluded ? '—' : `${a.current_weight_pct}%`;
-        const targetDisplay = isExcluded ? '—' : `<input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${escapeHtml(a.bucket_id)}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"> %`;
+        const diffDisplay = isExcluded ? '—' : `${a.diff_value > 0 ? '+' : ''}${I18N.formatCurrency(a.diff_value, 'EUR')}`;
+        const weightDisplay = isExcluded ? '—' : I18N.formatPercent(a.current_weight_pct);
+        const targetDisplay = isExcluded ? '—' : `<span class="inline-flex items-center gap-1 whitespace-nowrap"><input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${escapeHtml(a.bucket_id)}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"><span>%</span></span>`;
 
         tr.innerHTML = `
           <td class="px-4 py-3 font-medium flex items-center gap-2">
@@ -2196,13 +2223,13 @@
             ${excludedBadge}
             ${nwExcludedBadge}
           </td>
-          <td class="px-4 py-3 font-mono">€ ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
-          <td class="px-4 py-3 font-semibold font-mono">${weightDisplay}</td>
-          <td class="px-4 py-3">${targetDisplay}</td>
-          <td class="px-4 py-3 font-mono ${a.diff_value < 0 ? 'text-blue-400' : 'text-amber-400'}">
+          <td class="px-4 py-3 font-mono whitespace-nowrap">${I18N.formatCurrency(a.current_value, 'EUR')}</td>
+          <td class="px-4 py-3 font-semibold font-mono whitespace-nowrap">${weightDisplay}</td>
+          <td class="px-4 py-3 whitespace-nowrap">${targetDisplay}</td>
+          <td class="px-4 py-3 font-mono whitespace-nowrap ${a.diff_value < 0 ? 'text-blue-400' : 'text-amber-400'}">
             ${diffDisplay}
           </td>
-          <td class="px-4 py-3">${statusBadge}</td>
+          <td class="px-4 py-3 whitespace-nowrap">${statusBadge}</td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
             <button onclick="openEditBucketModalById('${escapeHtml(a.bucket_id)}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">${escapeHtml(I18N.t('buckets.btn_edit_rename', 'Edit / Rename'))}</button>
             <button onclick="deleteBucketById('${escapeHtml(a.bucket_id)}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">${escapeHtml(I18N.t('buckets.btn_delete', 'Delete'))}</button>
@@ -2214,8 +2241,13 @@
         const meter = document.createElement('div');
         meter.className = 'space-y-1';
         const meterText = isExcluded
-          ? `${I18N.t('buckets.meter_excluded', 'Excluded from Rebalancing')} • € ${a.current_value.toLocaleString('de-DE', {minimumFractionDigits: 2})}`
-          : I18N.t('buckets.meter_current_target', { current: a.current_weight_pct, target: a.target_weight_pct, tolerance: a.drift_tolerance_pct, _fallback: `Current: ${a.current_weight_pct}% / Target: ${a.target_weight_pct}% (±${a.drift_tolerance_pct}%)` });
+          ? `${I18N.t('buckets.meter_excluded', 'Excluded from Rebalancing')} • ${I18N.formatCurrency(a.current_value, 'EUR')}`
+          : I18N.t('buckets.meter_current_target', {
+              current: I18N.formatPercent(a.current_weight_pct),
+              target: I18N.formatPercent(a.target_weight_pct),
+              tolerance: I18N.formatPercent(a.drift_tolerance_pct),
+              _fallback: `Current: ${I18N.formatPercent(a.current_weight_pct)} / Target: ${I18N.formatPercent(a.target_weight_pct)} (±${I18N.formatPercent(a.drift_tolerance_pct)})`
+            });
         meter.innerHTML = `
           <div class="flex justify-between text-xs">
             <span class="font-medium text-white flex items-center gap-1.5">
@@ -2302,9 +2334,9 @@
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(color)}"></span>
               <span class="font-semibold text-white">${escapeHtml(o.bucket_name)}</span>
-              <span class="text-slate-500 font-mono">(${o.percentage_of_deposit}% of deposit)</span>
+              <span class="text-slate-500 font-mono">(${I18N.formatPercent(o.percentage_of_deposit)} of deposit)</span>
             </div>
-            <div class="text-emerald-400 font-bold text-sm font-mono">+${escapeHtml(o.amount_formatted)}</div>
+            <div class="text-emerald-400 font-bold text-sm font-mono whitespace-nowrap">+${I18N.formatCurrency(o.amount_value || o.amount || o.amount_formatted, 'EUR')}</div>
           `;
           ordersContainer.appendChild(div);
         });
@@ -2330,8 +2362,9 @@
         const isPositive = tx.amount_value > 0;
         const safeDesc = escapeHtml(tx.description);
         const safeCounterparty = escapeHtml(tx.counterparty_name || '-');
-        const safeDate = escapeHtml(tx.date);
-        const safeAmount = escapeHtml(tx.amount_formatted);
+        const safeDate = escapeHtml(I18N.formatDate(tx.date));
+        const numAmt = tx.amount_value !== undefined ? Math.abs(tx.amount_value) : tx.amount_formatted;
+        const safeAmount = escapeHtml(I18N.formatCurrency(numAmt, 'EUR'));
         const safeCat = escapeHtml(tx.category);
         const safeId = escapeHtml(tx.id);
 
@@ -2339,7 +2372,7 @@
           <td class="px-3 py-2 text-slate-400 whitespace-nowrap">${safeDate}</td>
           <td class="px-3 py-2 font-medium text-white max-w-xs truncate" title="${safeDesc}">${safeDesc}</td>
           <td class="px-3 py-2 text-slate-400 truncate max-w-[140px]">${safeCounterparty}</td>
-          <td class="px-3 py-2 text-right font-mono font-semibold ${isPositive ? 'text-emerald-400' : 'text-slate-200'}">
+          <td class="px-3 py-2 text-right font-mono font-semibold whitespace-nowrap ${isPositive ? 'text-emerald-400' : 'text-slate-200'}">
             ${isPositive ? '+' : ''}${safeAmount}
           </td>
           <td class="px-3 py-2">
@@ -2612,13 +2645,13 @@
       milestones.forEach(m => {
         if (m.is_reached) reachedCount++;
         const card = document.createElement('div');
-        card.className = `p-3.5 rounded-xl border ${m.is_reached ? 'bg-emerald-950/20 border-emerald-500/30' : 'bg-slate-950 border-slate-800'} space-y-2`;
+        card.className = `p-3.5 rounded-xl border ${m.is_reached ? 'bg-emerald-950/20 border-emerald-500/30' : 'bg-slate-950 border-slate-800'} flex flex-col justify-between space-y-2`;
         card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-white truncate" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
-            ${m.is_reached ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">${escapeHtml(reachedLabel)}</span>` : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">${m.progress_pct}%</span>`}
+          <div class="flex items-center justify-between gap-1.5 min-w-0">
+            <span class="text-xs font-semibold text-white truncate min-w-0 flex-1" title="${escapeHtml(m.name)}">${escapeHtml(m.name)}</span>
+            ${m.is_reached ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 whitespace-nowrap shrink-0">${escapeHtml(reachedLabel)}</span>` : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono whitespace-nowrap shrink-0">${I18N.formatPercent(m.progress_pct, 1)}</span>`}
           </div>
-          <div class="text-base font-bold text-white font-mono">${escapeHtml(m.target_formatted)}</div>
+          <div class="text-base font-bold text-white font-mono whitespace-nowrap">${escapeHtml(I18N.formatCurrency(m.target_amount, m.currency || 'EUR'))}</div>
           <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
             <div class="h-full ${m.is_reached ? 'bg-emerald-500' : 'bg-blue-600'}" style="width: ${m.progress_pct}%"></div>
           </div>
@@ -2713,12 +2746,12 @@
             const tr = document.createElement('tr');
             const safeName = escapeHtml(a.name);
             const safeClass = escapeHtml(a.asset_class);
-            const safeVal = escapeHtml(a.current_value_formatted);
+            const safeVal = escapeHtml(I18N.formatCurrency(a.current_value, a.currency || 'EUR'));
             const safeId = escapeHtml(a.id);
             tr.innerHTML = `
               <td class="py-2.5 font-medium text-white">${safeName}</td>
-              <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${safeClass}</span></td>
-              <td class="py-2.5 font-mono text-emerald-400">${safeVal}</td>
+              <td class="py-2.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${safeClass}</span></td>
+              <td class="py-2.5 font-mono text-emerald-400 whitespace-nowrap">${safeVal}</td>
               <td class="py-2.5 text-right whitespace-nowrap">
                 <button onclick="editManualAsset('${safeId}')" class="text-blue-400 hover:text-blue-300 text-xs px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1">${escapeHtml(I18N.t('common.edit', 'Edit'))}</button>
                 <button onclick="deleteManualAsset('${safeId}')" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-0.5 rounded hover:bg-rose-500/10">${escapeHtml(I18N.t('common.delete', 'Delete'))}</button>
@@ -2740,24 +2773,24 @@
             const tr = document.createElement('tr');
             const isUnsetBalance = l.principal_balance <= 0;
             const balanceHtml = isUnsetBalance
-              ? `<span class="text-amber-400 font-mono">${escapeHtml(I18N.t('cashflow.unset_balance', 'Unset (€ 0,00)'))}</span> <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30">${escapeHtml(I18N.t('cashflow.needs_balance', 'Needs Balance'))}</span>`
-              : `<span class="font-mono text-rose-400">${escapeHtml(l.principal_balance_formatted)}</span>`;
+              ? `<span class="text-amber-400 font-mono whitespace-nowrap">${escapeHtml(I18N.t('cashflow.unset_balance', `Unset (${I18N.formatCurrency(0)})`))}</span> <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 whitespace-nowrap">${escapeHtml(I18N.t('cashflow.needs_balance', 'Needs Balance'))}</span>`
+              : `<span class="font-mono text-rose-400 whitespace-nowrap">${escapeHtml(I18N.formatCurrency(l.principal_balance, l.currency || 'EUR'))}</span>`;
             const rateHtml = l.interest_rate_pct <= 0
-              ? `<span class="text-slate-500 font-mono">—</span>`
-              : `<span class="font-mono text-slate-300">${escapeHtml(l.interest_rate_pct)}%</span>`;
+              ? `<span class="text-slate-500 font-mono whitespace-nowrap">—</span>`
+              : `<span class="font-mono text-slate-300 whitespace-nowrap">${escapeHtml(I18N.formatPercent(l.interest_rate_pct))}</span>`;
 
             const safeName = escapeHtml(l.name);
             const safeType = escapeHtml(l.loan_type);
-            const pctSuffix = l.monthly_payment_pct > 0 ? ` <span class="text-[10px] text-slate-400">(${escapeHtml(l.monthly_payment_pct)}%/mo)</span>` : '';
-            const safePmt = `${escapeHtml(l.monthly_payment_formatted)}${pctSuffix}`;
+            const pctSuffix = l.monthly_payment_pct > 0 ? ` <span class="text-[10px] text-slate-400 whitespace-nowrap">(${escapeHtml(I18N.formatPercent(l.monthly_payment_pct))}/mo)</span>` : '';
+            const safePmt = `${escapeHtml(I18N.formatCurrency(l.monthly_payment, l.currency || 'EUR'))}${pctSuffix}`;
             const safeId = escapeHtml(l.id);
 
             tr.innerHTML = `
               <td class="py-2.5 font-medium text-white">${safeName}</td>
-              <td class="py-2.5"><span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">${safeType}</span></td>
-              <td class="py-2.5">${balanceHtml}</td>
-              <td class="py-2.5">${rateHtml}</td>
-              <td class="py-2.5 font-mono text-slate-300">${safePmt}</td>
+              <td class="py-2.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">${safeType}</span></td>
+              <td class="py-2.5 whitespace-nowrap">${balanceHtml}</td>
+              <td class="py-2.5 whitespace-nowrap">${rateHtml}</td>
+              <td class="py-2.5 font-mono text-slate-300 whitespace-nowrap">${safePmt}</td>
               <td class="py-2.5 text-right whitespace-nowrap">
                 <button onclick="openEditLiabilityModalById('${safeId}')" class="text-xs text-blue-400 hover:text-blue-300 font-medium px-2 py-0.5 rounded hover:bg-blue-500/10 mr-1.5">${escapeHtml(I18N.t('common.edit', 'Edit'))}</button>
                 <button onclick="deleteManualLiability('${safeId}')" class="text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-0.5 rounded hover:bg-rose-500/10">${escapeHtml(I18N.t('common.delete', 'Delete'))}</button>
@@ -3089,13 +3122,13 @@
         const safeId = escapeHtml(a.id);
         tr.innerHTML = `
           <td class="px-3 py-2.5 font-medium text-white">${escapeHtml(a.name)}</td>
-          <td class="px-3 py-2.5 font-mono text-slate-400">${escapeHtml(a.symbol || a.isin || '—')}</td>
-          <td class="px-3 py-2.5 text-slate-400">${escapeHtml(a.institution)}</td>
-          <td class="px-3 py-2.5 font-mono font-semibold text-slate-200">${escapeHtml(a.current_value_formatted)}</td>
-          <td class="px-3 py-2.5">
+          <td class="px-3 py-2.5 font-mono text-slate-400 whitespace-nowrap">${escapeHtml(a.symbol || a.isin || '—')}</td>
+          <td class="px-3 py-2.5 text-slate-400 whitespace-nowrap">${escapeHtml(a.institution)}</td>
+          <td class="px-3 py-2.5 font-mono font-semibold text-slate-200 whitespace-nowrap">${escapeHtml(I18N.formatCurrency(a.current_value, a.currency || 'EUR'))}</td>
+          <td class="px-3 py-2.5 whitespace-nowrap">
             ${badgeHtml}
           </td>
-          <td class="px-3 py-2.5">
+          <td class="px-3 py-2.5 whitespace-nowrap">
             <select class="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-white text-xs focus:border-blue-500" onchange="assignAssetToBucketById('${safeId}', this.value)">
               ${bucketOptions}
             </select>
@@ -3249,6 +3282,14 @@
             I18N.setLanguage(s.language, false);
           } else {
             I18N.setLanguage(localLang, false);
+          }
+        }
+        if (typeof I18N !== 'undefined') {
+          const localFmt = localStorage.getItem('wealth_pilot_regional_format');
+          if (localFmt) {
+            I18N.setRegionalFormat(localFmt, false);
+          } else if (s.regional_format) {
+            I18N.setRegionalFormat(s.regional_format, false);
           }
         }
 
@@ -3649,25 +3690,25 @@
         });
         const d = await res.json();
         if (res.ok) {
-          document.getElementById('res-gain-pre').textContent = `€ ${d.gain_pre_benchmark.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
-          document.getElementById('res-gain-post').textContent = `€ ${d.gain_post_benchmark.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
-          document.getElementById('res-taxable-gain').textContent = `€ ${d.total_taxable_gain.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
+          document.getElementById('res-gain-pre').textContent = I18N.formatCurrency(d.gain_pre_benchmark, 'EUR');
+          document.getElementById('res-gain-post').textContent = I18N.formatCurrency(d.gain_post_benchmark, 'EUR');
+          document.getElementById('res-taxable-gain').textContent = I18N.formatCurrency(d.total_taxable_gain, 'EUR');
           
           const remBadge = document.getElementById('res-remaining-exemption');
           if (d.remaining_exemption > 0) {
-            const remAmt = d.remaining_exemption.toLocaleString('nl-BE', {minimumFractionDigits: 2});
-            remBadge.textContent = I18N.t('guidance.exemption_left', { amount: remAmt, _fallback: `€ ${remAmt} exemption left` });
+            const remAmt = I18N.formatCurrency(d.remaining_exemption, 'EUR');
+            remBadge.textContent = I18N.t('guidance.exemption_left', { amount: remAmt, _fallback: `${remAmt} exemption left` });
             remBadge.className = 'text-[10px] text-emerald-400 mt-0.5';
           } else {
             remBadge.textContent = I18N.t('guidance.exemption_exhausted', 'Exemption exhausted');
             remBadge.className = 'text-[10px] text-amber-400 mt-0.5';
           }
 
-          document.getElementById('res-tax-due').textContent = `€ ${d.tax_due.toLocaleString('nl-BE', {minimumFractionDigits: 2})}`;
+          document.getElementById('res-tax-due').textContent = I18N.formatCurrency(d.tax_due, 'EUR');
           const statusBadge = document.getElementById('res-tax-status');
           if (d.tax_due > 0) {
-            const taxAmt = d.tax_due.toLocaleString('nl-BE', {minimumFractionDigits: 2});
-            statusBadge.textContent = I18N.t('guidance.tax_due_status', { amount: taxAmt, _fallback: `⚠️ Tax Due (€ ${taxAmt})` });
+            const taxAmt = I18N.formatCurrency(d.tax_due, 'EUR');
+            statusBadge.textContent = I18N.t('guidance.tax_due_status', { amount: taxAmt, _fallback: `⚠️ Tax Due (${taxAmt})` });
             statusBadge.className = 'text-[10px] text-amber-400 mt-0.5 font-semibold';
           } else {
             statusBadge.textContent = I18N.t('guidance.tax_exempt_status', '🟢 100% Tax-Exempt');
