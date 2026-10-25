@@ -23,7 +23,9 @@ class PdtMcpGateway:
         self.mcp_url = mcp_url
         self.auth_token = auth_token
 
-    async def fetch_portfolio_assets(self, client: httpx.AsyncClient | None = None) -> list[Asset]:
+    async def fetch_portfolio_assets(
+        self, client: httpx.AsyncClient | None = None, raise_on_auth_error: bool = False
+    ) -> list[Asset]:
         """Queries PDT MCP server for current holdings and converts to domain Assets."""
         headers = {
             "Content-Type": "application/json",
@@ -56,6 +58,10 @@ class PdtMcpGateway:
                 async with httpx.AsyncClient() as c:
                     data = await _call(c)
             return self._parse_holdings_response(data)
+        except httpx.HTTPStatusError as exc:
+            if raise_on_auth_error and exc.response.status_code in (401, 403):
+                raise
+            return []
         except Exception:
             # Fallback empty or offline
             return []

@@ -245,6 +245,12 @@ class LocalDbRepository:
                 )
             conn.commit()
 
+    def delete_discovered_assets_by_source(self, source: str) -> None:
+        """Removes discovered assets originating from a specific source (e.g. 'pdt_mcp')."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM discovered_assets WHERE source = ?", (source,))
+            conn.commit()
+
     def get_discovered_assets(self) -> list[Asset]:
         """Returns all cached discovered assets."""
         with self._get_connection() as conn:
@@ -455,4 +461,98 @@ class LocalDbRepository:
             conn.execute("DELETE FROM transactions")
             conn.execute("DELETE FROM discovered_assets")
             conn.execute("DELETE FROM discovered_liabilities")
+            conn.commit()
+
+    def export_state_dict(self) -> dict[str, list[dict[str, Any]]]:
+        """Exports all SQLite tables as serializable dictionaries for encrypted vault backups."""
+        with self._get_connection() as conn:
+            tx_rows = [dict(r) for r in conn.execute("SELECT * FROM transactions").fetchall()]
+            asset_rows = [
+                dict(r) for r in conn.execute("SELECT * FROM discovered_assets").fetchall()
+            ]
+            liab_rows = [
+                dict(r) for r in conn.execute("SELECT * FROM discovered_liabilities").fetchall()
+            ]
+        return {
+            "transactions": tx_rows,
+            "discovered_assets": asset_rows,
+            "discovered_liabilities": liab_rows,
+        }
+
+    def import_state_dict(self, state: dict[str, list[dict[str, Any]]]) -> None:
+        """Restores SQLite tables from a decrypted vault backup dictionary."""
+        with self._get_connection() as conn:
+            if "transactions" in state:
+                conn.execute("DELETE FROM transactions")
+                for r in state["transactions"]:
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO transactions (
+                            id, account_id, date, amount, currency, description,
+                            counterparty_name, counterparty_iban, category,
+                            balance_after, is_inflow, source, raw_json
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            r.get("id"),
+                            r.get("account_id"),
+                            r.get("date"),
+                            r.get("amount"),
+                            r.get("currency", "EUR"),
+                            r.get("description"),
+                            r.get("counterparty_name"),
+                            r.get("counterparty_iban"),
+                            r.get("category"),
+                            r.get("balance_after"),
+                            r.get("is_inflow", 0),
+                            r.get("source"),
+                            r.get("raw_json"),
+                        ),
+                    )
+            if "discovered_assets" in state:
+                conn.execute("DELETE FROM discovered_assets")
+                for r in state["discovered_assets"]:
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO discovered_assets (
+                            id, name, symbol, isin, asset_class, current_value,
+                            currency, institution, account_id, source
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            r.get("id"),
+                            r.get("name"),
+                            r.get("symbol"),
+                            r.get("isin"),
+                            r.get("asset_class"),
+                            r.get("current_value"),
+                            r.get("currency", "EUR"),
+                            r.get("institution"),
+                            r.get("account_id"),
+                            r.get("source"),
+                        ),
+                    )
+            if "discovered_liabilities" in state:
+                conn.execute("DELETE FROM discovered_liabilities")
+                for r in state["discovered_liabilities"]:
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO discovered_liabilities (
+                            id, name, loan_type, principal_balance, interest_rate_pct,
+                            monthly_payment, currency, institution, account_reference, user_confirmed
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            r.get("id"),
+                            r.get("name"),
+                            r.get("loan_type"),
+                            r.get("principal_balance"),
+                            r.get("interest_rate_pct"),
+                            r.get("monthly_payment"),
+                            r.get("currency", "EUR"),
+                            r.get("institution"),
+                            r.get("account_reference"),
+                            r.get("user_confirmed", 0),
+                        ),
+                    )
             conn.commit()

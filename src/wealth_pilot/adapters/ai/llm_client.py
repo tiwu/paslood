@@ -26,9 +26,15 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             or os.getenv("AI_API_KEY")
             or os.getenv("GEMINI_API_KEY")
             or os.getenv("OPENAI_API_KEY")
+            or os.getenv("ANTHROPIC_API_KEY")
             or ""
         )
-        self.model = model or ("gemini-2.5-flash" if self.provider == "gemini" else "gpt-4o-mini")
+        default_models = {
+            "gemini": "gemini-2.5-flash",
+            "anthropic": "claude-sonnet-4-20250514",
+            "ollama": "llama3.2",
+        }
+        self.model = model or default_models.get(self.provider, "gpt-4o-mini")
         self.base_url = base_url
 
     async def generate_advice(self, prompt: str, system_prompt: str | None = None) -> str:
@@ -182,20 +188,62 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             ]
 
         elif provider == "anthropic":
-            return [
+            curated_anthropic = [
+                {
+                    "id": "claude-sonnet-4-20250514",
+                    "name": "Claude Sonnet 4",
+                    "description": "High-intelligence reasoning and financial analysis (Recommended)",
+                    "recommended": True,
+                },
+                {
+                    "id": "claude-3-7-sonnet-20250219",
+                    "name": "Claude 3.7 Sonnet",
+                    "description": "Advanced hybrid reasoning model",
+                    "recommended": False,
+                },
                 {
                     "id": "claude-3-5-haiku-20241022",
                     "name": "Claude 3.5 Haiku",
-                    "description": "Ultra fast and cost-effective (Recommended)",
-                    "recommended": True,
+                    "description": "Fast and cost-effective model",
+                    "recommended": False,
                 },
                 {
                     "id": "claude-3-5-sonnet-20241022",
                     "name": "Claude 3.5 Sonnet",
-                    "description": "State-of-the-art analytical intelligence",
+                    "description": "Analytical intelligence model",
                     "recommended": False,
                 },
             ]
+            if api_key and "•" not in api_key:
+                try:
+                    headers = {
+                        "x-api-key": api_key,
+                        "anthropic-version": "2023-06-01",
+                    }
+                    async with httpx.AsyncClient(timeout=5.0) as client:
+                        resp = await client.get(
+                            "https://api.anthropic.com/v1/models",
+                            headers=headers,
+                        )
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            live_models = []
+                            for idx, m in enumerate(data.get("data", [])):
+                                raw_id = m.get("id", "")
+                                if raw_id:
+                                    live_models.append(
+                                        {
+                                            "id": raw_id,
+                                            "name": m.get("display_name") or raw_id,
+                                            "description": "Live Anthropic model",
+                                            "recommended": idx == 0 or "sonnet-4" in raw_id,
+                                        }
+                                    )
+                            if live_models:
+                                return live_models
+                except Exception:
+                    pass
+            return curated_anthropic
 
         elif provider == "ollama":
             return [
@@ -241,7 +289,13 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         resp = await client.post(
             url, headers=headers, json={"model": self.model, "messages": messages}
         )
-        resp.raise_for_status()
+        if resp.is_error:
+            try:
+                err_data = resp.json()
+                msg = err_data.get("error", {}).get("message", resp.text)
+            except Exception:
+                msg = resp.text
+            raise RuntimeError(f"OpenAI API error ({resp.status_code}): {msg}")
         data = resp.json()
         return data.get("choices", [{}])[0].get("message", {}).get("content", "")
 
@@ -255,13 +309,19 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             "Content-Type": "application/json",
         }
         payload = {
-            "model": self.model or "claude-3-5-haiku-20241022",
+            "model": self.model or "claude-sonnet-4-20250514",
             "max_tokens": 1500,
             "system": system_prompt or "You are a financial wealth advisor.",
             "messages": [{"role": "user", "content": prompt}],
         }
         resp = await client.post(url, headers=headers, json=payload)
-        resp.raise_for_status()
+        if resp.is_error:
+            try:
+                err_data = resp.json()
+                msg = err_data.get("error", {}).get("message", resp.text)
+            except Exception:
+                msg = resp.text
+            raise RuntimeError(f"Anthropic API error ({resp.status_code}): {msg}")
         data = resp.json()
         return data.get("content", [{}])[0].get("text", "")
 
