@@ -34,6 +34,9 @@ from wealth_pilot.adapters.repositories.config_repo import (
     encrypt_vault_payload,
 )
 from wealth_pilot.adapters.repositories.local_db import LocalDbRepository
+from wealth_pilot.adapters.security.secret_vault import SecretVault
+from wealth_pilot.adapters.settings import AppSettings
+from wealth_pilot.delivery.web.auth import AuthManager
 from wealth_pilot.delivery.web.i18n import (
     DEFAULT_LANGUAGE,
     SUPPORTED_LANGUAGES,
@@ -42,11 +45,13 @@ from wealth_pilot.delivery.web.i18n import (
 )
 from wealth_pilot.domain.asset import Asset
 from wealth_pilot.domain.balance_sheet import BalanceSheet
+from wealth_pilot.domain.identity import TenantContext, TenantRole
 from wealth_pilot.domain.liability import Liability
 from wealth_pilot.domain.money import Money
 from wealth_pilot.use_cases.advise_ai import AdviseAiUseCase
 from wealth_pilot.use_cases.advise_contribution import AdviseContributionUseCase
 from wealth_pilot.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
+from wealth_pilot.use_cases.build_overview import BuildPortfolioOverviewUseCase
 from wealth_pilot.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
 from wealth_pilot.use_cases.categorize_transactions import CategorizeTransactionsUseCase
 from wealth_pilot.use_cases.optimize_tax import OptimizeTaxUseCase
@@ -54,6 +59,10 @@ from wealth_pilot.use_cases.project_net_worth import ProjectNetWorthUseCase
 
 
 # Request Models
+class ContributionAdviceRequest(BaseModel):
+    deposit: float
+
+
 class BucketCreateOrUpdateRequest(BaseModel):
     id: str | None = None
     name: str
@@ -180,7 +189,13 @@ def create_app(
     config_repo: ConfigRepository | None = None,
     local_db: LocalDbRepository | None = None,
     docs_dir: Path | None = None,
+    app_settings: AppSettings | None = None,
 ) -> FastAPI:
+    settings = app_settings or AppSettings.from_env()
+    auth_manager = AuthManager(settings)
+    secret_vault = SecretVault(settings.secret_key)
+    pending_oauth: dict[str, Any] = {}
+
     app = FastAPI(
         title="Wealth Pilot", description="Strategic Wealth & Asset Allocation Guidance Platform"
     )
@@ -198,12 +213,52 @@ def create_app(
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "img-src 'self' data: https:; "
-            "connect-src 'self' https://cdn.jsdelivr.net https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com; "
+            "connect-src 'self' https://cdn.jsdelivr.net; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
             "object-src 'none';"
         )
         return response
+
+    @app.middleware("http")
+    async def authentication_middleware(request: Request, call_next):
+        path = request.url.path
+        is_public = (
+            path in ("/login", "/favicon.ico", "/manifest.json")
+            or path.startswith(("/auth/", "/static/", "/guide"))
+            or path == "/api/health"
+        )
+        if settings.auth_mode == "none":
+            request.state.tenant = TenantContext(
+                tenant_id="default",
+                user_id="default",
+                email="local@wealth-pilot",
+                role=TenantRole.OWNER,
+            )
+            return await call_next(request)
+
+        cookie = request.cookies.get("wp_session")
+        tenant = auth_manager.verify_session(cookie) if cookie else None
+
+        if tenant:
+            request.state.tenant = tenant
+            return await call_next(request)
+
+        if is_public:
+            request.state.tenant = TenantContext(
+                tenant_id="default",
+                user_id="anonymous",
+                email="anon@wealth-pilot",
+                role=TenantRole.VIEWER,
+            )
+            return await call_next(request)
+
+        if path.startswith("/api/"):
+            return JSONResponse(
+                status_code=401, content={"detail": "Unauthorized. Please sign in."}
+            )
+
+        return RedirectResponse(url="/login")
 
     @app.middleware("http")
     async def local_origin_protection_middleware(request: Request, call_next):
@@ -218,6 +273,10 @@ def create_app(
                     "test",
                     "testserver",
                 }
+                for trusted in settings.trusted_origins:
+                    p = urllib.parse.urlparse(trusted)
+                    if p.hostname:
+                        allowed_hosts.add(p.hostname.lower())
                 if request.url.hostname:
                     allowed_hosts.add(request.url.hostname.lower())
                 if origin_host not in allowed_hosts:
@@ -341,67 +400,319 @@ def create_app(
 
         return BalanceSheet(assets=assets, liabilities=liabilities, cashflow=cashflow)
 
+    @app.get("/login", response_class=HTMLResponse)
+    async def login_page(request: Request):
+        return templates.TemplateResponse(
+            request=request,
+            name="login.html",
+            context={
+                "has_google": settings.has_google_oauth,
+                "has_github": settings.has_github_oauth,
+                "has_meta": settings.has_meta_oauth,
+                "has_oauth": settings.has_oauth,
+                "has_password": settings.has_password,
+                "error": request.query_params.get("error"),
+                "message": request.query_params.get("message"),
+            },
+        )
+
+    @app.post("/auth/login")
+    async def local_password_login(request: Request):
+        form = await request.form()
+        password = str(form.get("password") or "").strip()
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        if not auth_manager.check_rate_limit(client_ip):
+            return RedirectResponse(
+                url="/login?error=Too+many+failed+attempts.+Please+wait+5+minutes.",
+                status_code=303,
+            )
+        tenant = auth_manager.authenticate_local_password(password)
+        if not tenant:
+            return RedirectResponse(url="/login?error=Invalid+passphrase", status_code=303)
+
+        token = auth_manager.create_session(user_id=tenant.user_id, tenant_id=tenant.tenant_id)
+        resp = RedirectResponse(url="/", status_code=303)
+        resp.set_cookie(
+            "wp_session",
+            token,
+            httponly=True,
+            samesite="lax",
+            max_age=86400 * 30,
+            secure=(request.url.scheme == "https"),
+        )
+        return resp
+
+    @app.get("/auth/logout")
+    async def logout(request: Request):
+        cookie = request.cookies.get("wp_session")
+        if cookie:
+            auth_manager.delete_session(cookie)
+        resp = RedirectResponse(url="/login?message=Signed+out+successfully", status_code=303)
+        resp.delete_cookie("wp_session")
+        return resp
+
+    @app.get("/auth/google/login")
+    async def google_login(request: Request):
+        if not settings.has_google_oauth:
+            return RedirectResponse(url="/login?error=Google+OAuth+not+configured", status_code=303)
+        state_token = secrets.token_urlsafe(16)
+        pending_oauth[state_token] = {"provider": "google", "time": time.time()}
+        redirect_uri = f"{str(request.base_url).rstrip('/')}/auth/google/callback"
+        params = {
+            "client_id": settings.google_client_id,
+            "redirect_uri": redirect_uri,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "state": state_token,
+        }
+        url = "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(params)
+        return RedirectResponse(url=url, status_code=303)
+
+    @app.get("/auth/google/callback")
+    async def google_callback(request: Request):
+        code = request.query_params.get("code")
+        state_token = request.query_params.get("state")
+        if not state_token or state_token not in pending_oauth:
+            return RedirectResponse(
+                url="/login?error=Invalid+or+expired+login+state", status_code=303
+            )
+        pending_oauth.pop(state_token, None)
+        redirect_uri = f"{str(request.base_url).rstrip('/')}/auth/google/callback"
+        data = {
+            "code": code,
+            "client_id": settings.google_client_id,
+            "client_secret": settings.google_client_secret,
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code",
+        }
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            t_resp = await client.post("https://oauth2.googleapis.com/token", data=data)
+            if t_resp.is_error:
+                return RedirectResponse(
+                    url="/login?error=Failed+to+exchange+Google+token", status_code=303
+                )
+            tokens = t_resp.json()
+            access_tok = tokens.get("access_token")
+            u_resp = await client.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_tok}"},
+            )
+            if u_resp.is_error:
+                return RedirectResponse(
+                    url="/login?error=Failed+to+fetch+Google+profile", status_code=303
+                )
+            u_info = u_resp.json()
+
+        email = u_info.get("email", "")
+        if not email or not settings.is_email_allowed(email):
+            return RedirectResponse(
+                url="/login?error=Email+not+authorized+on+this+server", status_code=303
+            )
+
+        sub = str(u_info.get("sub") or email)
+        name = u_info.get("name") or email.split("@")[0]
+        avatar = u_info.get("picture")
+        user, tenant_id = auth_manager.get_or_create_user("google", sub, email, name, avatar)
+        token = auth_manager.create_session(user.id, tenant_id)
+        resp = RedirectResponse(url="/#dashboard", status_code=303)
+        resp.set_cookie(
+            "wp_session",
+            token,
+            httponly=True,
+            samesite="lax",
+            max_age=86400 * 30,
+            secure=(request.url.scheme == "https"),
+        )
+        return resp
+
+    @app.get("/auth/github/login")
+    async def github_login(request: Request):
+        if not settings.has_github_oauth:
+            return RedirectResponse(url="/login?error=GitHub+OAuth+not+configured", status_code=303)
+        state_token = secrets.token_urlsafe(16)
+        pending_oauth[state_token] = {"provider": "github", "time": time.time()}
+        redirect_uri = f"{str(request.base_url).rstrip('/')}/auth/github/callback"
+        params = {
+            "client_id": settings.github_client_id,
+            "redirect_uri": redirect_uri,
+            "scope": "read:user user:email",
+            "state": state_token,
+        }
+        url = "https://github.com/login/oauth/authorize?" + urllib.parse.urlencode(params)
+        return RedirectResponse(url=url, status_code=303)
+
+    @app.get("/auth/github/callback")
+    async def github_callback(request: Request):
+        code = request.query_params.get("code")
+        state_token = request.query_params.get("state")
+        if not state_token or state_token not in pending_oauth:
+            return RedirectResponse(
+                url="/login?error=Invalid+or+expired+login+state", status_code=303
+            )
+        pending_oauth.pop(state_token, None)
+        redirect_uri = f"{str(request.base_url).rstrip('/')}/auth/github/callback"
+        data = {
+            "code": code,
+            "client_id": settings.github_client_id,
+            "client_secret": settings.github_client_secret,
+            "redirect_uri": redirect_uri,
+        }
+        headers = {"Accept": "application/json"}
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            t_resp = await client.post(
+                "https://github.com/login/oauth/access_token", data=data, headers=headers
+            )
+            if t_resp.is_error:
+                return RedirectResponse(
+                    url="/login?error=Failed+to+exchange+GitHub+token", status_code=303
+                )
+            tokens = t_resp.json()
+            access_tok = tokens.get("access_token")
+            u_resp = await client.get(
+                "https://api.github.com/user",
+                headers={"Authorization": f"Bearer {access_tok}", "User-Agent": "WealthPilot"},
+            )
+            if u_resp.is_error:
+                return RedirectResponse(
+                    url="/login?error=Failed+to+fetch+GitHub+profile", status_code=303
+                )
+            u_info = u_resp.json()
+
+            email = u_info.get("email")
+            if not email:
+                emails_resp = await client.get(
+                    "https://api.github.com/user/emails",
+                    headers={"Authorization": f"Bearer {access_tok}", "User-Agent": "WealthPilot"},
+                )
+                if emails_resp.status_code == 200:
+                    for em in emails_resp.json():
+                        if em.get("primary") and em.get("verified"):
+                            email = em.get("email")
+                            break
+                        elif em.get("verified") and not email:
+                            email = em.get("email")
+
+        if not email:
+            email = f"{u_info.get('login', 'github-user')}@users.noreply.github.com"
+
+        if not settings.is_email_allowed(email):
+            return RedirectResponse(
+                url="/login?error=Email+not+authorized+on+this+server", status_code=303
+            )
+
+        sub = str(u_info.get("id"))
+        name = u_info.get("name") or u_info.get("login") or email.split("@")[0]
+        avatar = u_info.get("avatar_url")
+        user, tenant_id = auth_manager.get_or_create_user("github", sub, email, name, avatar)
+        token = auth_manager.create_session(user.id, tenant_id)
+        resp = RedirectResponse(url="/#dashboard", status_code=303)
+        resp.set_cookie(
+            "wp_session",
+            token,
+            httponly=True,
+            samesite="lax",
+            max_age=86400 * 30,
+            secure=(request.url.scheme == "https"),
+        )
+        return resp
+
+    @app.get("/auth/meta/login")
+    async def meta_login(request: Request):
+        if not settings.has_meta_oauth:
+            return RedirectResponse(url="/login?error=Meta+OAuth+not+configured", status_code=303)
+        state_token = secrets.token_urlsafe(16)
+        pending_oauth[state_token] = {"provider": "meta", "time": time.time()}
+        redirect_uri = f"{str(request.base_url).rstrip('/')}/auth/meta/callback"
+        params = {
+            "client_id": settings.meta_client_id,
+            "redirect_uri": redirect_uri,
+            "scope": "email,public_profile",
+            "state": state_token,
+        }
+        url = "https://www.facebook.com/v19.0/dialog/oauth?" + urllib.parse.urlencode(params)
+        return RedirectResponse(url=url, status_code=303)
+
+    @app.get("/auth/meta/callback")
+    async def meta_callback(request: Request):
+        code = request.query_params.get("code")
+        state_token = request.query_params.get("state")
+        if not state_token or state_token not in pending_oauth:
+            return RedirectResponse(
+                url="/login?error=Invalid+or+expired+login+state", status_code=303
+            )
+        pending_oauth.pop(state_token, None)
+        redirect_uri = f"{str(request.base_url).rstrip('/')}/auth/meta/callback"
+        params = {
+            "client_id": settings.meta_client_id,
+            "client_secret": settings.meta_client_secret,
+            "redirect_uri": redirect_uri,
+            "code": code,
+        }
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            t_resp = await client.get(
+                "https://graph.facebook.com/v19.0/oauth/access_token", params=params
+            )
+            if t_resp.is_error:
+                return RedirectResponse(
+                    url="/login?error=Failed+to+exchange+Meta+token", status_code=303
+                )
+            tokens = t_resp.json()
+            access_tok = tokens.get("access_token")
+            u_resp = await client.get(
+                "https://graph.facebook.com/me?fields=id,name,email",
+                headers={"Authorization": f"Bearer {access_tok}"},
+            )
+            if u_resp.is_error:
+                return RedirectResponse(
+                    url="/login?error=Failed+to+fetch+Meta+profile", status_code=303
+                )
+            u_info = u_resp.json()
+
+        email = u_info.get("email") or f"{u_info.get('id')}@facebook.com"
+        if not settings.is_email_allowed(email):
+            return RedirectResponse(
+                url="/login?error=Email+not+authorized+on+this+server", status_code=303
+            )
+
+        sub = str(u_info.get("id"))
+        name = u_info.get("name") or "Meta User"
+        user, tenant_id = auth_manager.get_or_create_user("meta", sub, email, name, None)
+        token = auth_manager.create_session(user.id, tenant_id)
+        resp = RedirectResponse(url="/#dashboard", status_code=303)
+        resp.set_cookie(
+            "wp_session",
+            token,
+            httponly=True,
+            samesite="lax",
+            max_age=86400 * 30,
+            secure=(request.url.scheme == "https"),
+        )
+        return resp
+
     @app.get("/", response_class=HTMLResponse)
     async def index_page(request: Request):
         return templates.TemplateResponse(request=request, name="index.html")
 
     @app.get("/api/overview")
-    async def get_overview(exclude_property: bool = False):
+    async def get_overview(request: Request, exclude_property: bool = False):
         bs = _get_consolidated_balance_sheet()
         buckets = repo.load_buckets()
+        configured_milestones = repo.load_milestones()
 
-        # Determine effective assets for net worth & growth projections
-        effective_assets: list[Asset] = []
-        for a in bs.assets:
-            ac_val = a.asset_class.value if hasattr(a.asset_class, "value") else str(a.asset_class)
-            matched_b = next((b for b in buckets if b.matches(a)), None)
-            if exclude_property and (
-                ac_val == "REAL_ESTATE"
-                or (matched_b and not getattr(matched_b, "include_in_net_worth", True))
-            ):
-                continue
-            effective_assets.append(a)
-
-        allocations = alloc_calc.execute(assets=effective_assets, buckets=buckets)
-
-        effective_bs = BalanceSheet(
-            assets=effective_assets, liabilities=bs.liabilities, cashflow=bs.cashflow
+        overview_builder = BuildPortfolioOverviewUseCase(
+            alloc_calc=alloc_calc,
+            debt_advisor=debt_advisor,
+            net_worth_projector=net_worth_projector,
         )
-
-        # Generate guidance
-        advices = []
-        advices.extend(
-            debt_advisor.execute(
-                liabilities=bs.liabilities, monthly_surplus=bs.free_monthly_cashflow
-            )
-        )
-
-        # Check drift alerts
-        for a in allocations:
-            if a.drift_status.value == "UNDERWEIGHT":
-                from wealth_pilot.domain.advice import AdviceItem, AdviceType, Priority
-
-                advices.append(
-                    AdviceItem(
-                        title=f"Underweight: {a.name}",
-                        message=f"{a.name} is {abs(a.diff_weight_pct):.1f}% below target. Allocate incoming surplus to buy ~€ {abs(a.diff_value):,.2f}.",
-                        priority=Priority.MEDIUM,
-                        advice_type=AdviceType.PORTFOLIO_DRIFT,
-                        action_amount=Money(abs(a.diff_value)),
-                    )
-                )
-
-        # Trajectory
-        trajectory = net_worth_projector.execute(
-            initial_assets=effective_bs.total_assets,
-            initial_debts=effective_bs.total_liabilities,
-            monthly_savings=effective_bs.free_monthly_cashflow,
-            annual_return_pct=Decimal("7.0"),
-            years=30,
+        data = overview_builder.execute(
+            balance_sheet=bs,
+            buckets=buckets,
+            configured_milestones=configured_milestones,
+            exclude_property=exclude_property,
         )
 
         txs = db.get_transactions(limit=1000)
-        tx_data = [
+        data["transactions"] = [
             {
                 "id": t.id,
                 "date": t.date,
@@ -414,133 +725,36 @@ def create_app(
             for t in txs
         ]
 
-        asset_list = []
-        for a in bs.assets:
-            matched_b = next((b for b in buckets if b.matches(a)), None)
-            asset_list.append(
-                {
-                    "id": a.id,
-                    "name": a.name,
-                    "symbol": a.symbol,
-                    "isin": a.isin,
-                    "asset_class": (
-                        a.asset_class.value
-                        if hasattr(a.asset_class, "value")
-                        else str(a.asset_class)
-                    ),
-                    "current_value": float(a.current_value.amount),
-                    "current_value_formatted": a.current_value.format(),
-                    "institution": a.institution,
-                    "bucket_id": matched_b.id if matched_b else "unassigned",
-                    "bucket_name": matched_b.name if matched_b else "Unassigned",
-                    "bucket_color": matched_b.color if matched_b else "#64748B",
-                }
-            )
+        tenant = getattr(request.state, "tenant", None)
+        data["current_user"] = {
+            "email": tenant.email if tenant else "local@wealth-pilot",
+            "tenant_id": tenant.tenant_id if tenant else "default",
+            "auth_mode": settings.auth_mode,
+        }
+        return data
 
-        liability_list = [
-            {
-                "id": liab.id,
-                "name": liab.name,
-                "loan_type": (
-                    liab.loan_type.value
-                    if hasattr(liab.loan_type, "value")
-                    else str(liab.loan_type)
-                ),
-                "principal_balance": float(liab.principal_balance.amount),
-                "principal_balance_formatted": liab.principal_balance.format(),
-                "interest_rate_pct": float(liab.interest_rate_pct),
-                "monthly_payment": float(liab.effective_monthly_payment.amount),
-                "monthly_payment_formatted": liab.effective_monthly_payment.format(),
-                "monthly_payment_pct": (
-                    float(liab.monthly_payment_pct)
-                    if liab.monthly_payment_pct is not None
-                    else None
-                ),
-                "start_capital": (
-                    float(liab.start_capital.amount) if liab.start_capital is not None else None
-                ),
-                "start_date": liab.start_date,
-                "end_date": liab.end_date,
-                "duration_months": liab.duration_months,
-                "institution": liab.institution,
-                "account_reference": liab.account_reference,
-                "is_high_interest": liab.is_high_interest(),
-            }
-            for liab in bs.liabilities
-        ]
-
-        configured_milestones = repo.load_milestones()
-        nw_val = float(effective_bs.net_worth.amount)
-        milestone_data = []
-        for m in configured_milestones:
-            target = float(m.get("target_amount", 0.0))
-            cur = m.get("currency", "EUR")
-            pct = min(100.0, max(0.0, round((nw_val / target * 100.0), 1))) if target > 0 else 100.0
-            milestone_data.append(
-                {
-                    "id": m.get("id"),
-                    "name": m.get("name"),
-                    "target_amount": target,
-                    "target_formatted": (
-                        f"€ {target:,.2f}" if cur == "EUR" else f"{cur} {target:,.2f}"
-                    ),
-                    "progress_pct": pct,
-                    "is_reached": nw_val >= target,
-                }
-            )
-
+    @app.post("/api/advice/contribution")
+    async def get_contribution_advice(req: ContributionAdviceRequest):
+        bs = _get_consolidated_balance_sheet()
+        buckets = repo.load_buckets()
+        allocations = alloc_calc.execute(assets=bs.assets, buckets=buckets)
+        orders = contrib_advisor.execute(
+            deposit=Money.from_val(req.deposit),
+            allocation_results=allocations,
+        )
         return {
-            "net_worth_value": float(effective_bs.net_worth.amount),
-            "net_worth_formatted": effective_bs.net_worth.format(),
-            "total_assets_value": float(effective_bs.total_assets.amount),
-            "total_assets_formatted": effective_bs.total_assets.format(),
-            "total_liabilities_value": float(effective_bs.total_liabilities.amount),
-            "total_liabilities_formatted": effective_bs.total_liabilities.format(),
-            "free_cashflow_formatted": effective_bs.free_monthly_cashflow.format(),
-            "debt_to_asset_ratio": float(effective_bs.debt_to_asset_ratio),
-            "savings_rate_pct": float(effective_bs.cashflow.savings_rate_pct),
-            "asset_count": len(effective_bs.assets),
-            "exclude_property": exclude_property,
-            "allocations": [
+            "status": "success",
+            "deposit": req.deposit,
+            "orders": [
                 {
-                    "bucket_id": a.bucket_id,
-                    "name": a.name,
-                    "current_value": float(a.current_value),
-                    "current_weight_pct": float(a.current_weight_pct),
-                    "target_weight_pct": float(a.target_weight_pct),
-                    "diff_value": float(a.diff_value),
-                    "diff_weight_pct": float(a.diff_weight_pct),
-                    "drift_status": a.drift_status.value,
-                    "drift_tolerance_pct": float(a.drift_tolerance_pct),
-                    "color": a.color,
-                    "include_in_rebalancing": getattr(a, "include_in_rebalancing", True),
-                    "include_in_net_worth": getattr(a, "include_in_net_worth", True),
+                    "bucket_id": o.bucket_id,
+                    "bucket_name": o.bucket_name,
+                    "amount": float(o.amount.amount),
+                    "amount_formatted": o.amount.format(),
+                    "percentage_of_deposit": o.percentage_of_deposit,
                 }
-                for a in allocations
+                for o in orders
             ],
-            "advices": [
-                {
-                    "title": adv.title,
-                    "message": adv.message,
-                    "priority": adv.priority.value,
-                    "advice_type": adv.advice_type.value,
-                }
-                for adv in advices
-            ],
-            "trajectory": [
-                {
-                    "year": t["year"],
-                    "assets": float(t["assets"]),
-                    "debts": float(t["debts"]),
-                    "net_worth": float(t["net_worth"]),
-                    "milestones": t["milestones"],
-                }
-                for t in trajectory
-            ],
-            "transactions": tx_data,
-            "assets": asset_list,
-            "liabilities": liability_list,
-            "milestones": milestone_data,
         }
 
     @app.post("/api/ingest/kbc")
@@ -680,7 +894,8 @@ def create_app(
         effective_key = header_key or api_key
         if not effective_key or _is_masked_secret(effective_key):
             s = repo.load_settings()
-            effective_key = s.get("ai", {}).get("api_key")
+            raw_key = s.get("ai", {}).get("api_key")
+            effective_key = secret_vault.decrypt(raw_key) if raw_key else ""
         models = await UniversalAIAdvisorClient.fetch_available_models(
             provider=provider, api_key=effective_key
         )
@@ -698,7 +913,8 @@ def create_app(
         effective_key = req.api_key
         if not effective_key or _is_masked_secret(effective_key):
             s = repo.load_settings()
-            effective_key = s.get("ai", {}).get("api_key")
+            raw_key = s.get("ai", {}).get("api_key")
+            effective_key = secret_vault.decrypt(raw_key) if raw_key else ""
 
         effective_model = req.model
         if not effective_model:
@@ -885,16 +1101,26 @@ def create_app(
         raw_settings = repo.load_settings()
         masked = copy.deepcopy(raw_settings)
         if masked.get("ai", {}).get("api_key"):
-            k = masked["ai"]["api_key"]
+            raw_k = masked["ai"]["api_key"]
+            decrypted_k = secret_vault.decrypt(raw_k)
+            k = decrypted_k if decrypted_k else raw_k
             masked["ai"]["api_key"] = ("••••" + k[-4:]) if len(k) > 4 else "••••••••"
         if masked.get("pdt", {}).get("auth_token"):
-            t = masked["pdt"]["auth_token"]
+            raw_t = masked["pdt"]["auth_token"]
+            decrypted_t = secret_vault.decrypt(raw_t)
+            t = decrypted_t if decrypted_t else raw_t
             masked["pdt"]["auth_token"] = ("••••" + t[-4:]) if len(t) > 4 else "••••••••"
         return masked
 
     @app.post("/api/settings")
     async def update_settings(req: SettingsUpdateRequest):
         data = req.model_dump(exclude_unset=True)
+        if data.get("ai", {}).get("api_key") and not _is_masked_secret(data["ai"]["api_key"]):
+            data["ai"]["api_key"] = secret_vault.encrypt(data["ai"]["api_key"])
+        if data.get("pdt", {}).get("auth_token") and not _is_masked_secret(
+            data["pdt"]["auth_token"]
+        ):
+            data["pdt"]["auth_token"] = secret_vault.encrypt(data["pdt"]["auth_token"])
         repo.save_settings(data)
         return {"status": "success"}
 
@@ -1047,6 +1273,8 @@ def create_app(
                 return str(new_tokens.get("access_token") or token)
             except Exception:
                 pass
+        if token and token.startswith("enc:"):
+            token = secret_vault.decrypt(token)
         return token
 
     @app.post("/api/mcp/pdt/sync")
@@ -1131,6 +1359,27 @@ def create_app(
                     status_code=403,
                     detail="Access to link-local metadata addresses is prohibited.",
                 )
+
+        if settings.mode != "local":
+            import socket
+
+            resolved_ips: list[ipaddress.IPv4Address | ipaddress.IPv6Address] = []
+            with contextlib.suppress(Exception):
+                addr_info = socket.getaddrinfo(hostname, None)
+                for info in addr_info:
+                    resolved_ips.append(ipaddress.ip_address(info[4][0]))
+            for rip in resolved_ips:
+                if (
+                    rip.is_loopback
+                    or rip.is_private
+                    or rip.is_link_local
+                    or rip.is_reserved
+                    or rip.is_multicast
+                ):
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Access to internal or private network endpoints is prohibited.",
+                    )
 
         start_t = time.time()
         headers = {
@@ -1295,6 +1544,11 @@ def create_app(
 
     @app.post("/api/backup/cloud-sync")
     async def sync_encrypted_vault_with_cloud_folder(req: CloudSyncRequest):
+        if settings.mode != "local":
+            raise HTTPException(
+                status_code=403,
+                detail="Cloud folder sync with server filesystem paths is disabled in remote/container mode. Please use encrypted export/import in Settings.",
+            )
         if not req.sync_dir or not req.sync_dir.strip():
             raise HTTPException(status_code=400, detail="Please specify a Cloud Drive folder path.")
         sync_path = Path(req.sync_dir.strip()).expanduser().resolve()

@@ -20,9 +20,31 @@ class LocalDbRepository:
     assets, and discovered loan liabilities.
     """
 
-    def __init__(self, db_path: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        db_path: str | Path | None = None,
+        data_dir: str | Path | None = None,
+        tenant_id: str = "default",
+    ) -> None:
+        self.tenant_id = tenant_id
         if db_path is None:
-            self.db_path = Path.home() / ".wealth_pilot" / "wealth_pilot.db"
+            raw_env_dir = None
+            import os
+
+            raw_env_dir = os.getenv("WEALTH_PILOT_DATA_DIR")
+            base_dir = (
+                Path(data_dir).expanduser().resolve()
+                if data_dir
+                else (
+                    Path(raw_env_dir).expanduser().resolve()
+                    if raw_env_dir
+                    else Path.home() / ".wealth_pilot"
+                )
+            )
+            if tenant_id != "default":
+                self.db_path = base_dir / "tenants" / tenant_id / "wealth_pilot.db"
+            else:
+                self.db_path = base_dir / "wealth_pilot.db"
         elif str(db_path) == ":memory:":
             self.db_path = Path(":memory:")
         else:
@@ -36,6 +58,10 @@ class LocalDbRepository:
     def _get_connection(self) -> sqlite3.Connection:
         conn = sqlite3.connect(str(self.db_path))
         conn.row_factory = sqlite3.Row
+        if str(self.db_path) != ":memory:":
+            with sqlite3.connect(str(self.db_path)) as raw_conn:
+                raw_conn.execute("PRAGMA journal_mode=WAL")
+                raw_conn.execute("PRAGMA synchronous=NORMAL")
         return conn
 
     def _init_schema(self) -> None:

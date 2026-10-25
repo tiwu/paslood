@@ -346,6 +346,33 @@ class IssuePoller:
                 print(f"    - #{iss.number}: {iss.title}")
         print("=====================================================\n")
 
+    def checkout_issue(self, issue_number: int) -> None:
+        """Finds and checks out the feature branch associated with an issue."""
+        iss = self.get_issue(issue_number)
+        if not iss:
+            print(f"Issue #{issue_number} not found.", file=sys.stderr)
+            return
+        branch_name = f"feature/issue-{iss.number}-{iss.slug}"
+        print(f"Checking out branch '{branch_name}' for issue #{iss.number}...")
+        res = subprocess.run(
+            ["git", "checkout", branch_name], capture_output=True, text=True, check=False
+        )
+        if res.returncode != 0:
+            # Try fetching from origin
+            subprocess.run(
+                ["git", "fetch", "origin", branch_name], capture_output=True, text=True, check=False
+            )
+            res2 = subprocess.run(
+                ["git", "checkout", branch_name], capture_output=True, text=True, check=False
+            )
+            if res2.returncode != 0:
+                print(
+                    f"Could not checkout branch '{branch_name}': {res2.stderr.strip()}",
+                    file=sys.stderr,
+                )
+                return
+        print(f"Switched to branch '{branch_name}' successfully.")
+
     def run_cycle(self, target_issue: int | None = None) -> None:
         """Execute one complete polling cycle."""
         if target_issue:
@@ -387,6 +414,7 @@ def main() -> None:
     parser.add_argument("--repo", default="tiwu/wealth-pilot", help="GitHub repo (owner/name)")
     parser.add_argument("--status", action="store_true", help="Display queue status")
     parser.add_argument("--issue", type=int, help="Target specific issue number")
+    parser.add_argument("--checkout", type=int, help="Checkout feature branch for specific issue")
     parser.add_argument("--dry-run", action="store_true", help="Simulate actions without changes")
 
     args = parser.parse_args()
@@ -394,6 +422,8 @@ def main() -> None:
 
     if args.status:
         poller.display_queue_status()
+    elif args.checkout:
+        poller.checkout_issue(args.checkout)
     else:
         poller.run_cycle(target_issue=args.issue)
 

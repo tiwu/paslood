@@ -159,11 +159,30 @@ DEFAULT_BUCKETS_CONFIG: list[dict[str, Any]] = [
 class ConfigRepository:
     """Manages YAML/JSON configuration files for user buckets, accounts, and learned rules."""
 
-    def __init__(self, config_path: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        config_path: str | Path | None = None,
+        data_dir: str | Path | None = None,
+        tenant_id: str = "default",
+    ) -> None:
+        self.tenant_id = tenant_id
         if config_path:
             self.config_path = Path(config_path)
         else:
-            self.config_path = Path.home() / ".wealth_pilot" / "portfolio.yaml"
+            raw_env_dir = os.getenv("WEALTH_PILOT_DATA_DIR")
+            base_dir = (
+                Path(data_dir).expanduser().resolve()
+                if data_dir
+                else (
+                    Path(raw_env_dir).expanduser().resolve()
+                    if raw_env_dir
+                    else Path.home() / ".wealth_pilot"
+                )
+            )
+            if tenant_id != "default":
+                self.config_path = base_dir / "tenants" / tenant_id / "portfolio.yaml"
+            else:
+                self.config_path = base_dir / "portfolio.yaml"
 
         self.rules_path = self.config_path.parent / "rules.yaml"
         self._ensure_defaults()
@@ -458,8 +477,11 @@ class ConfigRepository:
         # Check if pdt_auth.json or ~/.pdt_auth.json exists as fallback if not explicitly disconnected
         pdt_token_file = self.config_path.parent / "pdt_auth.json"
         home_token_file = Path.home() / ".pdt_auth.json"
+        token_files = (
+            (pdt_token_file, home_token_file) if self.tenant_id == "default" else (pdt_token_file,)
+        )
         if pdt_cfg.get("connected") is not False and not pdt_cfg.get("auth_token"):
-            for tf in (pdt_token_file, home_token_file):
+            for tf in token_files:
                 if tf.exists():
                     try:
                         import json
@@ -475,15 +497,29 @@ class ConfigRepository:
                     except Exception:
                         pass
 
+        ai_key = settings.get("ai", {}).get("api_key")
+        if isinstance(ai_key, str) and ai_key.startswith("enc:"):
+            from wealth_pilot.adapters.security.secret_vault import SecretVault
+            from wealth_pilot.adapters.settings import AppSettings
+
+            ai_key = SecretVault(AppSettings.from_env().secret_key).decrypt(ai_key)
+
+        pdt_token = pdt_cfg.get("auth_token")
+        if isinstance(pdt_token, str) and pdt_token.startswith("enc:"):
+            from wealth_pilot.adapters.security.secret_vault import SecretVault
+            from wealth_pilot.adapters.settings import AppSettings
+
+            pdt_token = SecretVault(AppSettings.from_env().secret_key).decrypt(pdt_token)
+
         # Return consolidated settings with defaults
         return {
             "pdt": {
                 "mcp_url": pdt_cfg.get("mcp_url", "https://mcp.portfoliodividendtracker.com"),
                 "client_id": pdt_cfg.get("client_id"),
-                "auth_token": pdt_cfg.get("auth_token"),
+                "auth_token": pdt_token,
                 "refresh_token": pdt_cfg.get("refresh_token"),
                 "expires_at": pdt_cfg.get("expires_at"),
-                "connected": bool(pdt_cfg.get("auth_token") or pdt_cfg.get("connected")),
+                "connected": bool(pdt_token or pdt_cfg.get("connected")),
                 "last_sync": pdt_cfg.get("last_sync"),
             },
             "mcp_servers": settings.get(
@@ -494,14 +530,14 @@ class ConfigRepository:
                         "name": "Portfolio Dividend Tracker (PDT)",
                         "url": "https://mcp.portfoliodividendtracker.com",
                         "transport": "http",
-                        "auth_token": pdt_cfg.get("auth_token"),
+                        "auth_token": pdt_token,
                         "enabled": True,
                     }
                 ],
             ),
             "ai": {
                 "provider": settings.get("ai", {}).get("provider", "algorithmic"),
-                "api_key": settings.get("ai", {}).get("api_key"),
+                "api_key": ai_key,
                 "model": settings.get("ai", {}).get("model", "gemini-1.5-pro"),
                 "ollama_url": settings.get("ai", {}).get("ollama_url", "http://localhost:11434"),
             },

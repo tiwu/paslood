@@ -25,6 +25,7 @@ theme:
 nav:
   - Overview: index.md
   - Getting Started: getting-started.md
+  - Self-Hosting & Deployment: self-hosting.md
   - Core Concepts:
       - Strategic Buckets: concepts/buckets.md
       - Balance Sheet & Net Worth: concepts/balance-sheet.md
@@ -45,6 +46,9 @@ nav:
       - Plan Template: plans/PLAN-TEMPLATE.md
       - "Issue #3 - Exclude Bucket from Rebalancing": plans/PLAN-3-option-to-exclude-bucket-from-weight-cal.md
       - "Issue #7 - Dutch (NL) Translation and Localization": plans/PLAN-7-add-translation-to-nl.md
+  - Architecture & UX Reviews:
+      - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
+      - UI/UX Review: reviews/UX-REVIEW.md
 
 
 markdown_extensions:

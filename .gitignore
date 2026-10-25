@@ -44,7 +44,9 @@ docs_dist/
 .ruff_cache/
 
 # User Data & Secrets
+.env
 .env.*
+!.env.example
 pdt_auth.json
 portfolio.yaml
 rules.yaml

@@ -9,8 +9,6 @@ on:
         description: "Target specific issue number (optional)"
         required: false
         type: string
-  schedule:
-    - cron: "0 * * * *"  # Run hourly
 
 permissions:
   contents: write

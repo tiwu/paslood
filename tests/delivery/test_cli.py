@@ -83,3 +83,18 @@ def test_cli_web_dry_run():
         assert result.exit_code == 0
         mock_uvicorn.assert_called_once()
         assert "http://127.0.0.1:9999" in result.stdout
+
+
+def test_cli_set_password(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("WEALTH_PILOT_DATA_DIR", str(tmp_path))
+    result = runner.invoke(app, ["set-password"], input="newpass123\nnewpass123\n")
+    assert result.exit_code == 0
+    assert "Password set successfully!" in result.stdout
+    env_file = tmp_path / ".env"
+    assert env_file.exists()
+    content = env_file.read_text(encoding="utf-8")
+    assert "WEALTH_PILOT_ADMIN_PASSWORD_HASH=" in content
+    hash_val = content.split("WEALTH_PILOT_ADMIN_PASSWORD_HASH=")[1].split("\n")[0].strip()
+    from wealth_pilot.delivery.web.auth import verify_password
+
+    assert verify_password("newpass123", hash_val) is True
