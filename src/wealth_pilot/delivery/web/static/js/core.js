@@ -53,16 +53,16 @@ function syncThemeToggleUI() {
 function reRenderAllLocalizedUI() {
   syncThemeToggleUI();
   if (currentData) {
-    renderDashboard(currentData);
-    renderBuckets(currentData);
-    renderHoldingsMapping(currentData);
-    renderMilestones(currentData.milestones || []);
-    renderManualAssetsAndDebts(currentData);
-    renderAdvice(currentData);
-    renderTransactions(currentData);
+    if (typeof renderDashboard === 'function') renderDashboard(currentData);
+    if (typeof renderBuckets === 'function') renderBuckets(currentData);
+    if (typeof renderHoldingsMapping === 'function') renderHoldingsMapping(currentData);
+    if (typeof renderMilestones === 'function') renderMilestones(currentData.milestones || []);
+    if (typeof renderManualAssetsAndDebts === 'function') renderManualAssetsAndDebts(currentData);
+    if (typeof renderAdvice === 'function') renderAdvice(currentData);
+    if (typeof renderTransactions === 'function') renderTransactions(currentData);
   }
-  runTaxSimulation();
-  updateWizardStepUI();
+  if (typeof runTaxSimulation === 'function') runTaxSimulation();
+  if (typeof updateWizardStepUI === 'function') updateWizardStepUI();
 }
 
 window.addEventListener('languageChanged', reRenderAllLocalizedUI);
@@ -184,13 +184,13 @@ async function loadOverview() {
     const res = await fetch(url);
     if (!res.ok) return;
     currentData = await res.json();
-    renderDashboard(currentData);
-    renderBuckets(currentData);
-    renderHoldingsMapping(currentData);
-    renderMilestones(currentData.milestones || []);
-    renderManualAssetsAndDebts(currentData);
-    renderAdvice(currentData);
-    renderTransactions(currentData);
+    if (typeof renderDashboard === 'function') renderDashboard(currentData);
+    if (typeof renderBuckets === 'function') renderBuckets(currentData);
+    if (typeof renderHoldingsMapping === 'function') renderHoldingsMapping(currentData);
+    if (typeof renderMilestones === 'function') renderMilestones(currentData.milestones || []);
+    if (typeof renderManualAssetsAndDebts === 'function') renderManualAssetsAndDebts(currentData);
+    if (typeof renderAdvice === 'function') renderAdvice(currentData);
+    if (typeof renderTransactions === 'function') renderTransactions(currentData);
 
     if (currentData.current_user) {
       const authContainer = document.getElementById('auth-header-container');
@@ -205,7 +205,7 @@ async function loadOverview() {
         }
       }
     }
-    populateTaxHoldingDropdown(currentData);
+    if (typeof populateTaxHoldingDropdown === 'function') populateTaxHoldingDropdown(currentData);
   } catch (err) {
     console.error('Failed to load overview:', err);
   }
@@ -221,9 +221,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   syncThemeToggleUI();
   await loadOverview();
-  await loadSettings();
-  await runTaxSimulation();
-  await refreshAiModels();
+  if (typeof loadSettings === 'function') await loadSettings();
+  if (typeof runTaxSimulation === 'function') await runTaxSimulation();
+  if (typeof refreshAiModels === 'function') await refreshAiModels();
 
   // Auto-sync PDT in background if connected and no PDT assets cached in SQLite yet
   try {
@@ -239,7 +239,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Check first-time setup
   if (localStorage.getItem('wealth_pilot_setup_completed') !== 'true') {
-    openSetupWizard();
+    if (typeof openSetupWizard === 'function') openSetupWizard();
   }
 
   // Check URL hash and query params for OAuth confirmation or error

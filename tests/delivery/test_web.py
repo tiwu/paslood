@@ -3,6 +3,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from wealth_pilot import __version__
 from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
 from wealth_pilot.delivery.web.app import create_app
 
@@ -25,12 +26,12 @@ async def test_web_index_and_overview(test_app):
         resp = await client.get("/")
         assert resp.status_code == 200
         assert "Wealth Pilot" in resp.text
-        assert "v0.5.0" in resp.text
+        assert f"v{__version__}" in resp.text
 
         # Check version API
         ver_resp = await client.get("/api/version")
         assert ver_resp.status_code == 200
-        assert ver_resp.json() == {"version": "0.5.0"}
+        assert ver_resp.json() == {"version": __version__}
 
         # Header brand must be shrink-0 to prevent overlap with nav items
         assert "flex items-center space-x-2.5 shrink-0" in resp.text

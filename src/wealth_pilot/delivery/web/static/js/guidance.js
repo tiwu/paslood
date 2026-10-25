@@ -214,6 +214,16 @@ async function runTaxSimulation() {
 }
 
 // AI Advisor & Model Discovery
+function isMaskedOrNonByteString(val) {
+  if (!val || typeof val !== 'string') return true;
+  const s = val.trim();
+  if (!s || s.includes('•') || s.startsWith('****')) return true;
+  for (let i = 0; i < s.length; i++) {
+    if (s.charCodeAt(i) > 255) return true;
+  }
+  return false;
+}
+
 function updateAiActiveBadge() {
   const badge = document.getElementById('ai-active-provider-badge');
   if (!badge) return;
@@ -244,7 +254,7 @@ async function refreshAiModels() {
   if (!select || !providerEl) return;
 
   const provider = providerEl.value;
-  const key = keyEl ? keyEl.value : '';
+  const rawKey = keyEl ? keyEl.value : '';
   const previousModel = select.value;
 
   select.innerHTML = '<option value="">Discovering models...</option>';
@@ -252,7 +262,9 @@ async function refreshAiModels() {
   try {
     const queryParams = new URLSearchParams({ provider });
     const headers = {};
-    if (key) headers['X-AI-API-Key'] = key;
+    if (!isMaskedOrNonByteString(rawKey)) {
+      headers['X-AI-API-Key'] = rawKey.trim();
+    }
     const res = await fetch(`/api/ai/models?${queryParams.toString()}`, { headers });
     if (!res.ok) throw new Error('Failed to query models');
     const data = await res.json();
@@ -282,7 +294,8 @@ async function runAiReview() {
   const output = document.getElementById('ai-output');
   const provider = document.getElementById('settings-ai-provider')?.value || 'gemini';
   const model = document.getElementById('settings-ai-model')?.value || null;
-  const key = document.getElementById('settings-ai-key')?.value || '';
+  const rawKey = document.getElementById('settings-ai-key')?.value || '';
+  const key = isMaskedOrNonByteString(rawKey) ? null : rawKey.trim();
   const question = document.getElementById('ai-user-question')?.value || '';
 
   btn.disabled = true;

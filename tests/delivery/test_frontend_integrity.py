@@ -151,9 +151,14 @@ const fs = require('fs');
 const vm = require('vm');
 
 function makeEl(id = '') {{
+  let _html = '';
   return {{
     id,
-    innerHTML: '',
+    get innerHTML() {{ return _html; }},
+    set innerHTML(val) {{
+      _html = val;
+      if (!val) this.children = [];
+    }},
     textContent: '',
     value: '',
     checked: false,
@@ -234,7 +239,18 @@ const sandbox = {{
     history: {{ replaceState: () => {{}} }},
     addEventListener: () => {{}}
   }},
-  fetch: async () => ({{ ok: true, json: async () => ({{}}) }})
+  fetch: async (url, opts = {{}}) => {{
+    if (opts.headers) {{
+      for (const [k, v] of Object.entries(opts.headers)) {{
+        for (let i = 0; i < String(v).length; i++) {{
+          if (String(v).charCodeAt(i) > 255) {{
+            throw new TypeError(`Cannot convert value in record<ByteString, ByteString> to ByteString because the character at index ${{i}} has value ${{String(v).charCodeAt(i)}} which is greater than 255.`);
+          }}
+        }}
+      }}
+    }}
+    return {{ ok: true, json: async () => ({{ models: [{{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', recommended: true }}] }}) }};
+  }}
 }};
 
 vm.createContext(sandbox);
@@ -283,7 +299,28 @@ if (driftContainer.children.length !== 2) throw new Error('Expected header + 1 d
 sandbox.renderExcludedBuckets([{{ name: 'Home Property', color: '#10B981', current_value: 350000 }}]);
 if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expected 1 excluded bucket item');
 
-console.log('NODE_UNIT_OK');
+// 5. Test refreshAiModels with masked key containing bullet point \u2022
+(async () => {{
+  getEl('settings-ai-provider').value = 'gemini';
+  getEl('settings-ai-key').value = '••••5678';
+  await sandbox.refreshAiModels();
+  const select = getEl('settings-ai-model');
+  if (select.children.length !== 1 || select.children[0].value !== 'gemini-2.5-flash') {{
+    throw new Error('refreshAiModels failed with masked key: ' + JSON.stringify(select.children));
+  }}
+
+  // Test with valid unmasked ASCII key
+  getEl('settings-ai-key').value = 'sk-test-valid-key';
+  await sandbox.refreshAiModels();
+  if (select.children.length !== 1) {{
+    throw new Error('refreshAiModels failed with valid ASCII key');
+  }}
+
+  console.log('NODE_UNIT_OK');
+}})().catch(err => {{
+  console.error(err);
+  process.exit(1);
+}});
 """
     res = subprocess.run(
         ["node", "-e", harness],
