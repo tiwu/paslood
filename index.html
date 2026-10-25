@@ -1485,23 +1485,25 @@
 <hr />
 <h2 id="why-wealth-pilot">Why Wealth Pilot?</h2>
 <p>Most personal finance apps fall into one of two extremes:
-1. <strong>Micro-Budgeting Apps</strong> (e.g. YNAB, Monarch): Focus on categorizing every €3 coffee and managing envelope budgets. They offer little to no strategic investment guidance.
+1. <strong>Micro-Budgeting Apps</strong> (e.g. YNAB, Monarch): Focus on categorizing small daily expenses and managing envelope budgets. They offer little to no strategic investment guidance.
 2. <strong>Passive Net Worth Dashboards</strong> (e.g. Kubera, Finary): Provide high-level aggregation across accounts, but lack proactive advice on how to rebalance, which debts to pay off, or where to deploy monthly surplus cashflow.</p>
 <p><strong>Wealth Pilot bridges this gap</strong>:
 - <strong>Macro Allocation Buckets</strong>: Organize assets into target pillars (e.g. Core World ETFs, High-Conviction Growth, Gold/Commodities, Cash Buffers, Real Estate) with customizable drift tolerances.
 - <strong>Unified Balance Sheet</strong>: Connects investment accounts (PDT MCP), bank checking cashflow (KBC CSV), savings accounts (Bunq), and active debts (mortgages, credit lines).
 - <strong>Proactive Guidance Engine</strong>: Rebalances portfolios using incoming monthly cash deposits (<strong>Buy-Only Rebalancing</strong>) without forcing taxable asset sales or broker fees.
+- <strong>Belgian 2026 Capital Gains Tax Optimizer</strong>: FIFO lot tracking with Dec 31, 2025 benchmark price lookup and €10,000 annual exemption optimization.
 - <strong>Debt vs. Investing Optimization</strong>: Evaluates debt APR against long-term expected portfolio returns (Avalanche vs Snowball).
-- <strong>AI Financial Advisor</strong>: Pluggable LLM interface (BYO API key) delivering personalized strategic commentary.
-- <strong>Privacy &amp; Zero Vendor Lock-in</strong>: 100% local execution with zero cloud telemetry.</p>
+- <strong>Server-Side AI Advisor</strong>: Pluggable LLM interface (BYO API key) delivering personalized strategic commentary with zero client-side credential exposure.
+- <strong>Privacy &amp; Security First</strong>: Envelope encryption (<code>SecretVault</code> with AES-256-GCM), local SQLite database, and network bind guards.
+- <strong>Containerized &amp; Mobile-Ready</strong>: Run locally or via Docker Compose with <strong>Tailscale</strong>, <strong>Cloudflare Tunnel</strong>, or <strong>DuckDNS + Caddy</strong> for secure remote phone access.</p>
 <hr />
 <h2 id="architectural-highlights">Architectural Highlights</h2>
 <p>Wealth Pilot strictly implements <strong>Uncle Bob's Clean Architecture</strong>:</p>
 <ul>
-<li><code>domain/</code>: Pure business models (<code>Money</code>, <code>Asset</code>, <code>Liability</code>, <code>Bucket</code>, <code>AllocationRule</code>, <code>BalanceSheet</code>). Zero third-party dependencies.</li>
-<li><code>use_cases/</code>: Application business rules (<code>CalculateBucketAllocation</code>, <code>AdviseContribution</code>, <code>AdviseDebtPayoff</code>, <code>ProjectNetWorth</code>, <code>CategorizeTransactions</code>, <code>OptimizeTax</code>).</li>
-<li><code>adapters/</code>: Ingestion gateways (KBC CSV, PDT MCP, Generic CSV/YAML) and repositories.</li>
-<li><code>delivery/</code>: Modern local FastAPI web dashboard with PWA support, alongside a scriptable CLI.</li>
+<li><code>domain/</code>: Pure business models (<code>Money</code>, <code>Asset</code>, <code>Liability</code>, <code>Bucket</code>, <code>AllocationRule</code>, <code>BalanceSheet</code>, <code>User</code>, <code>TenantContext</code>). Zero third-party dependencies.</li>
+<li><code>use_cases/</code>: Application business rules (<code>CalculateBucketAllocation</code>, <code>AdviseContribution</code>, <code>AdviseDebtPayoff</code>, <code>ProjectNetWorth</code>, <code>CategorizeTransactions</code>, <code>OptimizeTax</code>, <code>BuildPortfolioOverview</code>).</li>
+<li><code>adapters/</code>: Ingestion gateways (KBC CSV, PDT MCP, Generic CSV), repositories (<code>ConfigRepository</code>, <code>LocalDbRepository</code>), security (<code>SecretVault</code>), and settings (<code>AppSettings</code>).</li>
+<li><code>delivery/</code>: Modern local FastAPI web dashboard (<code>delivery/web</code>) with PWA and mobile bottom navigation, authentication manager (<code>AuthManager</code>), and scriptable CLI (<code>cli.py</code>).</li>
 </ul>
 
 
