@@ -188,13 +188,32 @@ docs/plans/PLAN-<issue_number>-<slug>.md
 ```
 Plans are indexed in `mkdocs.yml` and render directly within the built-in documentation (`/guide`) and GitHub Pages. Use `docs/plans/PLAN-TEMPLATE.md` as the baseline.
 
-### 7.4 Running the Issue Worker
+### 7.4 Running the Issue Worker & Queue Helper
 
-- **On-Demand Polling**:
+The autonomous issue lifecycle is powered by the Antigravity LLM worker sidecar, assisted by `scripts/poll_issues.py` for git and GitHub label transitions:
+
+- **Queue Inspection**:
   ```bash
-  uv run python scripts/poll_issues.py
-  uv run python scripts/poll_issues.py --status  # Check queue counts
-  uv run python scripts/poll_issues.py --dry-run # Simulate
+  uv run python scripts/poll_issues.py --status         # Overview of all queue states
+  uv run python scripts/poll_issues.py --next           # Next actionable issue (plain text)
+  uv run python scripts/poll_issues.py --next --json    # Next actionable issue (JSON)
   ```
-- **Scheduled Background Poller**: Configured via the Antigravity scheduled automation sidecar `wealth-pilot-issue-worker` running hourly (`CRON_TZ=Europe/Brussels 0 * * * *`).
+
+- **Lifecycle Helper Commands**:
+  ```bash
+  # Publish agent-authored plan from docs/plans/PLAN-<id>-<slug>.md:
+  uv run python scripts/poll_issues.py --publish-plan <issue_number>
+
+  # Start implementation on approved feature branch:
+  uv run python scripts/poll_issues.py --start-work <issue_number>
+
+  # Submit Pull Request and link issue/plan:
+  uv run python scripts/poll_issues.py --submit-pr <issue_number>
+
+  # Checkout feature branch for local testing:
+  uv run python scripts/poll_issues.py --checkout <issue_number>
+  ```
+
+- **Scheduled Background Poller**: Configured via the Antigravity scheduled automation sidecar `wealth-pilot-issue-worker` running hourly (`CRON_TZ=Europe/Brussels 0 * * * *`) in `~/.gemini/config/sidecars/wealth-pilot-issue-worker/sidecar.json`.
+
 

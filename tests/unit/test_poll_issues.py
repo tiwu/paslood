@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from poll_issues import GitHubIssue, IssuePoller
 
@@ -40,25 +43,40 @@ def test_github_issue_slug_generation():
     assert issue3.slug == "feature"
 
 
-def test_draft_plan_content_structure():
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=True)
-    issue = GitHubIssue(
-        number=7,
-        title="feat: Integrate Bunq bank CSV",
-        body="Parse Bunq multi-currency statements",
-        labels=["agent:plan"],
-        url="https://github.com/tiwu/wealth-pilot/issues/7",
+def test_get_next_actionable_issue():
+    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+
+    approved_issue = GitHubIssue(
+        number=20, title="feat: Build it", body="", labels=["agent:approved"], url=""
     )
-    content = poller.draft_plan_content(issue)
-    assert "# Architecture Plan: [Issue #7] feat: Integrate Bunq bank CSV" in content
-    assert "https://github.com/tiwu/wealth-pilot/issues/7" in content
-    assert "feature/issue-7-integrate-bunq-bank-csv" in content
-    assert "Parse Bunq multi-currency statements" in content
-    assert "Hexagonal Architecture Impact" in content
-    assert "Test-Driven Development (TDD) Plan" in content
+    planning_issue = GitHubIssue(
+        number=21, title="feat: Plan it", body="", labels=["agent:plan"], url=""
+    )
+
+    # 1. Both present: approved takes priority
+    poller.get_issues_by_label = MagicMock(
+        side_effect=lambda lbl: [approved_issue] if lbl == "agent:approved" else [planning_issue]
+    )
+    stage, issue = poller.get_next_actionable_issue()
+    assert stage == "implementation"
+    assert issue == approved_issue
+
+    # 2. Only planning present
+    poller.get_issues_by_label = MagicMock(
+        side_effect=lambda lbl: [] if lbl == "agent:approved" else [planning_issue]
+    )
+    stage, issue = poller.get_next_actionable_issue()
+    assert stage == "planning"
+    assert issue == planning_issue
+
+    # 3. Neither present
+    poller.get_issues_by_label = MagicMock(return_value=[])
+    stage, issue = poller.get_next_actionable_issue()
+    assert stage is None
+    assert issue is None
 
 
-def test_process_planning_stage(tmp_path):
+def test_publish_plan_success(tmp_path: Path):
     poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
     poller.repo_root = tmp_path
     poller.comment_on_issue = MagicMock()
@@ -71,27 +89,66 @@ def test_process_planning_stage(tmp_path):
         labels=["agent:plan"],
         url="https://github.com/tiwu/wealth-pilot/issues/15",
     )
+    poller.get_issue = MagicMock(return_value=issue)
 
-    plan_path = poller.process_planning_stage(issue)
+    # Create dummy authored plan file
+    plans_dir = tmp_path / "docs" / "plans"
+    plans_dir.mkdir(parents=True)
+    plan_file = plans_dir / "PLAN-15-automated-tax-loss-harvesting.md"
+    plan_file.write_text("# Plan content authored by LLM", encoding="utf-8")
 
-    # Verify plan file created in docs/plans/
-    assert plan_path.exists()
-    assert plan_path.name == "PLAN-15-automated-tax-loss-harvesting.md"
-    assert "Automated tax loss harvesting" in plan_path.read_text(encoding="utf-8")
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0, stdout="")
+        res_path = poller.publish_plan(15)
 
-    # Verify label update called: remove agent:plan, add agent:plan-review
+    assert res_path == plan_file
     poller.update_issue_labels.assert_called_once_with(
         15, add_labels=["agent:plan-review"], remove_labels=["agent:plan"]
     )
-
-    # Verify comment called
     poller.comment_on_issue.assert_called_once()
-    comment_arg = poller.comment_on_issue.call_args[0][1]
-    assert "Architecture Plan Ready for Review" in comment_arg
-    assert "agent:approved" in comment_arg
+    comment = poller.comment_on_issue.call_args[0][1]
+    assert "Architecture Plan Ready for Review" in comment
+    assert "PLAN-15-automated-tax-loss-harvesting.md" in comment
 
 
-def test_process_approved_stage():
+def test_publish_plan_missing_file(tmp_path: Path):
+    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller.repo_root = tmp_path
+    issue = GitHubIssue(
+        number=15,
+        title="feat: Missing plan",
+        body="",
+        labels=["agent:plan"],
+        url="",
+    )
+    poller.get_issue = MagicMock(return_value=issue)
+
+    with pytest.raises(FileNotFoundError, match="does not exist"):
+        poller.publish_plan(15)
+
+
+def test_publish_plan_empty_file(tmp_path: Path):
+    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller.repo_root = tmp_path
+    issue = GitHubIssue(
+        number=15,
+        title="feat: Empty plan",
+        body="",
+        labels=["agent:plan"],
+        url="",
+    )
+    poller.get_issue = MagicMock(return_value=issue)
+
+    plans_dir = tmp_path / "docs" / "plans"
+    plans_dir.mkdir(parents=True)
+    plan_file = plans_dir / "PLAN-15-empty-plan.md"
+    plan_file.write_text("   \n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="is empty"):
+        poller.publish_plan(15)
+
+
+def test_start_work():
     poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
     poller.comment_on_issue = MagicMock()
     poller.update_issue_labels = MagicMock()
@@ -103,16 +160,45 @@ def test_process_approved_stage():
         labels=["agent:approved"],
         url="https://github.com/tiwu/wealth-pilot/issues/15",
     )
+    poller.get_issue = MagicMock(return_value=issue)
 
-    branch_name = poller.process_approved_stage(issue)
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0, stdout="")
+        branch_name = poller.start_work(15)
+
     assert branch_name == "feature/issue-15-automated-tax-loss-harvesting"
-
     poller.update_issue_labels.assert_called_once_with(
         15, add_labels=["agent:in-progress"], remove_labels=["agent:approved"]
     )
     poller.comment_on_issue.assert_called_once()
-    comment_arg = poller.comment_on_issue.call_args[0][1]
-    assert "Implementation Started" in comment_arg
+    assert "Implementation Started" in poller.comment_on_issue.call_args[0][1]
+
+
+def test_submit_pr():
+    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller.comment_on_issue = MagicMock()
+    poller.update_issue_labels = MagicMock()
+
+    issue = GitHubIssue(
+        number=15,
+        title="feat: Automated tax loss harvesting",
+        body="Simulate tax loss offsets",
+        labels=["agent:in-progress"],
+        url="https://github.com/tiwu/wealth-pilot/issues/15",
+    )
+    poller.get_issue = MagicMock(return_value=issue)
+    poller.run_gh = MagicMock(return_value="https://github.com/tiwu/wealth-pilot/pull/99")
+
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0, stdout="")
+        pr_url = poller.submit_pr(15)
+
+    assert pr_url == "https://github.com/tiwu/wealth-pilot/pull/99"
+    poller.update_issue_labels.assert_called_once_with(
+        15, add_labels=["agent:review-ready"], remove_labels=["agent:in-progress"]
+    )
+    poller.comment_on_issue.assert_called_once()
+    assert "Pull Request Created for Review" in poller.comment_on_issue.call_args[0][1]
 
 
 def test_issue_poller_fetch_and_status():
@@ -150,34 +236,6 @@ def test_issue_poller_fetch_and_status():
     with patch.object(poller, "run_gh", side_effect=RuntimeError("API rate limit")):
         empty = poller.get_issues_by_label("agent:plan")
         assert empty == []
-
-
-def test_run_cycle_prioritizes_approved_over_planning():
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
-
-    approved_issue = GitHubIssue(
-        number=20, title="feat: Ready to build", body="", labels=["agent:approved"], url=""
-    )
-    planning_issue = GitHubIssue(
-        number=21, title="feat: Needs plan", body="", labels=["agent:plan"], url=""
-    )
-
-    poller.process_approved_stage = MagicMock()
-    poller.process_planning_stage = MagicMock()
-
-    # When both exist, approved should be processed first
-    def mock_get(label):
-        if label == "agent:approved":
-            return [approved_issue]
-        if label == "agent:plan":
-            return [planning_issue]
-        return []
-
-    poller.get_issues_by_label = MagicMock(side_effect=mock_get)
-
-    poller.run_cycle()
-    poller.process_approved_stage.assert_called_once_with(approved_issue)
-    poller.process_planning_stage.assert_not_called()
 
 
 def test_checkout_issue():
