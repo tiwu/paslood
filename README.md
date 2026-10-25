@@ -2,45 +2,43 @@
 
 > **Strategic Wealth & Asset Allocation Guidance Platform**
 
-Wealth Pilot is an asynchronous, open-source personal financial planning platform designed for mid-to-long term wealth management. It bridges real-world investment portfolios (PDT, brokers) and bank account cashflow (KBC, Bunq, generic CSV) to deliver proactive guidance on asset allocation buckets, debt repayment strategy, and compound net worth trajectories.
+Wealth Pilot is a local-first, privacy-respecting financial planning platform designed for mid-to-long term wealth management. It bridges real-world investment portfolios (PDT, brokers) and bank account cashflow (KBC, Bunq, generic CSV) to deliver proactive guidance on asset allocation buckets, debt repayment strategy, Belgian 2026 capital gains tax optimization, and compound net worth trajectories.
 
 ---
 
-## Features
+## Key Features
 
-- **Dynamic Asset Allocation Buckets**: Define custom buckets (Core ETF, Tech/Growth, Physical Gold, Emergency Buffer, Real Estate) with drift tolerances and asset-to-bucket mappings.
-- **Multi-Source Data Ingestion**:
-  - **PDT MCP Client**: Real-time look-through of holdings, ETF X-Ray, prices, and dividends.
-  - **KBC Bank CSV**: Automated extraction of liquid cash balance, mortgage payments (`Woningkrediet`), consumer debt, recurring expenses, and net savings rate.
-  - **Generic CSV/Excel & YAML**: Flexible balance sheet modeling for accounts, debts, and properties.
-- **Strategic Advice Engine**:
-  - **Smart Monthly Cash Injection**: Direct incoming savings to underweight buckets without triggering forced sales, fees, or taxes.
-  - **Debt Payoff vs. Investing Advisor**: Avalanche vs Snowball vs Expected Portfolio Return comparison.
-  - **Belgian Tax Optimization**: Reference-date fiscal cost basis (Dec 31, 2025), annual €10k capital gains exemption tracking, FIFO lot management.
-  - **Net Worth Milestone Projections**: Compound growth trajectories over 5, 10, 20, and 30 years.
-- **Dual Delivery Interface**:
-  - **Textual TUI**: Keyboard-first interactive terminal dashboard (`wealth-pilot tui`).
-  - **FastAPI Web Dashboard**: Browser-based local dashboard with file upload and interactive charts (`wealth-pilot web`).
-  - **Scriptable CLI**: Direct terminal reporting (`wealth-pilot status`, `wealth-pilot advise`).
+- **Strategic Allocation Buckets**: Define macro pillars (Core ETFs, High-Conviction Growth, Gold & Commodities, Emergency Buffer, Real Estate) with drift tolerances and asset-to-bucket classification rules.
+- **Buy-Only Rebalancing**: Direct incoming savings deposits to underweight buckets to minimize tracking error without selling assets or triggering capital gains taxes.
+- **Belgian 2026 Capital Gains Tax Optimizer**: FIFO lot tracking with Dec 31, 2025 benchmark price lookup (via PDT timetravel) and €10,000 annual exemption optimization.
+- **Consolidated Balance Sheet & Debt Avalanche**: Unified priority queue comparing debt APRs against expected portfolio CAGR (7.0%) alongside active drift alerts.
+- **Server-Side AI Advisor**: Pluggable private advisors (Gemini, Claude, GPT-4o, Ollama) with disk envelope encryption; zero client-side credential exposure.
+- **Privacy & Security First**:
+  - Local SQLite with WAL mode + AES-256-GCM envelope encryption (`SecretVault`).
+  - Network bind guard preventing unauthenticated public exposure.
+  - Multi-tenant isolation ready for private self-hosting or SaaS.
+- **Flexible Delivery**:
+  - **Web Dashboard**: Responsive dark-mode dashboard (with mobile bottom navigation & PWA support).
+  - **Scriptable CLI**: Direct terminal reporting (`status`, `advise`, `ingest`, `set-password`).
+  - **Docker & Remote Access**: Run standalone or containerized with **Tailscale**, **Cloudflare Tunnel**, or **DuckDNS + Caddy**.
 
 ---
 
-## Installation & Quick Start
+## Quick Start Options
 
-Requires Python 3.10+ and [`uv`](https://docs.astral.sh/uv/).
+### Option A: Local Run via `uv` (Fastest for Local Desktop)
+
+Requires Python 3.11+ and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/wealth-pilot.git
+git clone https://github.com/tiwu/wealth-pilot.git
 cd wealth-pilot
 
-# Install dependencies with uv
-uv sync
+# Install all dependencies
+uv sync --all-extras --dev
 
-# Run the Terminal UI
-uv run wealth-pilot tui
-
-# Run the Local Web Dashboard
+# Run the Web Dashboard on http://localhost:8000
 uv run wealth-pilot web
 
 # Run CLI Status Report
@@ -49,14 +47,122 @@ uv run wealth-pilot status
 
 ---
 
-## Architecture
+### Option B: Containerized via Docker Compose (Recommended for Home Servers & Remote Access)
+
+Requires Docker Engine $\ge 24.0$ & Docker Compose $\ge 2.20$.
+
+```bash
+# 1. Clone repository
+git clone https://github.com/tiwu/wealth-pilot.git
+cd wealth-pilot
+
+# 2. Copy environment template and generate secret key
+cp .env.example .env
+openssl rand -hex 32  # Copy output to WEALTH_PILOT_SECRET_KEY in .env
+
+# 3. Set master admin password
+docker compose run --rm wealth-pilot set-password
+
+# 4. Start Wealth Pilot
+docker compose up -d
+```
+
+Open [http://localhost:8000](http://localhost:8000) and log in.
+
+---
+
+## Remote Access: Mobile Phone & Anywhere Access
+
+Wealth Pilot supports three zero-trust and self-hosted remote access setups out of the box:
+
+| Method | Profile | Best For | Port Forwarding Needed? |
+| :--- | :--- | :--- | :--- |
+| **Tailscale** *(Recommended)* | `--profile tailscale` | Private encrypted WireGuard mesh on phone/laptop | **No** (Most secure) |
+| **Cloudflare Tunnel** | `--profile cloudflared` | Browser access via custom domain without VPN app | **No** |
+| **DuckDNS + Caddy** | `--profile ddns` | Automatic Let's Encrypt TLS reverse proxy | Yes (Ports 80/443) |
+
+#### Running with Tailscale:
+```bash
+# Set TAILSCALE_AUTHKEY in .env
+docker compose --profile tailscale up -d
+```
+Access securely from your phone or laptop at `http://wealth-pilot:8000`.
+
+See the complete [Self-Hosting & Remote Access Guide](docs/self-hosting.md) for full configuration steps.
+
+---
+
+## Authentication & Security
+
+Wealth Pilot includes a secure, built-in identity and session manager:
+
+1. **Master Passphrase Authentication**:
+   ```bash
+   uv run wealth-pilot set-password
+   ```
+2. **Social OAuth 2.0**:
+   Configure `WEALTH_PILOT_GOOGLE_CLIENT_ID`, `WEALTH_PILOT_GITHUB_CLIENT_ID`, or `WEALTH_PILOT_META_CLIENT_ID` in `.env` to enable 1-click social logins.
+3. **Email Whitelisting**:
+   Restrict access exclusively to authorized users via `WEALTH_PILOT_ALLOWED_EMAILS=alice@example.com,bob@example.com`.
+4. **Envelope Encryption**:
+   Sensitive API keys and external credentials stored in `portfolio.yaml` are encrypted at rest with AES-256-GCM using per-tenant keys derived via HKDF-SHA256.
+
+---
+
+## CLI Reference
+
+```bash
+# Show balance sheet, net worth, and allocation drift
+uv run wealth-pilot status
+
+# Calculate optimal buy-only distribution for a €2,000 deposit
+uv run wealth-pilot advise --deposit 2000.0
+
+# Set or update master remote access password
+uv run wealth-pilot set-password
+
+# Ingest bank statements or broker CSVs
+uv run wealth-pilot ingest statement.csv
+
+# Generate a sample portfolio import template
+uv run wealth-pilot template --output template.csv
+
+# Launch Web Dashboard (bind guard prevents unauthenticated 0.0.0.0 exposure)
+uv run wealth-pilot web --port 8000
+```
+
+---
+
+## Clean Architecture Overview
 
 Wealth Pilot strictly adheres to **Uncle Bob's Clean Architecture**:
 
-- `domain/`: Pure business models (`Money`, `Asset`, `Liability`, `Bucket`, `AllocationRule`, `BalanceSheet`). Zero third-party dependencies.
-- `use_cases/`: Application business rules (`CalculateBucketAllocation`, `AdviseContribution`, `AdviseDebtPayoff`, `ProjectNetWorth`, `OptimizeTax`).
-- `adapters/`: Ingestion gateways (PDT MCP, KBC CSV, Generic CSV/YAML) and repositories.
-- `delivery/`: Textual TUI (`delivery/tui`), FastAPI Web Dashboard (`delivery/web`), and CLI (`cli.py`).
+```text
+src/wealth_pilot/
+├── domain/        # Pure Python enterprise business rules (Money, Asset, Liability, Bucket, Identity)
+├── use_cases/     # Application orchestrators (CalculateBucketAllocation, AdviseContribution, BuildOverview)
+├── adapters/      # Gateways (PDT MCP, KBC/Generic CSV, SecretVault, Settings, ConfigRepository)
+└── delivery/      # Frameworks & Drivers (FastAPI web routes, templates, AuthManager, CLI)
+```
+
+---
+
+## Testing & Quality Assurance
+
+```bash
+# Run all unit, delivery, and integration tests (126 tests)
+uv run pytest
+
+# Run tests with coverage (target >= 90%)
+uv run pytest --cov=src/wealth_pilot --cov-report=term-missing
+
+# Lint & code format checks
+uv run ruff check src tests scripts
+uv run ruff format --check src tests scripts
+
+# Strict documentation build
+uv run mkdocs build --strict
+```
 
 ---
 
