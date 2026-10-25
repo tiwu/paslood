@@ -152,6 +152,15 @@ async function lookupTaxPrice() {
   }
 }
 
+let _lastMaxTaxFreeShares = 13;
+
+function applyMaxTaxFreeShares() {
+  const sellInput = document.getElementById('sim-tax-sell-qty');
+  if (!sellInput) return;
+  sellInput.value = _lastMaxTaxFreeShares > 0 ? _lastMaxTaxFreeShares : 0;
+  runTaxSimulation();
+}
+
 async function runTaxSimulation() {
   const symbolEl = document.getElementById('sim-tax-symbol');
   if (!symbolEl) return;
@@ -159,11 +168,17 @@ async function runTaxSimulation() {
   const benchPrice = parseFloat(document.getElementById('sim-tax-bench-price')?.value || 0);
   const currentPrice = parseFloat(document.getElementById('sim-tax-current-price')?.value || 0);
   const sharesPre = parseFloat(document.getElementById('sim-tax-shares-pre')?.value || 0);
+  const preBuyPrice = parseFloat(document.getElementById('sim-tax-pre-buy-price')?.value || 0);
   const sharesPost = parseFloat(document.getElementById('sim-tax-shares-post')?.value || 0);
   const postBuyPrice = parseFloat(document.getElementById('sim-tax-post-buy-price')?.value || 0);
   const sellQty = parseFloat(document.getElementById('sim-tax-sell-qty')?.value || 0);
   const exemption = parseFloat(document.getElementById('settings-tax-exemption')?.value || 10000);
   const rate = parseFloat(document.getElementById('settings-tax-rate')?.value || 10.0);
+  const brokerProfile = document.getElementById('sim-tax-broker-profile')?.value || 'EQUATEPLUS_CH';
+  const tobTier = document.getElementById('sim-tax-tob-tier')?.value || '0.35';
+  const carryoverYears = parseInt(document.getElementById('sim-tax-carryover-years')?.value || '0', 10);
+  const isJointFiling = Boolean(document.getElementById('sim-tax-joint-filing')?.checked);
+  const bondWeightPct = parseFloat(document.getElementById('sim-tax-bond-pct')?.value || 0);
 
   try {
     const res = await fetch('/api/tax/calculate', {
@@ -174,11 +189,17 @@ async function runTaxSimulation() {
         current_price: currentPrice,
         benchmark_price: benchPrice,
         actual_purchase_price: postBuyPrice,
+        pre_benchmark_purchase_price: preBuyPrice,
         shares_pre_benchmark: sharesPre,
         shares_post_benchmark: sharesPost,
         shares_to_sell: sellQty,
         annual_exemption: exemption,
-        tax_rate_pct: rate
+        tax_rate_pct: rate,
+        broker_profile: brokerProfile,
+        tob_tier: tobTier,
+        carryover_years: carryoverYears,
+        is_joint_filing: isJointFiling,
+        bond_weight_pct: bondWeightPct
       })
     });
     const d = await res.json();
@@ -186,6 +207,32 @@ async function runTaxSimulation() {
       document.getElementById('res-gain-pre').textContent = I18N.formatCurrency(d.gain_pre_benchmark, 'EUR');
       document.getElementById('res-gain-post').textContent = I18N.formatCurrency(d.gain_post_benchmark, 'EUR');
       document.getElementById('res-taxable-gain').textContent = I18N.formatCurrency(d.total_taxable_gain, 'EUR');
+
+      const savedEl = document.getElementById('res-fotomoment-saved');
+      if (savedEl) {
+        if ((d.fotomoment_exemption_saved || 0) > 0) {
+          savedEl.textContent = `Saves ${I18N.formatCurrency(d.fotomoment_exemption_saved, 'EUR')} vs FMV (${I18N.formatCurrency(d.historical_fmv_gain, 'EUR')})`;
+          savedEl.className = 'text-[10px] text-emerald-400 mt-0.5';
+        } else {
+          savedEl.textContent = `Basis: ${I18N.formatCurrency(d.effective_pre_benchmark_basis || benchPrice, 'EUR')}/share`;
+          savedEl.className = 'text-[10px] text-slate-500 mt-0.5';
+        }
+      }
+
+      const reyndersEl = document.getElementById('res-reynders-tax');
+      if (reyndersEl) {
+        const rTax = d.reynders_tax || 0;
+        reyndersEl.textContent = `Art. 19bis Reynders Tax: ${I18N.formatCurrency(rTax, 'EUR')}`;
+        reyndersEl.className = rTax > 0 ? 'text-[10px] text-amber-400 mt-0.5 font-semibold' : 'text-[10px] text-slate-500 mt-0.5';
+      }
+
+      if (typeof d.max_tax_free_whole_shares === 'number') {
+        _lastMaxTaxFreeShares = d.max_tax_free_whole_shares;
+        const maxBadge = document.getElementById('badge-max-tax-free-shares');
+        if (maxBadge) {
+          maxBadge.textContent = `(${d.max_tax_free_whole_shares} shares)`;
+        }
+      }
 
       const remBadge = document.getElementById('res-remaining-exemption');
       if (d.remaining_exemption > 0) {
@@ -199,14 +246,62 @@ async function runTaxSimulation() {
 
       document.getElementById('res-tax-due').textContent = I18N.formatCurrency(d.tax_due, 'EUR');
       const statusBadge = document.getElementById('res-tax-status');
-      if (d.tax_due > 0) {
-        const taxAmt = I18N.formatCurrency(d.tax_due, 'EUR');
+      if (d.tax_due > 0 || (d.reynders_tax || 0) > 0) {
+        const totalCgt = (d.tax_due || 0) + (d.reynders_tax || 0);
+        const taxAmt = I18N.formatCurrency(totalCgt, 'EUR');
         statusBadge.textContent = I18N.t('guidance.tax_due_status', { amount: taxAmt, _fallback: `⚠️ Tax Due (${taxAmt})` });
         statusBadge.className = 'text-[10px] text-amber-400 mt-0.5 font-semibold';
       } else {
         statusBadge.textContent = I18N.t('guidance.tax_exempt_status', '🟢 100% Tax-Exempt');
         statusBadge.className = 'text-[10px] text-emerald-400 mt-0.5 font-semibold';
       }
+
+      // Settlement & TOB Reconciliation fields
+      const grossEl = document.getElementById('res-gross-proceeds');
+      if (grossEl) grossEl.textContent = I18N.formatCurrency(d.gross_proceeds || 0, 'EUR');
+
+      const feesEl = document.getElementById('res-broker-fees');
+      const feesSubEl = document.getElementById('res-broker-fees-sub');
+      const totalBrokerFees = (d.broker_commission || 0) + (d.foreign_stamp_tax || 0);
+      if (feesEl) feesEl.textContent = `-${I18N.formatCurrency(totalBrokerFees, 'EUR')}`;
+      if (feesSubEl) {
+        if (totalBrokerFees > 0) {
+          feesSubEl.textContent = `${I18N.formatCurrency(d.broker_commission || 0, 'EUR')} fee + ${I18N.formatCurrency(d.foreign_stamp_tax || 0, 'EUR')} CH stamp`;
+        } else {
+          feesSubEl.textContent = 'Included in Belgian broker trade';
+        }
+      }
+
+      const payoutEl = document.getElementById('res-broker-payout');
+      if (payoutEl) payoutEl.textContent = I18N.formatCurrency(d.broker_payout_before_belgian_tax || 0, 'EUR');
+
+      const tobEl = document.getElementById('res-tob-tax');
+      const tobSubEl = document.getElementById('res-tob-sub');
+      const tobDeclBadge = document.getElementById('res-tob-declaration-badge');
+      const tobAmtFormatted = I18N.formatCurrency(d.tob_tax || 0, 'EUR');
+      if (tobEl) tobEl.textContent = `-${tobAmtFormatted}`;
+      if (d.tob_self_declaration_required) {
+        if (tobSubEl) {
+          tobSubEl.textContent = 'Self-declare via MyMinfin (M+2)';
+          tobSubEl.className = 'text-[10px] text-amber-400/80';
+        }
+        if (tobDeclBadge) {
+          tobDeclBadge.textContent = `⚠️ Foreign Broker: Declare ${tobAmtFormatted} Belgian TOB to FOD Financiën (Deadline: end of month M+2)`;
+          tobDeclBadge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+        }
+      } else {
+        if (tobSubEl) {
+          tobSubEl.textContent = 'Auto-withheld by Belgian broker';
+          tobSubEl.className = 'text-[10px] text-emerald-400/80';
+        }
+        if (tobDeclBadge) {
+          tobDeclBadge.textContent = `✓ Belgian Broker Withholds ${tobAmtFormatted} TOB Automatically`;
+          tobDeclBadge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+        }
+      }
+
+      const netEl = document.getElementById('res-net-proceeds');
+      if (netEl) netEl.textContent = I18N.formatCurrency(d.net_proceeds || 0, 'EUR');
     }
   } catch (err) {
     console.error('Tax simulation calculation error:', err);
