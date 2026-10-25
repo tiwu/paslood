@@ -133,3 +133,28 @@ def test_language_switching_and_theme_toggle(app_page, live_server):
     expect(html_el).to_have_class("light-theme")
     app_page.locator("#btn-theme-toggle").click()
     expect(html_el).to_have_class("dark")
+
+
+def test_page_load_with_configured_ai_key_has_no_console_errors(app_page, live_server):
+    """Verify page load with an existing masked AI API key triggers no console or ByteString errors."""
+    app_page.add_init_script("localStorage.setItem('wealth_pilot_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    # Configure an AI key via settings
+    app_page.request.post(
+        f"{live_server}/api/settings",
+        data='{"ai": {"provider": "gemini", "api_key": "test-gemini-key-1234"}}',
+        headers={"Content-Type": "application/json"},
+    )
+
+    # Reload page; this hydrates #settings-ai-key with masked '••••1234' and calls refreshAiModels()
+    app_page.reload(wait_until="networkidle")
+
+    # Verify AI key input received the masked placeholder
+    ai_key_val = app_page.locator("#settings-ai-key").input_value()
+    assert "•" in ai_key_val
+
+    # Switch to AI tab and verify Key Configured is displayed
+    app_page.locator("#nav-ai").click()
+    expect(app_page.locator("#tab-ai")).to_be_visible()
+    expect(app_page.locator("#ai-active-provider-badge")).to_contain_text("Key Configured")
