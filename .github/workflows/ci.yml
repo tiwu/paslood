@@ -27,13 +27,27 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run Ruff Linter
+        id: linter
         run: uv run ruff check src tests scripts
 
       - name: Run Ruff Formatter Check
+        id: formatter
         run: uv run ruff format --check src tests scripts
 
       - name: Verify Documentation Build
+        id: docs
         run: uv run mkdocs build --strict
+
+      - name: Generate Lint & Formatting Summary
+        if: always()
+        run: |
+          uv run python scripts/ci_summary.py lint \
+            --linter "${{ steps.linter.outcome }}" \
+            --formatter "${{ steps.formatter.outcome }}" \
+            --docs "${{ steps.docs.outcome }}" \
+            --python "3.11" \
+            --runner "${{ runner.os }} (${{ runner.arch }})" \
+            --run-id "${{ github.run_id }}"
 
   test:
     name: Test Suite & Coverage (Python 3.11)
@@ -59,7 +73,15 @@ jobs:
         run: uv run mkdocs build
 
       - name: Run Test Suite with Coverage
+        id: test
         run: uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90 --cov-report=term-missing --cov-report=xml
+
+      - name: Generate Test & Coverage Summary
+        if: always()
+        run: |
+          uv run python scripts/ci_summary.py test \
+            --status "${{ steps.test.outcome }}" \
+            --run-id "${{ github.run_id }}"
 
 
 
