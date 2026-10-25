@@ -1,87 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/</loc>
+         <loc>https://tiwu.github.io/paslood/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/getting-started/</loc>
+         <loc>https://tiwu.github.io/paslood/getting-started/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/self-hosting/</loc>
+         <loc>https://tiwu.github.io/paslood/self-hosting/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/ai-advisor/setup/</loc>
+         <loc>https://tiwu.github.io/paslood/ai-advisor/setup/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/concepts/balance-sheet/</loc>
+         <loc>https://tiwu.github.io/paslood/concepts/balance-sheet/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/concepts/buckets/</loc>
+         <loc>https://tiwu.github.io/paslood/concepts/buckets/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/concepts/rebalancing/</loc>
+         <loc>https://tiwu.github.io/paslood/concepts/rebalancing/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/guidance/debt-payoff/</loc>
+         <loc>https://tiwu.github.io/paslood/guidance/debt-payoff/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/guidance/net-worth-projections/</loc>
+         <loc>https://tiwu.github.io/paslood/guidance/net-worth-projections/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/guidance/tax-optimization/</loc>
+         <loc>https://tiwu.github.io/paslood/guidance/tax-optimization/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/ingestion/generic-csv/</loc>
+         <loc>https://tiwu.github.io/paslood/ingestion/generic-csv/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/ingestion/kbc-csv/</loc>
+         <loc>https://tiwu.github.io/paslood/ingestion/kbc-csv/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/ingestion/manual-accounts/</loc>
+         <loc>https://tiwu.github.io/paslood/ingestion/manual-accounts/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/ingestion/pdt-mcp/</loc>
+         <loc>https://tiwu.github.io/paslood/ingestion/pdt-mcp/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/plans/</loc>
+         <loc>https://tiwu.github.io/paslood/plans/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/plans/PLAN-15-job-summaries/</loc>
+         <loc>https://tiwu.github.io/paslood/plans/PLAN-15-job-summaries/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/plans/PLAN-3-option-to-exclude-bucket-from-weight-cal/</loc>
+         <loc>https://tiwu.github.io/paslood/plans/PLAN-3-option-to-exclude-bucket-from-weight-cal/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/plans/PLAN-7-add-translation-to-nl/</loc>
+         <loc>https://tiwu.github.io/paslood/plans/PLAN-7-add-translation-to-nl/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/plans/PLAN-TEMPLATE/</loc>
+         <loc>https://tiwu.github.io/paslood/plans/PLAN-TEMPLATE/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/reviews/ARCHITECTURE-REVIEW/</loc>
+         <loc>https://tiwu.github.io/paslood/reviews/ARCHITECTURE-REVIEW/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
     <url>
-         <loc>https://tiwu.github.io/wealth-pilot/reviews/UX-REVIEW/</loc>
+         <loc>https://tiwu.github.io/paslood/reviews/UX-REVIEW/</loc>
          <lastmod>2026-10-25</lastmod>
     </url>
 </urlset>
