@@ -1,5 +1,5 @@
 {
-  "name": "Wealth Pilot Development",
+  "name": "Paslood Development",
   "image": "mcr.microsoft.com/devcontainers/python:3.14-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
@@ -40,7 +40,7 @@
   "forwardPorts": [8000],
   "portsAttributes": {
     "8000": {
-      "label": "Wealth Pilot Dashboard",
+      "label": "Paslood Dashboard",
       "onAutoForward": "openBrowser"
     }
   },

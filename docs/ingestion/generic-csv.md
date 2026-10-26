@@ -1,6 +1,6 @@
 # Generic CSV / Excel Ingestion
 
-For brokerages or banks that do not have an automated connector, Wealth Pilot provides an open, standard CSV format.
+For brokerages or banks that do not have an automated connector, Paslood provides an open, standard CSV format.
 
 ---
 
@@ -28,5 +28,5 @@ name,symbol,isin,asset_class,shares,current_price,current_value,institution,curr
 You can generate a sample CSV directly from the CLI or download it from the Web Dashboard:
 
 ```bash
-uv run wealth-pilot template --output portfolio_template.csv
+uv run paslood template --output portfolio_template.csv
 ```

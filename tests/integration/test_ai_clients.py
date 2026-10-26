@@ -10,7 +10,7 @@ from wealth_pilot.adapters.ai.llm_client import UniversalAIAdvisorClient
 async def test_ai_fallback_algorithmic():
     client = UniversalAIAdvisorClient(provider="gemini", api_key="")
     res = await client.generate_advice(prompt="Net worth: € 100.000")
-    assert "Wealth Pilot Strategic Review" in res
+    assert "Paslood Strategic Review" in res
     assert "Balance Sheet Strength" in res
 
 

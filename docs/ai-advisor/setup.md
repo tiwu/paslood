@@ -1,6 +1,6 @@
 # AI Financial Advisor Setup
 
-Wealth Pilot includes an optional **AI Financial Advisor** layer designed to provide qualitative, human-readable reviews of your macro financial plan.
+Paslood includes an optional **AI Financial Advisor** layer designed to provide qualitative, human-readable reviews of your macro financial plan.
 
 ---
 
@@ -30,6 +30,6 @@ export OPENAI_API_KEY="your-openai-key"
 
 ## Privacy Protection
 
-When an AI review is requested, Wealth Pilot:
+When an AI review is requested, Paslood:
 - **Never** transmits your account numbers, bank identifiers, counterparty names, or personal identities.
 - Sends **only** high-level aggregated metrics: total assets, total debt, debt APRs, bucket percentage deviations, and monthly cashflow surplus.

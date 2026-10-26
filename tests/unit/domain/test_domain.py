@@ -1,4 +1,4 @@
-"""Unit tests for Wealth Pilot Domain Entities (Clean Architecture - Layer 1)."""
+"""Unit tests for Paslood Domain Entities (Clean Architecture - Layer 1)."""
 
 from decimal import Decimal
 

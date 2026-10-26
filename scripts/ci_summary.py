@@ -33,7 +33,7 @@ def generate_lint_summary(
     python_version: str = "3.14",
     runner: str = "ubuntu-24.04",
     run_id: str = "",
-    repo: str = "tiwu/wealth-pilot",
+    repo: str = "tiwu/paslood",
 ) -> str:
     """Generate Markdown summary for lint & format checks."""
     lines = [
@@ -71,7 +71,7 @@ def generate_test_summary(
     coverage_markdown: str = "",
     target_threshold: float = 90.0,
     run_id: str = "",
-    repo: str = "tiwu/wealth-pilot",
+    repo: str = "tiwu/paslood",
 ) -> str:
     """Generate Markdown summary for test suite, UI E2E tests, and coverage reporting."""
     lines = [
@@ -127,7 +127,7 @@ def generate_test_summary(
 
 def generate_docs_summary(
     status: str = "success",
-    pages_url: str = "https://tiwu.github.io/wealth-pilot/",
+    pages_url: str = "https://tiwu.github.io/paslood/",
     commit_sha: str = "",
     timestamp: str = "",
 ) -> str:
@@ -169,7 +169,7 @@ def _format_size(size_bytes: int) -> str:
 def generate_release_summary(
     dist_dir: str | Path = "dist",
     tag: str = "",
-    repo: str = "tiwu/wealth-pilot",
+    repo: str = "tiwu/paslood",
 ) -> str:
     """Generate Markdown summary for release distributions."""
     dist_path = Path(dist_dir)
@@ -230,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     lint_p.add_argument("--python", default="3.14", help="Python version")
     lint_p.add_argument("--runner", default="ubuntu-24.04", help="Runner OS and architecture")
     lint_p.add_argument("--run-id", default="", help="GitHub run ID")
-    lint_p.add_argument("--repo", default="tiwu/wealth-pilot", help="GitHub repo")
+    lint_p.add_argument("--repo", default="tiwu/paslood", help="GitHub repo")
     lint_p.add_argument("--output", default=None, help="Output file path")
 
     # test
@@ -240,13 +240,13 @@ def main(argv: list[str] | None = None) -> int:
     test_p.add_argument("--coverage-file", default=None, help="Path to markdown coverage file")
     test_p.add_argument("--threshold", type=float, default=90.0, help="Target coverage threshold")
     test_p.add_argument("--run-id", default="", help="GitHub run ID")
-    test_p.add_argument("--repo", default="tiwu/wealth-pilot", help="GitHub repo")
+    test_p.add_argument("--repo", default="tiwu/paslood", help="GitHub repo")
     test_p.add_argument("--output", default=None, help="Output file path")
 
     # docs
     docs_p = subparsers.add_parser("docs", help="Generate docs deployment summary")
     docs_p.add_argument("--status", default="success", help="Deployment status")
-    docs_p.add_argument("--url", default="https://tiwu.github.io/wealth-pilot/", help="Pages URL")
+    docs_p.add_argument("--url", default="https://tiwu.github.io/paslood/", help="Pages URL")
     docs_p.add_argument("--commit", default="", help="Commit SHA")
     docs_p.add_argument("--timestamp", default="", help="Deployment timestamp")
     docs_p.add_argument("--output", default=None, help="Output file path")
@@ -255,7 +255,7 @@ def main(argv: list[str] | None = None) -> int:
     rel_p = subparsers.add_parser("release", help="Generate release artifacts summary")
     rel_p.add_argument("--dist-dir", default="dist", help="Dist directory path")
     rel_p.add_argument("--tag", default="", help="Release tag")
-    rel_p.add_argument("--repo", default="tiwu/wealth-pilot", help="GitHub repo")
+    rel_p.add_argument("--repo", default="tiwu/paslood", help="GitHub repo")
     rel_p.add_argument("--output", default=None, help="Output file path")
 
     args = parser.parse_args(argv)

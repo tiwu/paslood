@@ -1,4 +1,4 @@
-# Paslood (Wealth Pilot) Documentation 🧭
+# Paslood Documentation 🧭
 
 > **Whole-Life Balance Sheet, PDT Strategic Companion & Belgian Fiscal Shield**
 >

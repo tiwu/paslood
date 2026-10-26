@@ -1,6 +1,6 @@
 # Architecture Plan: [Issue #7] Full UI Localization & Per-Language Translation Files
 
-- **Issue**: [#7](https://github.com/tiwu/wealth-pilot/issues/7)
+- **Issue**: [#7](https://github.com/tiwu/paslood/issues/7)
 - **Status**: Completed (Phase 2 — Full Page Content & Isolated Locale Files)
 - **Author**: Autonomous Issue Worker
 - **Date**: 2026-10-25

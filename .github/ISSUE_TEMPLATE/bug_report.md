@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug or defect in Wealth Pilot
+about: Report a bug or defect in Paslood
 title: "fix: "
 labels: ["bug", "agent:plan"]
 assignees: ""

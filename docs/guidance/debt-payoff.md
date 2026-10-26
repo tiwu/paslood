@@ -3,13 +3,13 @@
 A fundamental dilemma for wealth builders with surplus cashflow is:  
 **"Should I pay down my debts faster, or invest the money in my portfolio?"**
 
-Wealth Pilot uses a mathematical framework to resolve this trade-off.
+Paslood uses a mathematical framework to resolve this trade-off.
 
 ---
 
 ## The Hurdle Rate Framework
 
-Wealth Pilot compares each liability's **Annual Percentage Rate (APR)** against your expected long-term portfolio compound annual growth rate (**CAGR**, default: 7.0%):
+Paslood compares each liability's **Annual Percentage Rate (APR)** against your expected long-term portfolio compound annual growth rate (**CAGR**, default: 7.0%):
 
 ### 1. High-Interest Debt (APR > 5.0%) -> Accelerate Payoff (Debt Avalanche)
 - Examples: Consumer lines of credit (`Flex Budget`), car loans, credit cards.

@@ -1,6 +1,6 @@
 # Architecture & Feature Plans
 
-This directory serves as the persistent, version-controlled repository for all architectural proposals, feature designs, and bug fix plans in **Wealth Pilot**.
+This directory serves as the persistent, version-controlled repository for all architectural proposals, feature designs, and bug fix plans in **Paslood**.
 
 ---
 

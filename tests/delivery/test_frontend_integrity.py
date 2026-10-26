@@ -228,7 +228,7 @@ const sandbox = {{
   document: {{
     documentElement: makeEl('html'),
     body: makeEl('body'),
-    title: 'Wealth Pilot',
+    title: 'Paslood',
     getElementById: (id) => getEl(id),
     createElement: (tag) => makeEl(tag),
     querySelector: () => makeEl(),

@@ -1,4 +1,4 @@
-# Paslood (Wealth Pilot) 🧭
+# Paslood 🧭
 
 > **Whole-Life Balance Sheet, PDT Strategic Companion & Belgian Fiscal Shield**
 >
@@ -40,17 +40,17 @@ Requires Python 3.12+ (3.14 recommended) and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
 # Clone the repository
-git clone https://github.com/tiwu/wealth-pilot.git
-cd wealth-pilot
+git clone https://github.com/tiwu/paslood.git
+cd paslood
 
 # Install all dependencies
 uv sync --all-extras --dev
 
 # Run the Web Dashboard on http://localhost:8000
-uv run wealth-pilot web
+uv run paslood web
 
 # Run CLI Status Report
-uv run wealth-pilot status
+uv run paslood status
 ```
 
 ---
@@ -61,17 +61,17 @@ Requires Docker Engine $\ge 24.0$ & Docker Compose $\ge 2.20$.
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/tiwu/wealth-pilot.git
-cd wealth-pilot
+git clone https://github.com/tiwu/paslood.git
+cd paslood
 
 # 2. Copy environment template and generate secret key
 cp .env.example .env
 openssl rand -hex 32  # Copy output to WEALTH_PILOT_SECRET_KEY in .env
 
 # 3. Set master admin password
-docker compose run --rm wealth-pilot set-password
+docker compose run --rm paslood set-password
 
-# 4. Start Wealth Pilot
+# 4. Start Paslood
 docker compose up -d
 ```
 
@@ -81,7 +81,7 @@ Open [http://localhost:8000](http://localhost:8000) and log in.
 
 ## Remote Access: Mobile Phone & Anywhere Access
 
-Wealth Pilot supports three zero-trust and self-hosted remote access setups out of the box:
+Paslood supports three zero-trust and self-hosted remote access setups out of the box:
 
 | Method | Profile | Best For | Port Forwarding Needed? |
 | :--- | :--- | :--- | :--- |
@@ -94,7 +94,7 @@ Wealth Pilot supports three zero-trust and self-hosted remote access setups out 
 # Set TAILSCALE_AUTHKEY in .env
 docker compose --profile tailscale up -d
 ```
-Access securely from your phone or laptop at `http://wealth-pilot:8000`.
+Access securely from your phone or laptop at `http://paslood:8000`.
 
 See the complete [Self-Hosting & Remote Access Guide](docs/self-hosting.md) for full configuration steps.
 
@@ -102,11 +102,11 @@ See the complete [Self-Hosting & Remote Access Guide](docs/self-hosting.md) for 
 
 ## Authentication & Security
 
-Wealth Pilot includes a secure, built-in identity and session manager:
+Paslood includes a secure, built-in identity and session manager:
 
 1. **Master Passphrase Authentication**:
    ```bash
-   uv run wealth-pilot set-password
+   uv run paslood set-password
    ```
 2. **Social OAuth 2.0**:
    Configure `WEALTH_PILOT_GOOGLE_CLIENT_ID`, `WEALTH_PILOT_GITHUB_CLIENT_ID`, or `WEALTH_PILOT_META_CLIENT_ID` in `.env` to enable 1-click social logins.
@@ -121,29 +121,29 @@ Wealth Pilot includes a secure, built-in identity and session manager:
 
 ```bash
 # Show balance sheet, net worth, and allocation drift
-uv run wealth-pilot status
+uv run paslood status
 
 # Calculate optimal buy-only distribution for a €2,000 deposit
-uv run wealth-pilot advise --deposit 2000.0
+uv run paslood advise --deposit 2000.0
 
 # Set or update master remote access password
-uv run wealth-pilot set-password
+uv run paslood set-password
 
 # Ingest bank statements or broker CSVs
-uv run wealth-pilot ingest statement.csv
+uv run paslood ingest statement.csv
 
 # Generate a sample portfolio import template
-uv run wealth-pilot template --output template.csv
+uv run paslood template --output template.csv
 
 # Launch Web Dashboard (bind guard prevents unauthenticated 0.0.0.0 exposure)
-uv run wealth-pilot web --port 8000
+uv run paslood web --port 8000
 ```
 
 ---
 
 ## Clean Architecture Overview
 
-Wealth Pilot strictly adheres to **Uncle Bob's Clean Architecture**:
+Paslood strictly adheres to **Uncle Bob's Clean Architecture**:
 
 ```text
 src/wealth_pilot/

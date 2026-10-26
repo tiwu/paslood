@@ -41,8 +41,8 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/tiwu/wealth-pilot/releases/tag/v0.3.0
+[Unreleased]: https://github.com/tiwu/paslood/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/tiwu/paslood/releases/tag/v0.3.0
 """
 
 SAMPLE_CHANGELOG_EMPTY_UNRELEASED = """# Changelog
@@ -104,8 +104,8 @@ def test_update_changelog():
     assert "## [Unreleased]" in updated
     assert "## [0.4.0] - 2026-10-25" in updated
     assert "Feature A: Added new rebalancing algorithm." in updated
-    assert "[Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.4.0...HEAD" in updated
-    assert "[0.4.0]: https://github.com/tiwu/wealth-pilot/compare/v0.3.0...v0.4.0" in updated
+    assert "[Unreleased]: https://github.com/tiwu/paslood/compare/v0.4.0...HEAD" in updated
+    assert "[0.4.0]: https://github.com/tiwu/paslood/compare/v0.3.0...v0.4.0" in updated
 
 
 def test_update_pyproject_version():

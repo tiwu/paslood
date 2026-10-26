@@ -1,5 +1,5 @@
 /**
- * Wealth Pilot — Priority Guidance, Contribution Optimizer, Tax Simulator & AI Advisor
+ * Paslood — Priority Guidance, Contribution Optimizer, Tax Simulator & AI Advisor
  */
 
 function renderAdvice(data) {

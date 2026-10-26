@@ -150,5 +150,5 @@ async def test_advise_ai_algorithmic_fallback():
         deterministic_advices=[],
         user_question="How should I rebalance?",
     )
-    assert "Wealth Pilot" in review
+    assert "Paslood" in review
     assert "Strategic" in review or "Balance Sheet" in review

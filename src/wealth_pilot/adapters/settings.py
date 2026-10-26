@@ -1,4 +1,4 @@
-"""Application configuration and environment settings for Wealth Pilot."""
+"""Application configuration and environment settings for Paslood."""
 
 from __future__ import annotations
 

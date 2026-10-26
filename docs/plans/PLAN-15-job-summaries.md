@@ -1,6 +1,6 @@
 # Architecture Plan: [Issue #15] feat: job summaries
 
-- **Issue**: [#15](https://github.com/tiwu/wealth-pilot/issues/15)
+- **Issue**: [#15](https://github.com/tiwu/paslood/issues/15)
 - **Status**: Plan Review
 - **Author**: Autonomous Issue Worker
 - **Date**: 2026-10-25
@@ -9,7 +9,7 @@
 ---
 
 ## 1. Problem Statement & Motivation
-GitHub Actions workflow runs in `tiwu/wealth-pilot` currently output build and test logs across multiple jobs (`lint`, `test` in `ci.yml`, `deploy` in `docs.yml`, and `release` in `release.yml`). To inspect whether tests passed, test coverage met the $\ge 90\%$ threshold, linters succeeded, or documentation built correctly, developers and reviewers must click through individual job execution logs and scroll through dense terminal output.
+GitHub Actions workflow runs in `tiwu/paslood` currently output build and test logs across multiple jobs (`lint`, `test` in `ci.yml`, `deploy` in `docs.yml`, and `release` in `release.yml`). To inspect whether tests passed, test coverage met the $\ge 90\%$ threshold, linters succeeded, or documentation built correctly, developers and reviewers must click through individual job execution logs and scroll through dense terminal output.
 
 GitHub Actions provides `$GITHUB_STEP_SUMMARY`, which renders Markdown directly on the workflow run overview page (Job Summary). By adding job and step summaries to all workflows, contributors and maintainers gain immediate, high-level visibility into test results, code coverage breakdowns, lint/formatting checks, documentation builds, and release artifact distributions without navigating logs.
 
@@ -29,7 +29,7 @@ GitHub Actions provides `$GITHUB_STEP_SUMMARY`, which renders Markdown directly 
     - High-level coverage metric versus the $\ge 90\%$ target threshold
     - Runs even if preceding test steps fail (`if: always()`) so failure status is immediately visible
 - [ ] **Documentation Workflow (`docs.yml`) - Deploy Job**:
-  - Appends a deployment summary to `$GITHUB_STEP_SUMMARY` showing deployment target, GitHub Pages URL (`https://tiwu.github.io/wealth-pilot/`), commit SHA, and build timestamp
+  - Appends a deployment summary to `$GITHUB_STEP_SUMMARY` showing deployment target, GitHub Pages URL (`https://tiwu.github.io/paslood/`), commit SHA, and build timestamp
 - [ ] **Release Workflow (`release.yml`) - Release Job**:
   - Appends a release summary to `$GITHUB_STEP_SUMMARY` listing built distribution packages (`.whl`, `.tar.gz`) from `dist/`, package sizes, and release link
 - [ ] **Maintainability & Testing**:

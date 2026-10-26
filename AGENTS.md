@@ -1,4 +1,4 @@
-# AGENTS.md — Agent & Developer Guide for Paslood (formerly Wealth Pilot)
+# AGENTS.md — Agent & Developer Guide for Paslood
 
 This guide provides architectural principles, engineering standards, tooling commands, development recipes, and prompt templates for any automated agent or human developer contributing to **Paslood**.
 
@@ -10,7 +10,7 @@ This guide provides architectural principles, engineering standards, tooling com
 
 ### Architectural Philosophy: Pure Clean Architecture
 
-Wealth Pilot strictly adheres to **Clean Architecture (Hexagonal / Ports & Adapters)**. Dependencies point inward only:
+Paslood strictly adheres to **Clean Architecture (Hexagonal / Ports & Adapters)**. Dependencies point inward only:
 
 ```text
 src/wealth_pilot/
@@ -56,8 +56,8 @@ Always use `uv` for package management, running tests, linting, formatting, and 
 | **Lint auto-fix** | `uv run ruff check --fix src tests` |
 | **Format check** | `uv run ruff format --check src tests` |
 | **Format code** | `uv run ruff format src tests` |
-| **Run Web Dashboard** | `uv run wealth-pilot web --port 8000` (or `uv run python -m wealth_pilot.cli web`) |
-| **Run CLI Status** | `uv run wealth-pilot status` |
+| **Run Web Dashboard** | `uv run paslood web --port 8000` (or `uv run python -m wealth_pilot.cli web`) |
+| **Run CLI Status** | `uv run paslood status` |
 | **Build Documentation** | `uv run mkdocs build --strict` |
 | **Serve Documentation** | `uv run mkdocs serve` |
 | **Add dependency** | `uv add <package>` / `uv add --dev <package>` |
@@ -91,7 +91,7 @@ We strictly follow the **Red-Green-Refactor** methodology for all new features a
 - **Precision with Currency**:
   - Always use `Money` (backed by Python's `Decimal` with 2 decimal places) for financial calculations, asset values, debts, and cashflows to prevent floating-point rounding errors.
 - **Local-First & Absolute Privacy**:
-  - Wealth Pilot is designed to run locally. User financial balances, account references, and tokens must never be logged to external analytics or hardcoded into repo files.
+  - Paslood is designed to run locally. User financial balances, account references, and tokens must never be logged to external analytics or hardcoded into repo files.
   - Configuration files (`~/.wealth_pilot/portfolio.yaml`, `pdt_auth.json`, `.env`) are strictly gitignored.
 - **Belgian 2026 Capital Gains Tax Model**:
   - Pre-2026 acquisitions use the **Dec 31, 2025 closing price** as the benchmark cost basis.
@@ -160,7 +160,7 @@ Guidelines:
 
 ## 7. Autonomous Issue Queue & Feature Plan Tracking
 
-Wealth Pilot includes an automated, asynchronous work queue driven by GitHub Issues.
+Paslood includes an automated, asynchronous work queue driven by GitHub Issues.
 
 ### 7.1 Two-Stage Lifecycle
 
@@ -218,6 +218,6 @@ The autonomous issue lifecycle is powered by the Antigravity LLM worker sidecar,
   uv run python scripts/poll_issues.py --checkout <issue_number>
   ```
 
-- **Scheduled Background Poller**: Configured via the Antigravity scheduled automation sidecar `wealth-pilot-issue-worker` running hourly (`CRON_TZ=Europe/Brussels 0 * * * *`) in `~/.gemini/config/sidecars/wealth-pilot-issue-worker/sidecar.json`, executing the `issue-worker` skill (`.agents/skills/issue-worker/SKILL.md`).
+- **Scheduled Background Poller**: Configured via the Antigravity scheduled automation sidecar `paslood-issue-worker` running hourly (`CRON_TZ=Europe/Brussels 0 * * * *`) in `~/.gemini/config/sidecars/paslood-issue-worker/sidecar.json`, executing the `issue-worker` skill (`.agents/skills/issue-worker/SKILL.md`).
 
 

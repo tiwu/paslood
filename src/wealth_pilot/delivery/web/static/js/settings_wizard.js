@@ -1,5 +1,5 @@
 /**
- * Wealth Pilot — Settings, PDT OAuth/MCP, Encrypted Vault & Interactive Setup Wizard
+ * Paslood — Settings, PDT OAuth/MCP, Encrypted Vault & Interactive Setup Wizard
  */
 
 async function loadSettings() {
@@ -587,7 +587,7 @@ async function wizardFinish() {
     closeSetupWizard();
     await loadOverview();
     await loadSettings();
-    showSettingsAlert('🎉 Setup complete! Welcome to Wealth Pilot.');
+    showSettingsAlert('🎉 Setup complete! Welcome to Paslood.');
   } catch (err) {
     console.error('Wizard save error:', err);
     localStorage.setItem('wealth_pilot_setup_completed', 'true');

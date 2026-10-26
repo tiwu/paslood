@@ -1,8 +1,8 @@
 # Self-Hosting & Remote Access Guide
 
-Wealth Pilot is built local-first and privacy-respecting. You can run it on your local workstation, in a Docker container on a home server (NAS, Raspberry Pi, NUC), or deploy it to a private cloud instance.
+Paslood is built local-first and privacy-respecting. You can run it on your local workstation, in a Docker container on a home server (NAS, Raspberry Pi, NUC), or deploy it to a private cloud instance.
 
-This guide covers running Wealth Pilot containerized and securely accessing it from your smartphone or anywhere in the world.
+This guide covers running Paslood containerized and securely accessing it from your smartphone or anywhere in the world.
 
 ---
 
@@ -14,8 +14,8 @@ This guide covers running Wealth Pilot containerized and securely accessing it f
 ### Setup
 1. Clone the repository or download `docker-compose.yml` and `.env.example`:
    ```bash
-   git clone https://github.com/tiwu/wealth-pilot.git
-   cd wealth-pilot
+   git clone https://github.com/tiwu/paslood.git
+   cd paslood
    cp .env.example .env
    ```
 
@@ -28,10 +28,10 @@ This guide covers running Wealth Pilot containerized and securely accessing it f
 3. Set your admin password:
    ```bash
    # Run the container once to set password
-   docker compose run --rm wealth-pilot set-password
+   docker compose run --rm paslood set-password
    ```
 
-4. Start Wealth Pilot:
+4. Start Paslood:
    ```bash
    docker compose up -d
    ```
@@ -41,7 +41,7 @@ This guide covers running Wealth Pilot containerized and securely accessing it f
 
 ## 2. Remote Access Methods
 
-To access Wealth Pilot from your phone or outside your home network, choose one of three supported methods:
+To access Paslood from your phone or outside your home network, choose one of three supported methods:
 
 | Method | Best For | Security | Public Port Required? |
 | :--- | :--- | :--- | :--- |
@@ -60,13 +60,13 @@ Tailscale connects your devices securely over an encrypted WireGuard mesh withou
 3. In your `.env`:
    ```dotenv
    TAILSCALE_AUTHKEY=tskey-auth-...
-   WEALTH_PILOT_TRUSTED_ORIGINS=https://wealth-pilot.your-tailnet.ts.net,http://wealth-pilot:8000
+   WEALTH_PILOT_TRUSTED_ORIGINS=https://paslood.your-tailnet.ts.net,http://paslood:8000
    ```
 4. Start with the Tailscale profile:
    ```bash
    docker compose --profile tailscale up -d
    ```
-5. Install Tailscale on your iPhone or Android. You can now access Wealth Pilot securely at `http://wealth-pilot:8000` (or `https://wealth-pilot.your-tailnet.ts.net` if MagicDNS HTTPS is enabled).
+5. Install Tailscale on your iPhone or Android. You can now access Paslood securely at `http://paslood:8000` (or `https://paslood.your-tailnet.ts.net` if MagicDNS HTTPS is enabled).
 
 ---
 
@@ -81,7 +81,7 @@ Cloudflare Tunnel exposes your local service via Cloudflare's edge network witho
    CLOUDFLARE_TUNNEL_TOKEN=eyJh...
    WEALTH_PILOT_TRUSTED_ORIGINS=https://wealth.yourdomain.com
    ```
-4. Route hostname `wealth.yourdomain.com` to `http://wealth-pilot:8000` in the Cloudflare dashboard.
+4. Route hostname `wealth.yourdomain.com` to `http://paslood:8000` in the Cloudflare dashboard.
 5. Start:
    ```bash
    docker compose --profile cloudflared up -d
@@ -147,11 +147,11 @@ All application data (portfolios, transaction cache, encrypted secrets, user dat
 ### Taking a Backup
 ```bash
 docker run --rm -v wealthpilot_data:/data -v $(pwd):/backup alpine \
-  tar czf /backup/wealth-pilot-backup-$(date +%Y%m%d).tar.gz -C /data .
+  tar czf /backup/paslood-backup-$(date +%Y%m%d).tar.gz -C /data .
 ```
 
 ### Restoring a Backup
 ```bash
 docker run --rm -v wealthpilot_data:/data -v $(pwd):/backup alpine \
-  tar xzf /backup/wealth-pilot-backup-YYYYMMDD.tar.gz -C /data
+  tar xzf /backup/paslood-backup-YYYYMMDD.tar.gz -C /data
 ```

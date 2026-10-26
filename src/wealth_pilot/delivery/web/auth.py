@@ -1,4 +1,4 @@
-"""Authentication and authorization module for Wealth Pilot (OAuth2/OIDC + Local Passphrase)."""
+"""Authentication and authorization module for Paslood (OAuth2/OIDC + Local Passphrase)."""
 
 from __future__ import annotations
 
@@ -161,7 +161,7 @@ class AuthManager:
             return TenantContext(
                 tenant_id=row["tenant_id"] or "default",
                 user_id=row["user_id"] or "default",
-                email=row["email"] or "local@wealth-pilot",
+                email=row["email"] or "local@paslood",
                 role=TenantRole.OWNER,
             )
 
@@ -236,7 +236,7 @@ class AuthManager:
             return TenantContext(
                 tenant_id="default",
                 user_id="admin",
-                email="admin@wealth-pilot",
+                email="admin@paslood",
                 role=TenantRole.OWNER,
             )
         return None

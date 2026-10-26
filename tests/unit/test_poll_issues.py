@@ -18,7 +18,7 @@ def test_github_issue_slug_generation():
         title="feat: Add CSV balance sheet export",
         body="Export user balance sheet as CSV",
         labels=["agent:plan"],
-        url="https://github.com/tiwu/wealth-pilot/issues/42",
+        url="https://github.com/tiwu/paslood/issues/42",
     )
     assert issue1.slug == "add-csv-balance-sheet-export"
 
@@ -28,7 +28,7 @@ def test_github_issue_slug_generation():
         title="fix: Rebalancing 0.00% zero-value trap!",
         body="Zero values are truthy",
         labels=["agent:approved"],
-        url="https://github.com/tiwu/wealth-pilot/issues/10",
+        url="https://github.com/tiwu/paslood/issues/10",
     )
     assert issue2.slug == "rebalancing-000-zero-value-trap"
 
@@ -38,13 +38,13 @@ def test_github_issue_slug_generation():
         title="???",
         body="",
         labels=[],
-        url="https://github.com/tiwu/wealth-pilot/issues/5",
+        url="https://github.com/tiwu/paslood/issues/5",
     )
     assert issue3.slug == "feature"
 
 
 def test_get_next_actionable_issue():
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller = IssuePoller(repo="tiwu/paslood", dry_run=False)
 
     approved_issue = GitHubIssue(
         number=20, title="feat: Build it", body="", labels=["agent:approved"], url=""
@@ -77,7 +77,7 @@ def test_get_next_actionable_issue():
 
 
 def test_publish_plan_success(tmp_path: Path):
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller = IssuePoller(repo="tiwu/paslood", dry_run=False)
     poller.repo_root = tmp_path
     poller.comment_on_issue = MagicMock()
     poller.update_issue_labels = MagicMock()
@@ -87,7 +87,7 @@ def test_publish_plan_success(tmp_path: Path):
         title="feat: Automated tax loss harvesting",
         body="Simulate tax loss offsets",
         labels=["agent:plan"],
-        url="https://github.com/tiwu/wealth-pilot/issues/15",
+        url="https://github.com/tiwu/paslood/issues/15",
     )
     poller.get_issue = MagicMock(return_value=issue)
 
@@ -112,7 +112,7 @@ def test_publish_plan_success(tmp_path: Path):
 
 
 def test_publish_plan_missing_file(tmp_path: Path):
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller = IssuePoller(repo="tiwu/paslood", dry_run=False)
     poller.repo_root = tmp_path
     issue = GitHubIssue(
         number=15,
@@ -128,7 +128,7 @@ def test_publish_plan_missing_file(tmp_path: Path):
 
 
 def test_publish_plan_empty_file(tmp_path: Path):
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller = IssuePoller(repo="tiwu/paslood", dry_run=False)
     poller.repo_root = tmp_path
     issue = GitHubIssue(
         number=15,
@@ -149,7 +149,7 @@ def test_publish_plan_empty_file(tmp_path: Path):
 
 
 def test_start_work():
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller = IssuePoller(repo="tiwu/paslood", dry_run=False)
     poller.comment_on_issue = MagicMock()
     poller.update_issue_labels = MagicMock()
 
@@ -158,7 +158,7 @@ def test_start_work():
         title="feat: Automated tax loss harvesting",
         body="Simulate tax loss offsets",
         labels=["agent:approved"],
-        url="https://github.com/tiwu/wealth-pilot/issues/15",
+        url="https://github.com/tiwu/paslood/issues/15",
     )
     poller.get_issue = MagicMock(return_value=issue)
 
@@ -175,7 +175,7 @@ def test_start_work():
 
 
 def test_submit_pr():
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller = IssuePoller(repo="tiwu/paslood", dry_run=False)
     poller.comment_on_issue = MagicMock()
     poller.update_issue_labels = MagicMock()
 
@@ -184,16 +184,16 @@ def test_submit_pr():
         title="feat: Automated tax loss harvesting",
         body="Simulate tax loss offsets",
         labels=["agent:in-progress"],
-        url="https://github.com/tiwu/wealth-pilot/issues/15",
+        url="https://github.com/tiwu/paslood/issues/15",
     )
     poller.get_issue = MagicMock(return_value=issue)
-    poller.run_gh = MagicMock(return_value="https://github.com/tiwu/wealth-pilot/pull/99")
+    poller.run_gh = MagicMock(return_value="https://github.com/tiwu/paslood/pull/99")
 
     with patch("subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout="")
         pr_url = poller.submit_pr(15)
 
-    assert pr_url == "https://github.com/tiwu/wealth-pilot/pull/99"
+    assert pr_url == "https://github.com/tiwu/paslood/pull/99"
     poller.update_issue_labels.assert_called_once_with(
         15, add_labels=["agent:review-ready"], remove_labels=["agent:in-progress"]
     )
@@ -202,7 +202,7 @@ def test_submit_pr():
 
 
 def test_issue_poller_fetch_and_status():
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller = IssuePoller(repo="tiwu/paslood", dry_run=False)
 
     fake_issues = [
         {
@@ -239,7 +239,7 @@ def test_issue_poller_fetch_and_status():
 
 
 def test_checkout_issue():
-    poller = IssuePoller(repo="tiwu/wealth-pilot", dry_run=False)
+    poller = IssuePoller(repo="tiwu/paslood", dry_run=False)
     issue = GitHubIssue(number=15, title="feat: cool-feature", body="", labels=[], url="")
     poller.get_issue = MagicMock(return_value=issue)
 

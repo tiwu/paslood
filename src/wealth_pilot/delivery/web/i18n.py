@@ -1,4 +1,4 @@
-"""Internationalization (i18n) definitions and isolated locale loader for Wealth Pilot."""
+"""Internationalization (i18n) definitions and isolated locale loader for Paslood."""
 
 from __future__ import annotations
 
