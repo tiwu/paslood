@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 
 from wealth_pilot.adapters.ai.base import BaseAIAdvisorClient
 from wealth_pilot.domain.advice import AdviceItem
 from wealth_pilot.domain.balance_sheet import BalanceSheet
 from wealth_pilot.domain.bucket import BucketAllocationResult
+
+MAX_QUESTION_LENGTH = 1000
+_INJECTION_PATTERNS = re.compile(
+    r"(ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules)|"
+    r"disregard\s+(all\s+)?(previous|prior)\s+(instructions|prompts)|"
+    r"you\s+are\s+now\s+a|forget\s+your\s+system\s+prompt)",
+    re.IGNORECASE,
+)
 
 SYSTEM_PROMPT = """You are Paslood AI, an experienced fee-only financial planner and strategic wealth advisor.
 Your goal is to provide objective, mathematical, and actionable long-term financial guidance based strictly on the user's consolidated balance sheet metrics.
@@ -16,7 +25,8 @@ Focus on:
 2. Debt payoff optimization (comparing debt APR against expected compound equity returns).
 3. Risk management & emergency cash reserves.
 4. Belgian / European fiscal considerations when relevant (e.g. capital gains exemptions, wash sales).
-Format your response in clean Markdown with concise sections and bullet points. Never give high-frequency trading advice or recommend specific speculative meme stocks."""
+Format your response in clean Markdown with concise sections and bullet points. Never give high-frequency trading advice or recommend specific speculative meme stocks.
+Domain Guardrail: You must remain strictly within the domain of personal finance, wealth strategy, tax planning, and life/spending scenarios that impact the user's balance sheet. If the user asks about a non-financial topic (e.g. entertainment, trivia, coding, general chat), do NOT answer the general trivia; instead, briefly state that as Paslood AI you only provide financial strategy, and if applicable, pivot to how discretionary purchases or sector speculation relate to their monthly cashflow surplus and diversified buckets."""
 
 
 class AdviseAiUseCase:
@@ -25,6 +35,23 @@ class AdviseAiUseCase:
     def __init__(self, ai_client: BaseAIAdvisorClient) -> None:
         self.ai_client = ai_client
 
+    @staticmethod
+    def _validate_question(question: str | None) -> str | None:
+        if not question:
+            return None
+        cleaned = question.strip()
+        if not cleaned:
+            return None
+        if len(cleaned) > MAX_QUESTION_LENGTH:
+            raise ValueError(
+                f"Question exceeds maximum length of {MAX_QUESTION_LENGTH:,} characters."
+            )
+        if _INJECTION_PATTERNS.search(cleaned):
+            raise ValueError(
+                "Prompt override detected. Please ask a question related to your financial strategy or balance sheet."
+            )
+        return cleaned
+
     async def execute(
         self,
         balance_sheet: BalanceSheet,
@@ -32,8 +59,9 @@ class AdviseAiUseCase:
         deterministic_advices: Sequence[AdviceItem],
         user_question: str | None = None,
     ) -> str:
+        validated_question = self._validate_question(user_question)
         prompt = self._build_prompt(
-            balance_sheet, allocations, deterministic_advices, user_question
+            balance_sheet, allocations, deterministic_advices, validated_question
         )
         return await self.ai_client.generate_advice(prompt=prompt, system_prompt=SYSTEM_PROMPT)
 
@@ -76,7 +104,12 @@ class AdviseAiUseCase:
             lines.append(f"- [{adv.priority.value}] {adv.title}: {adv.message}")
 
         if question:
-            lines.append(f"\n## User Question:\n{question}")
+            lines.append(
+                f"\n## User Question / Scenario:\n{question}\n\n"
+                "## Advisory Instruction:\n"
+                "Address the user's question or scenario strictly through the lens of their Consolidated Financial Snapshot above. "
+                "If the prompt is unrelated to finance, wealth planning, or budget impact, politely decline the off-topic subject in one sentence and summarize their top portfolio priority instead."
+            )
         else:
             lines.append(
                 "\n## Request:\nProvide a high-level strategic review of this portfolio. "

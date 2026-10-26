@@ -95,7 +95,7 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
                     elif self.provider == "anthropic":
                         res = await self._call_anthropic(client, prompt, system_prompt)
                     elif self.provider == "ollama":
-                        res = await self._call_ollama(client, prompt)
+                        res = await self._call_ollama(client, prompt, system_prompt)
                     else:
                         res = await self._call_openai(client, prompt, system_prompt)
 
@@ -485,7 +485,9 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         data = resp.json()
         return data.get("content", [{}])[0].get("text", "")
 
-    async def _call_ollama(self, client: httpx.AsyncClient, prompt: str) -> str:
+    async def _call_ollama(
+        self, client: httpx.AsyncClient, prompt: str, system_prompt: str | None = None
+    ) -> str:
         host = (
             self.base_url
             or os.getenv("OLLAMA_HOST")
@@ -495,10 +497,11 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         url = host if host.endswith("/api/generate") else f"{host}/api/generate"
 
         model_name = self.model or "llama3.2"
+        payload: dict[str, Any] = {"model": model_name, "prompt": prompt, "stream": False}
+        if system_prompt:
+            payload["system"] = system_prompt
         try:
-            resp = await client.post(
-                url, json={"model": model_name, "prompt": prompt, "stream": False}
-            )
+            resp = await client.post(url, json=payload)
         except (httpx.ConnectError, httpx.ConnectTimeout) as e:
             raise RuntimeError(
                 f"Cannot connect to Ollama at {url}. Make sure Ollama is running ('ollama serve')."

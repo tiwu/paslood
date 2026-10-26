@@ -100,7 +100,11 @@ async def test_ai_call_anthropic():
 
 @pytest.mark.asyncio
 async def test_ai_call_ollama():
+    import json
+
     async def ollama_mock(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content.decode())
+        assert body.get("system") == "You are Paslood AI."
         return httpx.Response(200, json={"response": "Ollama Local Advice: Rebalance Gold."})
 
     transport = httpx.MockTransport(ollama_mock)
@@ -111,8 +115,33 @@ async def test_ai_call_ollama():
             model="llama3",
             base_url="http://localhost:11434/api/generate",
         )
-        res = await ai_client._call_ollama(http_client, prompt="Review cashflow")
+        res = await ai_client._call_ollama(
+            http_client, prompt="Review cashflow", system_prompt="You are Paslood AI."
+        )
         assert "Ollama Local Advice" in res
+
+
+@pytest.mark.asyncio
+async def test_ollama_generate_advice_passes_system_prompt():
+    import json
+
+    import respx
+
+    with respx.mock:
+        route = respx.post("http://localhost:11434/api/generate").mock(
+            return_value=httpx.Response(200, json={"response": "Focused financial response."})
+        )
+        ai_client = UniversalAIAdvisorClient(
+            provider="ollama",
+            model="llama3.2",
+            base_url="http://localhost:11434",
+        )
+        res = await ai_client.generate_advice(
+            prompt="Question", system_prompt="Strict financial guardrail"
+        )
+        assert res == "Focused financial response."
+        sent_json = json.loads(route.calls.last.request.content.decode())
+        assert sent_json["system"] == "Strict financial guardrail"
 
 
 @pytest.mark.asyncio
