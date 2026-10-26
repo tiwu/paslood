@@ -21,18 +21,22 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         base_url: str | None = None,
     ) -> None:
         self.provider = provider.lower()
-        self.api_key = (
-            api_key
-            or os.getenv("AI_API_KEY")
-            or os.getenv("GEMINI_API_KEY")
-            or os.getenv("OPENAI_API_KEY")
-            or os.getenv("ANTHROPIC_API_KEY")
-            or ""
-        )
+        if self.provider == "algorithmic":
+            self.api_key = ""
+        else:
+            self.api_key = (
+                api_key
+                or os.getenv("AI_API_KEY")
+                or os.getenv("GEMINI_API_KEY")
+                or os.getenv("OPENAI_API_KEY")
+                or os.getenv("ANTHROPIC_API_KEY")
+                or ""
+            )
         default_models = {
             "gemini": "gemini-2.5-flash",
             "anthropic": "claude-sonnet-4-20250514",
             "ollama": "llama3.2",
+            "algorithmic": "algorithmic",
         }
         self.model = model or default_models.get(self.provider, "gpt-4o-mini")
         self.base_url = (
@@ -43,7 +47,7 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         )
 
     async def generate_advice(self, prompt: str, system_prompt: str | None = None) -> str:
-        if not self.api_key and self.provider != "ollama":
+        if self.provider == "algorithmic" or (not self.api_key and self.provider != "ollama"):
             return self._generate_fallback_algorithmic_review(prompt)
 
         async with httpx.AsyncClient(timeout=30.0) as client:

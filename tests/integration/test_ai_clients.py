@@ -15,6 +15,16 @@ async def test_ai_fallback_algorithmic():
 
 
 @pytest.mark.asyncio
+async def test_ai_algorithmic_provider_ignores_openai_env_key(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-invalid-or-unauthorized-key")
+    client = UniversalAIAdvisorClient(provider="algorithmic")
+    res = await client.generate_advice(prompt="Net worth: € 100.000")
+    assert "Paslood Strategic Review" in res
+    assert "Balance Sheet Strength" in res
+    assert client.api_key == ""
+
+
+@pytest.mark.asyncio
 async def test_ai_call_gemini():
     async def gemini_mock(request: httpx.Request) -> httpx.Response:
         assert request.headers.get("x-goog-api-key") == "test-gemini-key"
