@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import copy
 import ipaddress
+import logging
 import secrets
 import tempfile
 import time
@@ -57,6 +58,8 @@ from wealth_pilot.use_cases.calculate_allocation import CalculateBucketAllocatio
 from wealth_pilot.use_cases.categorize_transactions import CategorizeTransactionsUseCase
 from wealth_pilot.use_cases.optimize_tax import OptimizeTaxUseCase
 from wealth_pilot.use_cases.project_net_worth import ProjectNetWorthUseCase
+
+logger = logging.getLogger("wealth_pilot.web")
 
 
 # Request Models
@@ -954,6 +957,7 @@ def create_app(
             base_url=effective_base_url,
         )
         ai_use_case = AdviseAiUseCase(ai_client=ai_client)
+        t0 = time.perf_counter()
         try:
             advice_text = await ai_use_case.execute(
                 balance_sheet=bs,
@@ -961,8 +965,18 @@ def create_app(
                 deterministic_advices=advices,
                 user_question=req.question,
             )
-            return {"advice": advice_text}
+            elapsed = time.perf_counter() - t0
+            trace = getattr(ai_client, "last_trace", None) or {
+                "provider": req.provider,
+                "model": effective_model,
+                "duration_s": round(elapsed, 2),
+                "attempts": 1,
+                "status": "success",
+            }
+            return {"advice": advice_text, "trace": trace}
         except Exception as e:
+            elapsed = time.perf_counter() - t0
+            logger.error("AI consultation failed after %.2fs: %s", elapsed, e)
             raise HTTPException(status_code=400, detail=str(e)) from e
 
     # Manual Assets & Liabilities Endpoints

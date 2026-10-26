@@ -224,3 +224,50 @@ async def test_anthropic_live_models_and_error_detail():
         )
         with pytest.raises(RuntimeError, match="Anthropic API error"):
             await client.generate_advice(prompt="Test")
+
+
+@pytest.mark.asyncio
+async def test_ollama_timeout_retry_success():
+    import respx
+
+    with respx.mock:
+        route = respx.post("http://localhost:11434/api/generate")
+        route.side_effect = [
+            httpx.ReadTimeout("Read timed out waiting for weights to load"),
+            httpx.Response(200, json={"response": "Ollama recovered on retry after loading!"}),
+        ]
+
+        client = UniversalAIAdvisorClient(
+            provider="ollama",
+            model="llama3.2",
+            base_url="http://localhost:11434",
+            timeout=0.1,
+            max_retries=1,
+        )
+        res = await client.generate_advice(prompt="Advise on my portfolio")
+        assert "Ollama recovered on retry" in res
+        assert client.last_trace["attempts"] == 2
+        assert client.last_trace["status"] == "success"
+        assert client.last_trace["provider"] == "ollama"
+
+
+@pytest.mark.asyncio
+async def test_ollama_timeout_exhausted_raises_helpful_message():
+    import respx
+
+    with respx.mock:
+        route = respx.post("http://localhost:11434/api/generate")
+        route.side_effect = httpx.ReadTimeout("Read timed out")
+
+        client = UniversalAIAdvisorClient(
+            provider="ollama",
+            model="llama3.2",
+            base_url="http://localhost:11434",
+            timeout=0.05,
+            max_retries=1,
+        )
+        with pytest.raises(RuntimeError, match="Ollama request timed out after.*2 attempts"):
+            await client.generate_advice(prompt="Advise on my portfolio")
+
+        assert client.last_trace["status"] == "timeout"
+        assert client.last_trace["attempts"] == 2

@@ -329,6 +329,39 @@ function updateAiActiveBadge() {
   badge.textContent = `Provider: ${prov} • ${model} (${keyLabel})`;
 }
 
+function toggleAiKeyVisibility() {
+  const provider = (document.getElementById('settings-ai-provider')?.value || 'gemini').toLowerCase();
+  const keyContainer = document.getElementById('settings-ai-key-container');
+  const modelContainer = document.getElementById('settings-ai-model-container');
+  const isKeyless = provider === 'algorithmic' || provider === 'ollama';
+
+  if (keyContainer) {
+    if (isKeyless) {
+      keyContainer.classList.add('hidden');
+    } else {
+      keyContainer.classList.remove('hidden');
+    }
+  }
+
+  if (modelContainer) {
+    if (provider === 'algorithmic') {
+      modelContainer.classList.add('hidden');
+    } else {
+      modelContainer.classList.remove('hidden');
+    }
+  }
+
+  const wizProvider = (document.getElementById('wiz-ai-provider')?.value || 'gemini').toLowerCase();
+  const wizKeyContainer = document.getElementById('wiz-ai-key-container');
+  if (wizKeyContainer) {
+    if (wizProvider === 'algorithmic' || wizProvider === 'ollama') {
+      wizKeyContainer.classList.add('hidden');
+    } else {
+      wizKeyContainer.classList.remove('hidden');
+    }
+  }
+}
+
 function selectAiPrompt(promptText) {
   const input = document.getElementById('ai-user-question');
   if (input) {
@@ -337,12 +370,20 @@ function selectAiPrompt(promptText) {
   }
 }
 
+async function onAiProviderChanged() {
+  toggleAiKeyVisibility();
+  await refreshAiModels();
+  updateAiActiveBadge();
+}
+
 async function onAiProviderOrKeyChanged() {
+  toggleAiKeyVisibility();
   await refreshAiModels();
   updateAiActiveBadge();
 }
 
 async function refreshAiModels() {
+  toggleAiKeyVisibility();
   const providerEl = document.getElementById('settings-ai-provider');
   const keyEl = document.getElementById('settings-ai-key');
   const select = document.getElementById('settings-ai-model');
@@ -406,6 +447,42 @@ async function runAiReview() {
   loader.classList.remove('hidden');
   output.classList.add('hidden');
 
+  const steps = [
+    { title: 'Analyzing your consolidated balance sheet...', sub: 'Reading assets, liabilities, and monthly cashflow...' },
+    { title: 'Aligning the strategic buckets...', sub: 'Comparing target percentages against actual weights...' },
+    { title: 'Crunching the numbers...', sub: 'Calculating portfolio drift, rebalancing diffs, and debt APRs...' },
+    {
+      title: provider === 'ollama' ? 'Warming up local AI model...' : 'Consulting strategic wealth advisor...',
+      sub: provider === 'ollama' ? 'Running local inference with Ollama...' : 'Synthesizing actionable financial recommendations...'
+    },
+    {
+      title: 'This is taking longer than expected...',
+      sub: provider === 'ollama' ? 'Local model may be loading weights into memory. Please hang tight...' : 'Waiting for AI backend response...'
+    },
+    {
+      title: 'Still crunching...',
+      sub: 'Deep financial analysis underway — generating final guidance...'
+    }
+  ];
+
+  let currentStepIdx = 0;
+  const stepEl = document.getElementById('ai-loading-step');
+  const subEl = document.getElementById('ai-loading-subtext');
+  if (stepEl && subEl) {
+    stepEl.textContent = steps[0].title;
+    subEl.textContent = steps[0].sub;
+  }
+
+  const loadingInterval = setInterval(() => {
+    if (currentStepIdx < steps.length - 1) {
+      currentStepIdx++;
+      if (stepEl && subEl) {
+        stepEl.textContent = steps[currentStepIdx].title;
+        subEl.textContent = steps[currentStepIdx].sub;
+      }
+    }
+  }, 3500);
+
   try {
     const res = await fetch('/api/ai/advise', {
       method: 'POST',
@@ -433,9 +510,26 @@ async function runAiReview() {
     const data = await res.json();
     const rawAdvice = data.advice || 'No advice generated.';
     const parsedHtml = typeof marked !== 'undefined' ? marked.parse(rawAdvice) : escapeHtml(rawAdvice);
-    output.innerHTML = typeof DOMPurify !== 'undefined'
+    let traceHtml = '';
+    if (data.trace) {
+      const t = data.trace;
+      const provName = (t.provider || provider).toUpperCase();
+      const modelName = t.model || '';
+      const dur = t.duration_s ? `${t.duration_s}s` : '';
+      const attempts = t.attempts > 1 ? ` • ${t.attempts} attempts` : '';
+      traceHtml = `
+        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+          <div class="flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>⚡ ${escapeHtml(provName)} ${modelName ? '(' + escapeHtml(modelName) + ')' : ''}</span>
+          </div>
+          <div>${escapeHtml(dur)}${escapeHtml(attempts)}</div>
+        </div>
+      `;
+    }
+    output.innerHTML = (typeof DOMPurify !== 'undefined'
       ? DOMPurify.sanitize(parsedHtml)
-      : parsedHtml;
+      : parsedHtml) + traceHtml;
   } catch (err) {
     output.innerHTML = `
       <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-xl space-y-2">
@@ -449,6 +543,7 @@ async function runAiReview() {
       </div>
     `;
   } finally {
+    clearInterval(loadingInterval);
     btn.disabled = false;
     loader.classList.add('hidden');
     output.classList.remove('hidden');

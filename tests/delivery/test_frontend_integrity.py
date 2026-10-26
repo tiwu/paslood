@@ -316,6 +316,25 @@ if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expect
     throw new Error('refreshAiModels failed with valid ASCII key');
   }}
 
+  // 6. Test toggleAiKeyVisibility
+  getEl('settings-ai-provider').value = 'algorithmic';
+  sandbox.toggleAiKeyVisibility();
+  if (!getEl('settings-ai-key-container').classList.contains('hidden')) {{
+    throw new Error('settings-ai-key-container should be hidden for algorithmic');
+  }}
+
+  getEl('settings-ai-provider').value = 'gemini';
+  sandbox.toggleAiKeyVisibility();
+  if (getEl('settings-ai-key-container').classList.contains('hidden')) {{
+    throw new Error('settings-ai-key-container should be visible for gemini');
+  }}
+
+  getEl('wiz-ai-provider').value = 'algorithmic';
+  sandbox.toggleAiKeyVisibility();
+  if (!getEl('wiz-ai-key-container').classList.contains('hidden')) {{
+    throw new Error('wiz-ai-key-container should be hidden for algorithmic');
+  }}
+
   console.log('NODE_UNIT_OK');
 }})().catch(err => {{
   console.error(err);

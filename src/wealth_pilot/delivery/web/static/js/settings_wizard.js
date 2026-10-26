@@ -69,6 +69,7 @@ async function loadSettings() {
       modelSelect.value = ai.model;
     }
     updateAiActiveBadge();
+    if (typeof toggleAiKeyVisibility === 'function') toggleAiKeyVisibility();
 
     // Tax Settings
     const tax = s.tax || {};

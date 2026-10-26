@@ -949,8 +949,15 @@
 
         <!-- AI Output Window -->
         <div class="pt-4 border-t border-slate-800">
-          <div id="ai-loading" data-i18n="ai.loading_text" class="hidden text-center py-8 text-slate-400 text-sm animate-pulse">
-            Analyzing your consolidated balance sheet and generating strategic guidance...
+          <div id="ai-loading" class="hidden text-center py-8 text-slate-400 text-sm space-y-2">
+            <div class="flex items-center justify-center gap-2">
+              <svg class="animate-spin h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span id="ai-loading-step" class="font-medium text-slate-200">Analyzing your consolidated balance sheet...</span>
+            </div>
+            <p id="ai-loading-subtext" class="text-xs text-slate-400">Reading assets, liabilities, and monthly cashflow...</p>
           </div>
           <div id="ai-output" data-i18n-html="ai.initial_output" class="bg-slate-950 border border-slate-800 p-5 rounded-lg text-sm text-slate-200 prose prose-invert max-w-none leading-relaxed">
             Select one of the strategy prompts above or click <strong>"Run Strategic Review"</strong> to generate a customized consultation based on your current financial metrics.
@@ -1107,7 +1114,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div>
             <label data-i18n="settings.ai_provider_label" class="block text-slate-300 font-medium mb-1">AI Provider</label>
-            <select id="settings-ai-provider" onchange="refreshAiModels()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <select id="settings-ai-provider" onchange="onAiProviderChanged()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
               <option value="gemini">Google Gemini (Recommended)</option>
               <option value="openai">OpenAI (GPT-4o)</option>
               <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
@@ -1115,7 +1122,7 @@
               <option value="algorithmic">Algorithmic (Deterministic Rule Engine)</option>
             </select>
           </div>
-          <div>
+          <div id="settings-ai-model-container">
             <label class="block text-slate-300 font-medium mb-1 flex items-center justify-between">
               <span data-i18n="settings.ai_model_label">Model Name</span>
               <button type="button" onclick="refreshAiModels()" data-i18n="settings.ai_discover_btn" class="text-[10px] text-purple-400 hover:text-purple-300 font-mono">🔄 Discover Models</button>
@@ -1126,7 +1133,7 @@
               <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
             </select>
           </div>
-          <div>
+          <div id="settings-ai-key-container">
             <label data-i18n="settings.ai_key_label" class="block text-slate-300 font-medium mb-1">API Key</label>
             <input type="password" id="settings-ai-key" data-i18n-placeholder="settings.ai_key_placeholder" placeholder="Paste API Key (stored locally in ~/.wealth_pilot)" onchange="refreshAiModels()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
@@ -1787,14 +1794,15 @@
             <div class="grid grid-cols-2 gap-3 pt-1">
               <div>
                 <label data-i18n="settings.ai_provider_label" class="block text-slate-400 text-[11px] mb-1">Provider</label>
-                <select id="wiz-ai-provider" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
+                <select id="wiz-ai-provider" onchange="toggleAiKeyVisibility()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
                   <option value="gemini">Google Gemini (Recommended)</option>
                   <option value="openai">OpenAI</option>
                   <option value="anthropic">Anthropic</option>
                   <option value="ollama">Ollama (Local)</option>
+                  <option value="algorithmic">Algorithmic (Deterministic Rule Engine)</option>
                 </select>
               </div>
-              <div>
+              <div id="wiz-ai-key-container">
                 <label data-i18n="settings.ai_key_label" class="block text-slate-400 text-[11px] mb-1">API Key (Optional)</label>
                 <input type="password" id="wiz-ai-key" data-i18n-placeholder="settings.ai_key_placeholder" placeholder="Paste API key" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
               </div>

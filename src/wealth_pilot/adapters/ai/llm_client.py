@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 import os
+import time
 from typing import Any
 
 import httpx
 
 from wealth_pilot.adapters.ai.base import BaseAIAdvisorClient
+
+logger = logging.getLogger("wealth_pilot.ai")
 
 
 class UniversalAIAdvisorClient(BaseAIAdvisorClient):
@@ -19,6 +23,8 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         api_key: str | None = None,
         model: str | None = None,
         base_url: str | None = None,
+        timeout: float | None = None,
+        max_retries: int = 1,
     ) -> None:
         self.provider = provider.lower()
         if self.provider == "algorithmic":
@@ -45,22 +51,123 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             or os.getenv("OLLAMA_URL")
             or ("http://localhost:11434" if self.provider == "ollama" else None)
         )
+        self.timeout = timeout
+        self.max_retries = max_retries
+        self.last_trace: dict[str, Any] = {}
 
     async def generate_advice(self, prompt: str, system_prompt: str | None = None) -> str:
+        t0 = time.perf_counter()
         if self.provider == "algorithmic" or (not self.api_key and self.provider != "ollama"):
-            return self._generate_fallback_algorithmic_review(prompt)
+            advice = self._generate_fallback_algorithmic_review(prompt)
+            duration = time.perf_counter() - t0
+            self.last_trace = {
+                "provider": "algorithmic"
+                if self.provider == "algorithmic"
+                else f"{self.provider}-fallback",
+                "model": "deterministic-rules",
+                "duration_s": round(duration, 3),
+                "attempts": 1,
+                "status": "success",
+            }
+            logger.info("Algorithmic review completed in %.3fs", duration)
+            return advice
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            if self.provider == "gemini":
-                return await self._call_gemini(client, prompt, system_prompt)
-            elif self.provider == "openai":
-                return await self._call_openai(client, prompt, system_prompt)
-            elif self.provider == "anthropic":
-                return await self._call_anthropic(client, prompt, system_prompt)
-            elif self.provider == "ollama":
-                return await self._call_ollama(client, prompt)
-            else:
-                return await self._call_openai(client, prompt, system_prompt)
+        base_timeout = self.timeout or (60.0 if self.provider == "ollama" else 30.0)
+        total_attempts = self.max_retries + 1
+
+        logger.info(
+            "AI advice request started | provider=%s | model=%s | timeout=%.1fs | max_attempts=%d",
+            self.provider,
+            self.model,
+            base_timeout,
+            total_attempts,
+        )
+
+        for attempt in range(1, total_attempts + 1):
+            attempt_timeout = base_timeout * (1.5 ** (attempt - 1))
+            t_attempt_start = time.perf_counter()
+            try:
+                async with httpx.AsyncClient(timeout=attempt_timeout) as client:
+                    if self.provider == "gemini":
+                        res = await self._call_gemini(client, prompt, system_prompt)
+                    elif self.provider == "openai":
+                        res = await self._call_openai(client, prompt, system_prompt)
+                    elif self.provider == "anthropic":
+                        res = await self._call_anthropic(client, prompt, system_prompt)
+                    elif self.provider == "ollama":
+                        res = await self._call_ollama(client, prompt)
+                    else:
+                        res = await self._call_openai(client, prompt, system_prompt)
+
+                duration = time.perf_counter() - t0
+                self.last_trace = {
+                    "provider": self.provider,
+                    "model": self.model,
+                    "duration_s": round(duration, 2),
+                    "attempts": attempt,
+                    "status": "success",
+                }
+                logger.info(
+                    "AI provider '%s' succeeded in %.2fs (attempt %d/%d)",
+                    self.provider,
+                    duration,
+                    attempt,
+                    total_attempts,
+                )
+                return res
+
+            except httpx.TimeoutException as exc:
+                elapsed = time.perf_counter() - t_attempt_start
+                if attempt < total_attempts:
+                    logger.warning(
+                        "AI provider '%s' timed out after %.1fs on attempt %d/%d. Retrying with extended timeout (%.1fs)...",
+                        self.provider,
+                        elapsed,
+                        attempt,
+                        total_attempts,
+                        base_timeout * (1.5**attempt),
+                    )
+                else:
+                    total_elapsed = time.perf_counter() - t0
+                    self.last_trace = {
+                        "provider": self.provider,
+                        "model": self.model,
+                        "duration_s": round(total_elapsed, 2),
+                        "attempts": attempt,
+                        "status": "timeout",
+                    }
+                    if self.provider == "ollama":
+                        err_msg = (
+                            f"Ollama request timed out after {round(total_elapsed, 1)}s ({attempt} attempts). "
+                            f"The model '{self.model}' took too long to respond. It may still be loading into memory, "
+                            f"or your machine is under heavy load. Please try again or select a smaller model."
+                        )
+                    else:
+                        err_msg = (
+                            f"{self.provider.capitalize()} API request timed out after {round(total_elapsed, 1)}s "
+                            f"({attempt} attempts). Please try again."
+                        )
+                    logger.error("AI request timed out: %s", err_msg)
+                    raise RuntimeError(err_msg) from exc
+
+            except Exception as exc:
+                total_elapsed = time.perf_counter() - t0
+                self.last_trace = {
+                    "provider": self.provider,
+                    "model": self.model,
+                    "duration_s": round(total_elapsed, 2),
+                    "attempts": attempt,
+                    "status": "error",
+                }
+                logger.error(
+                    "AI provider '%s' failed on attempt %d/%d after %.2fs: %s",
+                    self.provider,
+                    attempt,
+                    total_attempts,
+                    total_elapsed,
+                    exc,
+                )
+                raise
 
     async def _call_gemini(
         self, client: httpx.AsyncClient, prompt: str, system_prompt: str | None

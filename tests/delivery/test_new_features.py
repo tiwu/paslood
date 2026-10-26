@@ -166,7 +166,11 @@ async def test_ai_models_and_advise(test_app):
             },
         )
         assert adv_resp.status_code == 200
-        assert "advice" in adv_resp.json()
+        data = adv_resp.json()
+        assert "advice" in data
+        assert "trace" in data
+        assert data["trace"]["attempts"] >= 1
+        assert "duration_s" in data["trace"]
 
 
 @pytest.mark.asyncio
