@@ -29,7 +29,7 @@
     
     
       
-        <title>Self-Hosting & Deployment - Paslood (Wealth Pilot) Documentation</title>
+        <title>Self-Hosting & Deployment - Paslood Documentation</title>
       
     
     
@@ -94,7 +94,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Paslood (Wealth Pilot) Documentation" class="md-header__button md-logo" aria-label="Paslood (Wealth Pilot) Documentation" data-md-component="logo">
+    <a href=".." title="Paslood Documentation" class="md-header__button md-logo" aria-label="Paslood Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -108,7 +108,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Paslood (Wealth Pilot) Documentation
+            Paslood Documentation
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -408,13 +408,13 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Paslood (Wealth Pilot) Documentation" class="md-nav__button md-logo" aria-label="Paslood (Wealth Pilot) Documentation" data-md-component="logo">
+    <a href=".." title="Paslood Documentation" class="md-nav__button md-logo" aria-label="Paslood Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
-    Paslood (Wealth Pilot) Documentation
+    Paslood Documentation
   </label>
   
     <div class="md-nav__source">
@@ -1820,8 +1820,8 @@
 
 
 <h1 id="self-hosting-remote-access-guide">Self-Hosting &amp; Remote Access Guide</h1>
-<p>Wealth Pilot is built local-first and privacy-respecting. You can run it on your local workstation, in a Docker container on a home server (NAS, Raspberry Pi, NUC), or deploy it to a private cloud instance.</p>
-<p>This guide covers running Wealth Pilot containerized and securely accessing it from your smartphone or anywhere in the world.</p>
+<p>Paslood is built local-first and privacy-respecting. You can run it on your local workstation, in a Docker container on a home server (NAS, Raspberry Pi, NUC), or deploy it to a private cloud instance.</p>
+<p>This guide covers running Paslood containerized and securely accessing it from your smartphone or anywhere in the world.</p>
 <hr />
 <h2 id="1-quickstart-running-via-docker">1. Quickstart: Running via Docker</h2>
 <h3 id="requirements">Requirements</h3>
@@ -1832,8 +1832,8 @@
 <ol>
 <li>
 <p>Clone the repository or download <code>docker-compose.yml</code> and <code>.env.example</code>:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tiwu/wealth-pilot.git
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>wealth-pilot
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tiwu/paslood.git
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>paslood
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
 </code></pre></div></p>
 </li>
@@ -1846,11 +1846,11 @@
 <li>
 <p>Set your admin password:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Run the container once to set password</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>wealth-pilot<span class="w"> </span>set-password
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>paslood<span class="w"> </span>set-password
 </code></pre></div></p>
 </li>
 <li>
-<p>Start Wealth Pilot:
+<p>Start Paslood:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
 </code></pre></div>
    Access the dashboard at <code>http://localhost:8000</code>.</p>
@@ -1858,7 +1858,7 @@
 </ol>
 <hr />
 <h2 id="2-remote-access-methods">2. Remote Access Methods</h2>
-<p>To access Wealth Pilot from your phone or outside your home network, choose one of three supported methods:</p>
+<p>To access Paslood from your phone or outside your home network, choose one of three supported methods:</p>
 <table>
 <thead>
 <tr>
@@ -1897,12 +1897,12 @@
 <li>Generate an Auth Key in <strong>Tailscale Admin Console</strong> $\rightarrow$ <strong>Settings</strong> $\rightarrow$ <strong>Keys</strong>.</li>
 <li>In your <code>.env</code>:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>TAILSCALE_AUTHKEY=tskey-auth-...
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>WEALTH_PILOT_TRUSTED_ORIGINS=https://wealth-pilot.your-tailnet.ts.net,http://wealth-pilot:8000
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>WEALTH_PILOT_TRUSTED_ORIGINS=https://paslood.your-tailnet.ts.net,http://paslood:8000
 </code></pre></div></li>
 <li>Start with the Tailscale profile:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>tailscale<span class="w"> </span>up<span class="w"> </span>-d
 </code></pre></div></li>
-<li>Install Tailscale on your iPhone or Android. You can now access Wealth Pilot securely at <code>http://wealth-pilot:8000</code> (or <code>https://wealth-pilot.your-tailnet.ts.net</code> if MagicDNS HTTPS is enabled).</li>
+<li>Install Tailscale on your iPhone or Android. You can now access Paslood securely at <code>http://paslood:8000</code> (or <code>https://paslood.your-tailnet.ts.net</code> if MagicDNS HTTPS is enabled).</li>
 </ol>
 <hr />
 <h3 id="option-b-cloudflare-tunnel">Option B: Cloudflare Tunnel</h3>
@@ -1914,7 +1914,7 @@
    <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>CLOUDFLARE_TUNNEL_TOKEN=eyJh...
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>WEALTH_PILOT_TRUSTED_ORIGINS=https://wealth.yourdomain.com
 </code></pre></div></li>
-<li>Route hostname <code>wealth.yourdomain.com</code> to <code>http://wealth-pilot:8000</code> in the Cloudflare dashboard.</li>
+<li>Route hostname <code>wealth.yourdomain.com</code> to <code>http://paslood:8000</code> in the Cloudflare dashboard.</li>
 <li>Start:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>cloudflared<span class="w"> </span>up<span class="w"> </span>-d
 </code></pre></div></li>
@@ -1966,11 +1966,11 @@
 <p>All application data (portfolios, transaction cache, encrypted secrets, user database) lives inside the Docker volume <code>/data</code> (or your local directory <code>WEALTH_PILOT_DATA_DIR</code>).</p>
 <h3 id="taking-a-backup">Taking a Backup</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>wealthpilot_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/backup<span class="w"> </span>alpine<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>tar<span class="w"> </span>czf<span class="w"> </span>/backup/wealth-pilot-backup-<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.tar.gz<span class="w"> </span>-C<span class="w"> </span>/data<span class="w"> </span>.
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>tar<span class="w"> </span>czf<span class="w"> </span>/backup/paslood-backup-<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.tar.gz<span class="w"> </span>-C<span class="w"> </span>/data<span class="w"> </span>.
 </code></pre></div>
 <h3 id="restoring-a-backup">Restoring a Backup</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>wealthpilot_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/backup<span class="w"> </span>alpine<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span>tar<span class="w"> </span>xzf<span class="w"> </span>/backup/wealth-pilot-backup-YYYYMMDD.tar.gz<span class="w"> </span>-C<span class="w"> </span>/data
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span>tar<span class="w"> </span>xzf<span class="w"> </span>/backup/paslood-backup-YYYYMMDD.tar.gz<span class="w"> </span>-C<span class="w"> </span>/data
 </code></pre></div>
 
 

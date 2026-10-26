@@ -29,7 +29,7 @@
     
     
       
-        <title>Getting Started - Paslood (Wealth Pilot) Documentation</title>
+        <title>Getting Started - Paslood Documentation</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started-with-wealth-pilot" class="md-skip">
+        <a href="#getting-started-with-paslood" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Paslood (Wealth Pilot) Documentation" class="md-header__button md-logo" aria-label="Paslood (Wealth Pilot) Documentation" data-md-component="logo">
+    <a href=".." title="Paslood Documentation" class="md-header__button md-logo" aria-label="Paslood Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -108,7 +108,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Paslood (Wealth Pilot) Documentation
+            Paslood Documentation
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -408,13 +408,13 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Paslood (Wealth Pilot) Documentation" class="md-nav__button md-logo" aria-label="Paslood (Wealth Pilot) Documentation" data-md-component="logo">
+    <a href=".." title="Paslood Documentation" class="md-nav__button md-logo" aria-label="Paslood Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
-    Paslood (Wealth Pilot) Documentation
+    Paslood Documentation
   </label>
   
     <div class="md-nav__source">
@@ -1719,11 +1719,11 @@
   
 
 
-<h1 id="getting-started-with-wealth-pilot">Getting Started with Wealth Pilot</h1>
-<p>Follow this guide to get Wealth Pilot running on your machine or home server in minutes.</p>
+<h1 id="getting-started-with-paslood">Getting Started with Paslood</h1>
+<p>Follow this guide to get Paslood running on your machine or home server in minutes.</p>
 <hr />
 <h2 id="1-quickstart-choose-your-deployment-method">1. Quickstart: Choose Your Deployment Method</h2>
-<p>You can run Wealth Pilot either directly via Python (<code>uv</code>) on your local machine, or inside a Docker container.</p>
+<p>You can run Paslood either directly via Python (<code>uv</code>) on your local machine, or inside a Docker container.</p>
 <h3 id="option-a-local-run-via-uv-recommended-for-local-workstations">Option A: Local Run via <code>uv</code> (Recommended for Local Workstations)</h3>
 <h4 id="prerequisites">Prerequisites</h4>
 <ul>
@@ -1734,14 +1734,14 @@
 </ul>
 <h4 id="setup-launch">Setup &amp; Launch</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Clone repository</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tiwu/wealth-pilot.git
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">cd</span><span class="w"> </span>wealth-pilot
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tiwu/paslood.git
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">cd</span><span class="w"> </span>paslood
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Install all dependencies</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>uv<span class="w"> </span>sync<span class="w"> </span>--all-extras<span class="w"> </span>--dev
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># Launch the Web Dashboard</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>uv<span class="w"> </span>run<span class="w"> </span>wealth-pilot<span class="w"> </span>web
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>uv<span class="w"> </span>run<span class="w"> </span>paslood<span class="w"> </span>web
 </code></pre></div>
 <p>Open your browser at <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a>.</p>
 <hr />
@@ -1752,15 +1752,15 @@
 </ul>
 <h4 id="setup-launch_1">Setup &amp; Launch</h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Clone repository</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tiwu/wealth-pilot.git
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">cd</span><span class="w"> </span>wealth-pilot
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tiwu/paslood.git
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">cd</span><span class="w"> </span>paslood
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Configure environment</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="w">  </span><span class="c1"># Copy to WEALTH_PILOT_SECRET_KEY in .env</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Set master admin password</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>wealth-pilot<span class="w"> </span>set-password
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>paslood<span class="w"> </span>set-password
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Start container</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
@@ -1768,7 +1768,7 @@
 <p>Open your browser at <a href="http://localhost:8000">http://localhost:8000</a> and sign in.</p>
 <hr />
 <h2 id="2-initial-setup-onboarding-wizard">2. Initial Setup &amp; Onboarding Wizard</h2>
-<p>When you open Wealth Pilot for the first time:</p>
+<p>When you open Paslood for the first time:</p>
 <ol>
 <li><strong>Interactive Setup Wizard</strong>:
    Click <strong>🚀 Setup</strong> in the top navigation bar.</li>
@@ -1780,7 +1780,7 @@
 <li>
 <p><strong>Mobile Phone &amp; Remote Access</strong>:</p>
 </li>
-<li>Wealth Pilot has a built-in mobile bottom navigation bar and PWA support.</li>
+<li>Paslood has a built-in mobile bottom navigation bar and PWA support.</li>
 <li>On iOS (Safari) or Android (Chrome), tap <strong>Share</strong> $\rightarrow$ <strong>Add to Home Screen</strong>.</li>
 <li>To access outside your home network securely without port forwarding, see the <a href="../self-hosting/">Self-Hosting &amp; Remote Access Guide</a> to enable <strong>Tailscale</strong> or <strong>Cloudflare Tunnel</strong>.</li>
 </ol>
@@ -1799,21 +1799,21 @@
 <p>All third-party credentials and AI keys are encrypted with <strong>AES-256-GCM</strong> before being written to disk.</p>
 <hr />
 <h2 id="4-scriptable-cli-commands">4. Scriptable CLI Commands</h2>
-<p>Wealth Pilot includes a rich terminal CLI for quick health checks and headless operations:</p>
+<p>Paslood includes a rich terminal CLI for quick health checks and headless operations:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># View consolidated Balance Sheet, Net Worth, and Allocation Drift</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>uv<span class="w"> </span>run<span class="w"> </span>wealth-pilot<span class="w"> </span>status
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>uv<span class="w"> </span>run<span class="w"> </span>paslood<span class="w"> </span>status
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Calculate smart buy-only allocation advice for a monthly deposit</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>uv<span class="w"> </span>run<span class="w"> </span>wealth-pilot<span class="w"> </span>advise<span class="w"> </span>--deposit<span class="w"> </span><span class="m">2000</span>.0
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>uv<span class="w"> </span>run<span class="w"> </span>paslood<span class="w"> </span>advise<span class="w"> </span>--deposit<span class="w"> </span><span class="m">2000</span>.0
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Set or update master remote access password</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>uv<span class="w"> </span>run<span class="w"> </span>wealth-pilot<span class="w"> </span>set-password
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>uv<span class="w"> </span>run<span class="w"> </span>paslood<span class="w"> </span>set-password
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Parse and inspect a bank statement or portfolio CSV</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>uv<span class="w"> </span>run<span class="w"> </span>wealth-pilot<span class="w"> </span>ingest<span class="w"> </span>path/to/kbc-export.csv
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>uv<span class="w"> </span>run<span class="w"> </span>paslood<span class="w"> </span>ingest<span class="w"> </span>path/to/kbc-export.csv
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
 <a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># Generate a sample generic CSV template</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>uv<span class="w"> </span>run<span class="w"> </span>wealth-pilot<span class="w"> </span>template<span class="w"> </span>--output<span class="w"> </span>template.csv
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>uv<span class="w"> </span>run<span class="w"> </span>paslood<span class="w"> </span>template<span class="w"> </span>--output<span class="w"> </span>template.csv
 </code></pre></div>
 
 

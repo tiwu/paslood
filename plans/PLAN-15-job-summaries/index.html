@@ -29,7 +29,7 @@
     
     
       
-        <title>Issue #15 - Workflow Job Summaries - Paslood (Wealth Pilot) Documentation</title>
+        <title>Issue #15 - Workflow Job Summaries - Paslood Documentation</title>
       
     
     
@@ -94,7 +94,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="Paslood (Wealth Pilot) Documentation" class="md-header__button md-logo" aria-label="Paslood (Wealth Pilot) Documentation" data-md-component="logo">
+    <a href="../.." title="Paslood Documentation" class="md-header__button md-logo" aria-label="Paslood Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -108,7 +108,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Paslood (Wealth Pilot) Documentation
+            Paslood Documentation
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -408,13 +408,13 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Paslood (Wealth Pilot) Documentation" class="md-nav__button md-logo" aria-label="Paslood (Wealth Pilot) Documentation" data-md-component="logo">
+    <a href="../.." title="Paslood Documentation" class="md-nav__button md-logo" aria-label="Paslood Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
-    Paslood (Wealth Pilot) Documentation
+    Paslood Documentation
   </label>
   
     <div class="md-nav__source">
@@ -1680,7 +1680,7 @@
 
 <h1 id="architecture-plan-issue-15-feat-job-summaries">Architecture Plan: [Issue #15] feat: job summaries</h1>
 <ul>
-<li><strong>Issue</strong>: <a href="https://github.com/tiwu/wealth-pilot/issues/15">#15</a></li>
+<li><strong>Issue</strong>: <a href="https://github.com/tiwu/paslood/issues/15">#15</a></li>
 <li><strong>Status</strong>: Plan Review</li>
 <li><strong>Author</strong>: Autonomous Issue Worker</li>
 <li><strong>Date</strong>: 2026-10-25</li>
@@ -1688,7 +1688,7 @@
 </ul>
 <hr />
 <h2 id="1-problem-statement-motivation">1. Problem Statement &amp; Motivation</h2>
-<p>GitHub Actions workflow runs in <code>tiwu/wealth-pilot</code> currently output build and test logs across multiple jobs (<code>lint</code>, <code>test</code> in <code>ci.yml</code>, <code>deploy</code> in <code>docs.yml</code>, and <code>release</code> in <code>release.yml</code>). To inspect whether tests passed, test coverage met the $\ge 90\%$ threshold, linters succeeded, or documentation built correctly, developers and reviewers must click through individual job execution logs and scroll through dense terminal output.</p>
+<p>GitHub Actions workflow runs in <code>tiwu/paslood</code> currently output build and test logs across multiple jobs (<code>lint</code>, <code>test</code> in <code>ci.yml</code>, <code>deploy</code> in <code>docs.yml</code>, and <code>release</code> in <code>release.yml</code>). To inspect whether tests passed, test coverage met the $\ge 90\%$ threshold, linters succeeded, or documentation built correctly, developers and reviewers must click through individual job execution logs and scroll through dense terminal output.</p>
 <p>GitHub Actions provides <code>$GITHUB_STEP_SUMMARY</code>, which renders Markdown directly on the workflow run overview page (Job Summary). By adding job and step summaries to all workflows, contributors and maintainers gain immediate, high-level visibility into test results, code coverage breakdowns, lint/formatting checks, documentation builds, and release artifact distributions without navigating logs.</p>
 <hr />
 <h2 id="2-requirements-acceptance-criteria">2. Requirements &amp; Acceptance Criteria</h2>
@@ -1710,7 +1710,7 @@
 </ul>
 </li>
 <li>[ ] <strong>Documentation Workflow (<code>docs.yml</code>) - Deploy Job</strong>:</li>
-<li>Appends a deployment summary to <code>$GITHUB_STEP_SUMMARY</code> showing deployment target, GitHub Pages URL (<code>https://tiwu.github.io/wealth-pilot/</code>), commit SHA, and build timestamp</li>
+<li>Appends a deployment summary to <code>$GITHUB_STEP_SUMMARY</code> showing deployment target, GitHub Pages URL (<code>https://tiwu.github.io/paslood/</code>), commit SHA, and build timestamp</li>
 <li>[ ] <strong>Release Workflow (<code>release.yml</code>) - Release Job</strong>:</li>
 <li>Appends a release summary to <code>$GITHUB_STEP_SUMMARY</code> listing built distribution packages (<code>.whl</code>, <code>.tar.gz</code>) from <code>dist/</code>, package sizes, and release link</li>
 <li>[ ] <strong>Maintainability &amp; Testing</strong>:</li>
