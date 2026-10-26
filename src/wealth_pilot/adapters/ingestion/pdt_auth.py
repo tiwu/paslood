@@ -41,7 +41,7 @@ class PdtAuthManager:
                 if u not in uris:
                     uris.append(u)
         payload = {
-            "client_name": "Wealth Pilot Financial Planner",
+            "client_name": "Paslood Financial Planner",
             "redirect_uris": uris,
             "scope": "mcp:use",
         }

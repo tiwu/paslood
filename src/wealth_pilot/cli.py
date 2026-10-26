@@ -1,4 +1,4 @@
-"""Wealth Pilot Command Line Interface (CLI)."""
+"""Paslood Command Line Interface (CLI)."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ from wealth_pilot.use_cases.calculate_allocation import CalculateBucketAllocatio
 
 app = typer.Typer(
     name="paslood",
-    help="🧭 Paslood (Wealth Pilot): Whole-Life Balance Sheet, PDT Companion & Belgian Fiscal Shield",
+    help="🧭 Paslood: Whole-Life Balance Sheet, PDT Companion & Belgian Fiscal Shield",
     add_completion=False,
 )
 console = Console()
@@ -34,7 +34,7 @@ console = Console()
 
 def version_callback(value: bool) -> None:
     if value:
-        console.print(f"Paslood (Wealth Pilot) [bold cyan]v{__version__}[/bold cyan]")
+        console.print(f"Paslood [bold cyan]v{__version__}[/bold cyan]")
         raise typer.Exit()
 
 
@@ -50,7 +50,7 @@ def main_callback(
         is_eager=True,
     ),
 ) -> None:
-    """Wealth Pilot CLI."""
+    """Paslood CLI."""
     pass
 
 
@@ -75,9 +75,9 @@ def web(
         console.print(
             Panel.fit(
                 "[bold red]SECURITY REFUSAL: Cannot bind to external host without authentication![/bold red]\n\n"
-                "Wealth Pilot stores financial balances and private API keys.\n"
+                "Paslood stores financial balances and private API keys.\n"
                 "To expose this server remotely (via LAN, container, or Dynamic DNS):\n"
-                "1. Run [bold green]wealth-pilot set-password[/bold green] to configure a login password, OR\n"
+                "1. Run [bold green]paslood set-password[/bold green] to configure a login password, OR\n"
                 "2. Set [bold cyan]WEALTH_PILOT_AUTH_MODE=password[/bold cyan] in your environment, OR\n"
                 "3. Configure Google/GitHub OAuth credentials in your environment.\n\n"
                 "If you are certain you want an unauthenticated server on your network,\n"
@@ -89,7 +89,7 @@ def web(
 
     console.print(
         Panel.fit(
-            f"[bold blue]🧭 Wealth Pilot Dashboard[/bold blue]\n"
+            f"[bold blue]🧭 Paslood Dashboard[/bold blue]\n"
             f"Server running at: [bold green]http://{host}:{port}[/bold green]\n"
             f"Auth mode: [bold cyan]{settings.auth_mode}[/bold cyan]\n"
             f"Press [bold red]Ctrl+C[/bold red] to stop.",

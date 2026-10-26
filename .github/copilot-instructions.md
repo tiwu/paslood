@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions for Wealth Pilot
+# GitHub Copilot Instructions for Paslood
 
 These instructions guide GitHub Copilot when generating code, answering questions, and performing automated Pull Request reviews in this repository.
 
@@ -6,7 +6,7 @@ These instructions guide GitHub Copilot when generating code, answering question
 
 ## 1. Project Context & Clean Architecture
 
-Wealth Pilot is a local-first, privacy-respecting strategic wealth planning and asset allocation platform.
+Paslood is a local-first, privacy-respecting strategic wealth planning and asset allocation platform.
 It uses **Clean Architecture (Hexagonal)**:
 - `src/wealth_pilot/domain/`: Pure business models and Value Objects (`Asset`, `Liability`, `Bucket`, `Money`, `BalanceSheet`, `AdviceItem`). Must remain 100% pure Python with NO framework imports.
 - `src/wealth_pilot/use_cases/`: Pure calculation and orchestration use cases (`CalculateBucketAllocationUseCase`, `OptimizeTaxUseCase`, `AdviseDebtPayoffUseCase`, `AdviseContributionUseCase`, `ProjectNetWorthUseCase`, `CategorizeTransactionsUseCase`, `AdviseAiUseCase`).

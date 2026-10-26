@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Autonomous Issue Poller & Lifecycle Manager for Wealth Pilot.
+"""Autonomous Issue Poller & Lifecycle Manager for Paslood.
 
 Provides queue inspection and git/GitHub lifecycle helper commands for
 the autonomous Antigravity worker and local developers:
@@ -48,7 +48,7 @@ class GitHubIssue:
 
 
 class IssuePoller:
-    def __init__(self, repo: str = "tiwu/wealth-pilot", dry_run: bool = False) -> None:
+    def __init__(self, repo: str = "tiwu/paslood", dry_run: bool = False) -> None:
         self.repo = repo
         self.dry_run = dry_run
         self.repo_root = Path(__file__).resolve().parent.parent
@@ -171,12 +171,12 @@ class IssuePoller:
         )
         if not user_res.stdout.strip():
             subprocess.run(
-                ["git", "config", "user.name", "Wealth Pilot Agent"],
+                ["git", "config", "user.name", "Paslood Agent"],
                 cwd=self.repo_root,
                 check=True,
             )
             subprocess.run(
-                ["git", "config", "user.email", "agent@wealth-pilot.local"],
+                ["git", "config", "user.email", "agent@paslood.local"],
                 cwd=self.repo_root,
                 check=True,
             )
@@ -384,7 +384,7 @@ class IssuePoller:
             "agent:review-ready",
             "agent:blocked",
         ]
-        print(f"\n=== Wealth Pilot Autonomous Issue Queue ({self.repo}) ===")
+        print(f"\n=== Paslood Autonomous Issue Queue ({self.repo}) ===")
         for lbl in labels:
             issues = self.get_issues_by_label(lbl)
             print(f"  {lbl:<20}: {len(issues)} issue(s)")
@@ -458,9 +458,9 @@ class IssuePoller:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Wealth Pilot Autonomous Issue Poller & Queue Helper"
+        description="Paslood Autonomous Issue Poller & Queue Helper"
     )
-    parser.add_argument("--repo", default="tiwu/wealth-pilot", help="GitHub repo (owner/name)")
+    parser.add_argument("--repo", default="tiwu/paslood", help="GitHub repo (owner/name)")
     parser.add_argument("--status", action="store_true", help="Display queue status")
     parser.add_argument("--next", action="store_true", help="Fetch next actionable issue")
     parser.add_argument(

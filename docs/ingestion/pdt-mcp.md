@@ -1,6 +1,6 @@
 # PDT MCP Server Integration
 
-Wealth Pilot connects directly to the **Portfolio Dividend Tracker (PDT)** MCP server over JSON-RPC.
+Paslood connects directly to the **Portfolio Dividend Tracker (PDT)** MCP server over JSON-RPC.
 
 ---
 

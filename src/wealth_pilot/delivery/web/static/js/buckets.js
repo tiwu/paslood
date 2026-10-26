@@ -1,5 +1,5 @@
 /**
- * Wealth Pilot — Strategic Buckets, Enhanced Allocation Visualizer & Holdings Mapping
+ * Paslood — Strategic Buckets, Enhanced Allocation Visualizer & Holdings Mapping
  */
 
 let currentAllocationVizMode = 'bullet';

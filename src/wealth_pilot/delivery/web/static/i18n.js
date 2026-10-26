@@ -1,5 +1,5 @@
 /**
- * Wealth Pilot Internationalization (i18n) Engine
+ * Paslood Internationalization (i18n) Engine
  * Multi-language support: English (en), Dutch (nl), French (fr), German (de).
  * Loads isolated per-language JSON files from /api/i18n or /static/locales/{lang}.json.
  */

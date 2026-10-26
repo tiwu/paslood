@@ -1,6 +1,6 @@
 # Ingesting Belgian KBC Bank Statements
 
-Wealth Pilot features native, zero-configuration support for **KBC Bank CSV statement exports**.
+Paslood features native, zero-configuration support for **KBC Bank CSV statement exports**.
 
 ---
 

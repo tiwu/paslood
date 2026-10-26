@@ -1,4 +1,4 @@
-"""Release management utility for Wealth Pilot.
+"""Release management utility for Paslood.
 
 Automates version bumping, changelog updates, and release note extraction.
 """
@@ -116,8 +116,8 @@ def update_changelog(changelog_content: str, new_version: str, release_date: str
 
     # Update bottom comparison links if present
     # e.g.:
-    # [Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.3.0...HEAD
-    # [0.3.0]: https://github.com/tiwu/wealth-pilot/releases/tag/v0.3.0
+    # [Unreleased]: https://github.com/tiwu/paslood/compare/v0.3.0...HEAD
+    # [0.3.0]: https://github.com/tiwu/paslood/releases/tag/v0.3.0
     link_unreleased = re.search(
         r"\[Unreleased\]:\s+https://github\.com/([^/]+/[^/]+)/compare/v([0-9.]+)\.\.\.HEAD", updated
     )
@@ -203,7 +203,7 @@ def perform_bump(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Wealth Pilot release management CLI")
+    parser = argparse.ArgumentParser(description="Paslood release management CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Subcommand: check-unreleased

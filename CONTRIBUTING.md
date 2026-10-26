@@ -1,14 +1,14 @@
-# Contributing to Wealth Pilot
+# Contributing to Paslood
 
-Thank you for your interest in contributing to **Wealth Pilot**! 🎉
+Thank you for your interest in contributing to **Paslood**! 🎉
 
-Wealth Pilot is a privacy-first, local-first strategic asset allocation and personal wealth planning platform. We welcome contributions from developers, designers, and automated agents.
+Paslood is a privacy-first, local-first strategic asset allocation and personal wealth planning platform. We welcome contributions from developers, designers, and automated agents.
 
 ---
 
 ## 1. Core Principles & Privacy Pledge
 
-- **Local-First & Absolute Privacy**: Wealth Pilot runs on the user's local machine. We do not transmit financial data to third-party tracking services. Never hardcode credentials, private account numbers, or real balances in code, tests, or documentation.
+- **Local-First & Absolute Privacy**: Paslood runs on the user's local machine. We do not transmit financial data to third-party tracking services. Never hardcode credentials, private account numbers, or real balances in code, tests, or documentation.
 - **Clean Architecture Integrity**: We strictly adhere to Hexagonal / Clean Architecture. Domain entities must remain pure Python dataclasses with zero framework dependencies.
 - **Test-Driven Development (TDD)**: Every bug fix and feature addition must include automated tests in `tests/`.
 
@@ -22,15 +22,15 @@ Wealth Pilot is a privacy-first, local-first strategic asset allocation and pers
 - **Git**
 
 ### One-Click Devcontainer / GitHub Codespaces
-If you use VSCode or GitHub Codespaces, Wealth Pilot comes pre-configured with a complete container environment:
+If you use VSCode or GitHub Codespaces, Paslood comes pre-configured with a complete container environment:
 - Open the repository in VSCode and click **"Reopen in Container"** when prompted, or create a Codespace on GitHub.
 - Dependencies, Python, `uv`, and extensions (Ruff, Python, Copilot) install automatically.
 
 ### Local Installation (via `uv`)
 ```bash
 # 1. Clone the repository
-git clone https://github.com/tiwu/wealth-pilot.git
-cd wealth-pilot
+git clone https://github.com/tiwu/paslood.git
+cd paslood
 
 # 2. Synchronize all dependencies and development tools
 uv sync --all-extras --dev
@@ -79,7 +79,7 @@ We follow the **Red-Green-Refactor** workflow:
 
 5. **Test the Web Dashboard locally**:
    ```bash
-   uv run wealth-pilot web --port 8000
+   uv run paslood web --port 8000
    ```
    Open `http://localhost:8000` in your browser.
 

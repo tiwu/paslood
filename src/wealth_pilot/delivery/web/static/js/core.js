@@ -1,5 +1,5 @@
 /**
- * Wealth Pilot — Core Application State, Theme, Navigation & Bootstrap
+ * Paslood — Core Application State, Theme, Navigation & Bootstrap
  */
 
 // Security Helper: HTML Entity Escaping to prevent XSS

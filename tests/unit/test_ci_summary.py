@@ -32,7 +32,7 @@ def test_generate_lint_summary_success():
     assert "| MkDocs Strict Build | ✅ Passed |" in summary
     assert "**Python**: `3.11`" in summary
     assert "**Runner**: `ubuntu-24.04 (X64)`" in summary
-    assert "https://github.com/tiwu/wealth-pilot/actions/runs/123456" in summary
+    assert "https://github.com/tiwu/paslood/actions/runs/123456" in summary
 
 
 def test_generate_lint_summary_failure():
@@ -96,13 +96,13 @@ def test_generate_test_summary_success_and_threshold():
 def test_generate_docs_summary():
     summary = generate_docs_summary(
         status="success",
-        pages_url="https://tiwu.github.io/wealth-pilot/",
+        pages_url="https://tiwu.github.io/paslood/",
         commit_sha="abcdef123456",
         timestamp="2026-10-25 18:00 UTC",
     )
     assert "## 📚 Documentation Deployment Summary" in summary
     assert "✅ **Documentation deployed successfully!**" in summary
-    assert "[https://tiwu.github.io/wealth-pilot/](https://tiwu.github.io/wealth-pilot/)" in summary
+    assert "[https://tiwu.github.io/paslood/](https://tiwu.github.io/paslood/)" in summary
     assert "`abcdef123456`" in summary
     assert "2026-10-25 18:00 UTC" in summary
 
@@ -118,13 +118,13 @@ def test_generate_release_summary(tmp_path: Path):
     summary = generate_release_summary(
         dist_dir=dist,
         tag="v1.0.0",
-        repo="tiwu/wealth-pilot",
+        repo="tiwu/paslood",
     )
     assert "## 📦 Release Artifact Summary" in summary
     assert "- **Release Tag**: `v1.0.0`" in summary
     assert "wealth_pilot-1.0.0-py3-none-any.whl" in summary
     assert "wealth_pilot-1.0.0.tar.gz" in summary
-    assert "https://github.com/tiwu/wealth-pilot/releases/tag/v1.0.0" in summary
+    assert "https://github.com/tiwu/paslood/releases/tag/v1.0.0" in summary
 
 
 def test_write_summary(

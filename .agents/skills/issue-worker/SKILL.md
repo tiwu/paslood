@@ -1,12 +1,12 @@
 ---
 name: issue-worker
-description: Autonomous queue worker protocol for Wealth Pilot. Polls issues, drafts architecture plans, executes TDD implementations, and submits pull requests without exploratory drift.
+description: Autonomous queue worker protocol for Paslood. Polls issues, drafts architecture plans, executes TDD implementations, and submits pull requests without exploratory drift.
 ---
 
-# Wealth Pilot Autonomous Issue Worker Protocol
+# Paslood Autonomous Issue Worker Protocol
 
 ## Purpose
-Deterministic, minimal-overhead execution protocol for processing Wealth Pilot GitHub issues (`agent:plan` and `agent:approved`).
+Deterministic, minimal-overhead execution protocol for processing Paslood GitHub issues (`agent:plan` and `agent:approved`).
 
 ---
 

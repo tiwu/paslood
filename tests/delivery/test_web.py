@@ -25,7 +25,7 @@ async def test_web_index_and_overview(test_app):
         # Check root page
         resp = await client.get("/")
         assert resp.status_code == 200
-        assert "Wealth Pilot" in resp.text
+        assert "Paslood" in resp.text
         assert f"v{__version__}" in resp.text
 
         # Check version API
@@ -111,7 +111,7 @@ async def test_update_target_and_ai_consultation(test_app):
         assert ai_resp.status_code == 200
         ai_data = ai_resp.json()
         assert "advice" in ai_data
-        assert "Wealth Pilot" in ai_data["advice"]
+        assert "Paslood" in ai_data["advice"]
 
         # Download generic CSV template
         tmpl_resp = await client.get("/api/template/generic")
@@ -191,17 +191,17 @@ async def test_built_in_docs_serving(test_app, tmp_path):
     async with AsyncClient(transport=fallback_transport, base_url="http://test") as client:
         resp = await client.get("/guide/index.html")
         assert resp.status_code == 200
-        assert "Wealth Pilot Documentation" in resp.text
+        assert "Paslood Documentation" in resp.text
         assert "not been pre-built" in resp.text
 
         resp_root = await client.get("/guide")
         assert resp_root.status_code == 200
-        assert "Wealth Pilot Documentation" in resp_root.text
+        assert "Paslood Documentation" in resp_root.text
 
     # 2. Test mounted static documentation when site/index.html exists
     custom_site = tmp_path / "custom_site"
     custom_site.mkdir(parents=True)
-    (custom_site / "index.html").write_text("<html><body>Wealth Pilot Static Docs</body></html>")
+    (custom_site / "index.html").write_text("<html><body>Paslood Static Docs</body></html>")
 
     mounted_app = create_app(
         config_repo=ConfigRepository(config_path=tmp_path / "cfg2.yaml"),
@@ -211,7 +211,7 @@ async def test_built_in_docs_serving(test_app, tmp_path):
     async with AsyncClient(transport=mounted_transport, base_url="http://test") as client:
         resp = await client.get("/guide/index.html")
         assert resp.status_code == 200
-        assert "Wealth Pilot Static Docs" in resp.text
+        assert "Paslood Static Docs" in resp.text
 
 
 async def test_tax_endpoints(test_app):

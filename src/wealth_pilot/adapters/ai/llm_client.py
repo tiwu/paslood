@@ -335,7 +335,7 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
 
     def _generate_fallback_algorithmic_review(self, prompt: str) -> str:
         return (
-            "### 🤖 Wealth Pilot Strategic Review (Algorithmic Summary)\n\n"
+            "### 🤖 Paslood Strategic Review (Algorithmic Summary)\n\n"
             "*Notice: Configure your AI API Key (Gemini, OpenAI, or Anthropic) in settings to unlock customized generative commentary.*\n\n"
             "**Key Observations & Recommendations:**\n"
             "- **Balance Sheet Strength**: Your emergency cash buffer and investment assets form a resilient foundation.\n"

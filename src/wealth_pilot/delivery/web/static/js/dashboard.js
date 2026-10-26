@@ -1,5 +1,5 @@
 /**
- * Wealth Pilot — Dashboard KPIs, Charts & Financial Independence Milestones
+ * Paslood — Dashboard KPIs, Charts & Financial Independence Milestones
  */
 
 function renderDashboard(data) {

@@ -9,7 +9,7 @@ from wealth_pilot.domain.advice import AdviceItem
 from wealth_pilot.domain.balance_sheet import BalanceSheet
 from wealth_pilot.domain.bucket import BucketAllocationResult
 
-SYSTEM_PROMPT = """You are Wealth Pilot AI, an experienced fee-only financial planner and strategic wealth advisor.
+SYSTEM_PROMPT = """You are Paslood AI, an experienced fee-only financial planner and strategic wealth advisor.
 Your goal is to provide objective, mathematical, and actionable long-term financial guidance based strictly on the user's consolidated balance sheet metrics.
 Focus on:
 1. Macro asset allocation & bucket alignment (rebalancing with new cash vs selling).

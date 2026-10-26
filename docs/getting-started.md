@@ -1,12 +1,12 @@
-# Getting Started with Wealth Pilot
+# Getting Started with Paslood
 
-Follow this guide to get Wealth Pilot running on your machine or home server in minutes.
+Follow this guide to get Paslood running on your machine or home server in minutes.
 
 ---
 
 ## 1. Quickstart: Choose Your Deployment Method
 
-You can run Wealth Pilot either directly via Python (`uv`) on your local machine, or inside a Docker container.
+You can run Paslood either directly via Python (`uv`) on your local machine, or inside a Docker container.
 
 ### Option A: Local Run via `uv` (Recommended for Local Workstations)
 
@@ -20,14 +20,14 @@ You can run Wealth Pilot either directly via Python (`uv`) on your local machine
 #### Setup & Launch
 ```bash
 # Clone repository
-git clone https://github.com/tiwu/wealth-pilot.git
-cd wealth-pilot
+git clone https://github.com/tiwu/paslood.git
+cd paslood
 
 # Install all dependencies
 uv sync --all-extras --dev
 
 # Launch the Web Dashboard
-uv run wealth-pilot web
+uv run paslood web
 ```
 
 Open your browser at [http://127.0.0.1:8000](http://127.0.0.1:8000).
@@ -42,15 +42,15 @@ Open your browser at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 #### Setup & Launch
 ```bash
 # Clone repository
-git clone https://github.com/tiwu/wealth-pilot.git
-cd wealth-pilot
+git clone https://github.com/tiwu/paslood.git
+cd paslood
 
 # Configure environment
 cp .env.example .env
 openssl rand -hex 32  # Copy to WEALTH_PILOT_SECRET_KEY in .env
 
 # Set master admin password
-docker compose run --rm wealth-pilot set-password
+docker compose run --rm paslood set-password
 
 # Start container
 docker compose up -d
@@ -62,7 +62,7 @@ Open your browser at [http://localhost:8000](http://localhost:8000) and sign in.
 
 ## 2. Initial Setup & Onboarding Wizard
 
-When you open Wealth Pilot for the first time:
+When you open Paslood for the first time:
 
 1. **Interactive Setup Wizard**:
    Click **🚀 Setup** in the top navigation bar.
@@ -71,7 +71,7 @@ When you open Wealth Pilot for the first time:
    - **Step 3: Regional Tax & AI Preferences**: Set your Belgian capital gains exemption (default: €10,000) and optional AI advisor credentials.
 
 2. **Mobile Phone & Remote Access**:
-   - Wealth Pilot has a built-in mobile bottom navigation bar and PWA support.
+   - Paslood has a built-in mobile bottom navigation bar and PWA support.
    - On iOS (Safari) or Android (Chrome), tap **Share** $\rightarrow$ **Add to Home Screen**.
    - To access outside your home network securely without port forwarding, see the [Self-Hosting & Remote Access Guide](self-hosting.md) to enable **Tailscale** or **Cloudflare Tunnel**.
 
@@ -97,21 +97,21 @@ All third-party credentials and AI keys are encrypted with **AES-256-GCM** befor
 
 ## 4. Scriptable CLI Commands
 
-Wealth Pilot includes a rich terminal CLI for quick health checks and headless operations:
+Paslood includes a rich terminal CLI for quick health checks and headless operations:
 
 ```bash
 # View consolidated Balance Sheet, Net Worth, and Allocation Drift
-uv run wealth-pilot status
+uv run paslood status
 
 # Calculate smart buy-only allocation advice for a monthly deposit
-uv run wealth-pilot advise --deposit 2000.0
+uv run paslood advise --deposit 2000.0
 
 # Set or update master remote access password
-uv run wealth-pilot set-password
+uv run paslood set-password
 
 # Parse and inspect a bank statement or portfolio CSV
-uv run wealth-pilot ingest path/to/kbc-export.csv
+uv run paslood ingest path/to/kbc-export.csv
 
 # Generate a sample generic CSV template
-uv run wealth-pilot template --output template.csv
+uv run paslood template --output template.csv
 ```

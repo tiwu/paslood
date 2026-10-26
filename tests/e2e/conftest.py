@@ -1,4 +1,4 @@
-"""Playwright E2E fixtures for testing the live Wealth Pilot web application in headless Chromium."""
+"""Playwright E2E fixtures for testing the live Paslood web application in headless Chromium."""
 
 from __future__ import annotations
 

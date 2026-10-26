@@ -1,6 +1,6 @@
 # Balance Sheet & Net Worth Overview
 
-Wealth Pilot tracks both sides of your personal ledger to compute true economic net worth:
+Paslood tracks both sides of your personal ledger to compute true economic net worth:
 
 $$\text{Net Worth} = \text{Total Assets} - \text{Total Liabilities}$$
 
@@ -20,7 +20,7 @@ $$\text{Net Worth} = \text{Total Assets} - \text{Total Liabilities}$$
 - **Student Loans / Margin Debt**: Discretionary borrowing.
 
 ### 3. Monthly Cashflow & Surplus
-Wealth Pilot computes your **Monthly Free Cashflow**:
+Paslood computes your **Monthly Free Cashflow**:
 
 $$\text{Monthly Free Cashflow} = \text{Net Income} - (\text{Fixed Costs} + \text{Debt Servicing} + \text{Living Expenses})$$
 

@@ -1,6 +1,6 @@
 # Strategic Allocation Buckets
 
-Wealth Pilot organizes all your financial holdings into macro **strategic allocation buckets**.
+Paslood organizes all your financial holdings into macro **strategic allocation buckets**.
 
 ---
 

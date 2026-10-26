@@ -207,7 +207,7 @@ def create_app(
     pending_oauth: dict[str, Any] = {}
 
     app = FastAPI(
-        title="Wealth Pilot", description="Strategic Wealth & Asset Allocation Guidance Platform"
+        title="Paslood", description="Strategic Wealth & Asset Allocation Guidance Platform"
     )
 
     @app.middleware("http")
@@ -242,7 +242,7 @@ def create_app(
             request.state.tenant = TenantContext(
                 tenant_id="default",
                 user_id="default",
-                email="local@wealth-pilot",
+                email="local@paslood",
                 role=TenantRole.OWNER,
             )
             return await call_next(request)
@@ -258,7 +258,7 @@ def create_app(
             request.state.tenant = TenantContext(
                 tenant_id="default",
                 user_id="anonymous",
-                email="anon@wealth-pilot",
+                email="anon@paslood",
                 role=TenantRole.VIEWER,
             )
             return await call_next(request)
@@ -319,7 +319,7 @@ def create_app(
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Wealth Pilot Documentation</title>
+  <title>Paslood Documentation</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
     .card { background: #1e293b; padding: 2rem; border-radius: 0.75rem; border: 1px solid #334155; max-width: 500px; text-align: center; }
@@ -331,9 +331,9 @@ def create_app(
 </head>
 <body>
   <div class="card">
-    <h1>Wealth Pilot Documentation</h1>
+    <h1>Paslood Documentation</h1>
     <p>The documentation site has not been pre-built in this environment.</p>
-    <p>Run <code>uv run mkdocs build</code> locally, or view the online docs at <a href="https://tiwu.github.io/wealth-pilot/" target="_blank">tiwu.github.io/wealth-pilot</a>.</p>
+    <p>Run <code>uv run mkdocs build</code> locally, or view the online docs at <a href="https://tiwu.github.io/paslood/" target="_blank">tiwu.github.io/paslood</a>.</p>
   </div>
 </body>
 </html>""",
@@ -744,7 +744,7 @@ def create_app(
 
         tenant = getattr(request.state, "tenant", None)
         data["current_user"] = {
-            "email": tenant.email if tenant else "local@wealth-pilot",
+            "email": tenant.email if tenant else "local@paslood",
             "tenant_id": tenant.tenant_id if tenant else "default",
             "auth_mode": settings.auth_mode,
         }
@@ -1195,7 +1195,7 @@ def create_app(
             repo.save_settings({"pdt": pdt_cfg})
         except Exception:
             pdt_cfg = repo.load_settings().get("pdt", {})
-            client_id = pdt_cfg.get("client_id") or "wealth-pilot-client"
+            client_id = pdt_cfg.get("client_id") or "paslood-client"
 
         verifier, challenge = generate_pkce_pair()
         state_token = secrets.token_urlsafe(16)
@@ -1273,7 +1273,7 @@ def create_app(
     ) -> str | None:
         token = pdt_cfg.get("auth_token")
         refresh_tok = pdt_cfg.get("refresh_token")
-        client_id = pdt_cfg.get("client_id") or "wealth-pilot-client"
+        client_id = pdt_cfg.get("client_id") or "paslood-client"
         expires_at = pdt_cfg.get("expires_at")
 
         should_refresh = force_refresh or (
@@ -1414,7 +1414,7 @@ def create_app(
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "wealth-pilot", "version": __version__},
+                "clientInfo": {"name": "paslood", "version": __version__},
             },
         }
 
@@ -1585,7 +1585,7 @@ def create_app(
 
     @app.get("/api/health")
     async def health_check():
-        return {"status": "healthy", "service": "wealth-pilot"}
+        return {"status": "healthy", "service": "paslood"}
 
     # Encrypted Vault Backup & Multi-Device Cloud Drive Sync Endpoints
     @app.get("/api/backup/info")

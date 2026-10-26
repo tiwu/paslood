@@ -10,7 +10,7 @@ Traditional portfolio rebalancing involves selling over-allocated winners and bu
 
 ## The Buy-Only Cash Injection Model
 
-Wealth Pilot defaults to **Buy-Only Rebalancing**:
+Paslood defaults to **Buy-Only Rebalancing**:
 
 1. You specify an incoming cash deposit (e.g. your monthly savings of €1,500).
 2. The engine identifies which buckets are currently **UNDERWEIGHT** (where Current Weight < Target Weight).

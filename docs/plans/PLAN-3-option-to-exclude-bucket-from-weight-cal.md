@@ -1,6 +1,6 @@
 # Architecture Plan: [Issue #3] feat: option to exclude bucket from weight calculation
 
-- **Issue**: [#3](https://github.com/tiwu/wealth-pilot/issues/3)
+- **Issue**: [#3](https://github.com/tiwu/paslood/issues/3)
 - **Status**: Completed
 - **Author**: Autonomous Issue Worker
 - **Date**: 2026-10-14

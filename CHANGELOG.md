@@ -100,12 +100,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added documentation deployment summary in `docs.yml` and release distribution artifact listing in `release.yml`.
   - Added comprehensive unit test suite in `tests/unit/test_ci_summary.py`.
   - Added automated release pipeline in `.github/workflows/release.yml` triggering on push to `main` with unreleased changelog detection, automatic version bumping, and release note extraction via `scripts/release.py`.
-  - Added `--version` / `-V` CLI flag (`wealth-pilot --version`) and `GET /api/version` endpoint linking code directly to package metadata.
+  - Added `--version` / `-V` CLI flag (`paslood --version`) and `GET /api/version` endpoint linking code directly to package metadata.
   - Added dynamic app version indicators in the dashboard navigation header and Settings tab.
 - **Autonomous Issue Worker Protocol Skill (`issue-worker`)**:
   - Consolidated issue processing lifecycle into a deterministic skill in `.agents/skills/issue-worker/SKILL.md` (Issue #16).
   - Added strict guardrails banning exploratory codebase probing, reading `poll_issues.py` internals, or creating dummy files.
-  - Streamlined sidecar worker prompt in `~/.gemini/config/sidecars/wealth-pilot-issue-worker/sidecar.json` to reduce token consumption and eliminate workflow meandering.
+  - Streamlined sidecar worker prompt in `~/.gemini/config/sidecars/paslood-issue-worker/sidecar.json` to reduce token consumption and eliminate workflow meandering.
 - **Two-Stage Autonomous Issue Queue & Plan Archiving**:
   - Implemented asynchronous issue poller (`scripts/poll_issues.py`) supporting the deterministic two-stage approval workflow (`agent:plan` -> `agent:plan-review` -> `agent:approved` -> `agent:in-progress` -> `agent:review-ready`) (Issue #2).
   - Automatically commits and pushes architecture plans (`docs/plans/PLAN-<id>-<slug>.md`) to origin feature branches before posting issue review comments, resolving remote 404 links.
@@ -231,12 +231,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/tiwu/wealth-pilot/compare/v0.8.0...HEAD
-[0.8.0]: https://github.com/tiwu/wealth-pilot/compare/v0.7.0...v0.8.0
-[0.7.0]: https://github.com/tiwu/wealth-pilot/compare/v0.6.0...v0.7.0
-[0.6.0]: https://github.com/tiwu/wealth-pilot/compare/v0.5.0...v0.6.0
-[0.5.0]: https://github.com/tiwu/wealth-pilot/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/tiwu/wealth-pilot/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/tiwu/wealth-pilot/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/tiwu/wealth-pilot/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/tiwu/wealth-pilot/releases/tag/v0.1.0
+[Unreleased]: https://github.com/tiwu/paslood/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/tiwu/paslood/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/tiwu/paslood/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/tiwu/paslood/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/tiwu/paslood/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/tiwu/paslood/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/tiwu/paslood/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/tiwu/paslood/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/tiwu/paslood/releases/tag/v0.1.0

@@ -1,4 +1,4 @@
-"""Unit tests for Wealth Pilot Use Cases (Layer 2 - Application Business Rules)."""
+"""Unit tests for Paslood Use Cases (Layer 2 - Application Business Rules)."""
 
 from decimal import Decimal
 

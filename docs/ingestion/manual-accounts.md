@@ -1,6 +1,6 @@
 # Manual Accounts & Bunq Integration
 
-Certain financial assets and liabilities don't require automated feeds or CSV statements to track accurately. Wealth Pilot allows you to define these directly in your `portfolio.yaml` or through the Web UI.
+Certain financial assets and liabilities don't require automated feeds or CSV statements to track accurately. Paslood allows you to define these directly in your `portfolio.yaml` or through the Web UI.
 
 ---
 

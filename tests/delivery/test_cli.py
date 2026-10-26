@@ -1,4 +1,4 @@
-"""CLI delivery tests for Wealth Pilot."""
+"""CLI delivery tests for Paslood."""
 
 from pathlib import Path
 from unittest.mock import patch
@@ -14,7 +14,7 @@ runner = CliRunner()
 def test_cli_help():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "Wealth Pilot" in result.stdout
+    assert "Paslood" in result.stdout
     assert "status" in result.stdout
     assert "advise" in result.stdout
     assert "ingest" in result.stdout
@@ -24,7 +24,7 @@ def test_cli_help():
 def test_cli_version():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
-    assert "Wealth Pilot" in result.stdout
+    assert "Paslood" in result.stdout
     assert f"v{__version__}" in result.stdout
 
 

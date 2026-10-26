@@ -1,6 +1,6 @@
 # Net Worth Milestone Projections
 
-Wealth Pilot models compound wealth growth over 5, 10, 20, and 30 years using multi-variable trajectory simulations.
+Paslood models compound wealth growth over 5, 10, 20, and 30 years using multi-variable trajectory simulations.
 
 ---
 

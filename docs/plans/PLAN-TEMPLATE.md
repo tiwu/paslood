@@ -1,6 +1,6 @@
 # Architecture Plan: [Issue #N] [Feature Title]
 
-- **Issue**: [#N](https://github.com/tiwu/wealth-pilot/issues/N)
+- **Issue**: [#N](https://github.com/tiwu/paslood/issues/N)
 - **Status**: Proposed | Plan Review | Approved | In Progress | Completed
 - **Author**: Autonomous Agent / Contributor
 - **Date**: YYYY-MM-DD

@@ -1,5 +1,5 @@
 /**
- * Wealth Pilot — Manual Assets & Liabilities, CSV Statement Ingestion & Transaction Rebucketing
+ * Paslood — Manual Assets & Liabilities, CSV Statement Ingestion & Transaction Rebucketing
  */
 
 function renderTransactions(data) {
