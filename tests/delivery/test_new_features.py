@@ -151,6 +151,11 @@ async def test_ai_models_and_advise(test_app):
         assert models_resp_oai.status_code == 200
         assert any(m["id"] == "gpt-4o-mini" for m in models_resp_oai.json()["models"])
 
+        # 2b. Fetch Ollama models
+        models_resp_ollama = await client.get("/api/ai/models?provider=ollama")
+        assert models_resp_ollama.status_code == 200
+        assert len(models_resp_ollama.json()["models"]) >= 1
+
         # 3. Call advise with specific model (fallback algorithmic when no key)
         adv_resp = await client.post(
             "/api/ai/advise",

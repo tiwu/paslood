@@ -35,7 +35,12 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             "ollama": "llama3.2",
         }
         self.model = model or default_models.get(self.provider, "gpt-4o-mini")
-        self.base_url = base_url
+        self.base_url = (
+            base_url
+            or os.getenv("OLLAMA_HOST")
+            or os.getenv("OLLAMA_URL")
+            or ("http://localhost:11434" if self.provider == "ollama" else None)
+        )
 
     async def generate_advice(self, prompt: str, system_prompt: str | None = None) -> str:
         if not self.api_key and self.provider != "ollama":
@@ -96,7 +101,10 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
 
     @classmethod
     async def fetch_available_models(
-        cls, provider: str = "gemini", api_key: str | None = None
+        cls,
+        provider: str = "gemini",
+        api_key: str | None = None,
+        base_url: str | None = None,
     ) -> list[dict[str, Any]]:
         """Queries or lists active models supported by the chosen AI provider."""
         provider = (provider or "gemini").lower()
@@ -246,17 +254,17 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
             return curated_anthropic
 
         elif provider == "ollama":
-            return [
+            curated_ollama = [
                 {
                     "id": "llama3.2",
                     "name": "Llama 3.2",
-                    "description": "Local lightweight model (Recommended)",
+                    "description": "Local lightweight model (Default)",
                     "recommended": True,
                 },
                 {
-                    "id": "llama3",
-                    "name": "Llama 3 (8B)",
-                    "description": "Local open source model",
+                    "id": "qwen2.5-coder:7b",
+                    "name": "Qwen 2.5 Coder 7B",
+                    "description": "Code and financial reasoning model",
                     "recommended": False,
                 },
                 {
@@ -266,6 +274,47 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
                     "recommended": False,
                 },
             ]
+            host = (
+                base_url
+                or os.getenv("OLLAMA_HOST")
+                or os.getenv("OLLAMA_URL")
+                or "http://localhost:11434"
+            ).rstrip("/")
+            if host.endswith("/api/generate"):
+                host = host.removesuffix("/api/generate")
+            elif host.endswith("/api/tags"):
+                host = host.removesuffix("/api/tags")
+
+            try:
+                async with httpx.AsyncClient(timeout=3.0) as client:
+                    resp = await client.get(f"{host}/api/tags")
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        models = data.get("models", [])
+                        if models:
+                            live_models = []
+                            for idx, m in enumerate(models):
+                                m_id = m.get("model") or m.get("name") or ""
+                                if not m_id:
+                                    continue
+                                details = m.get("details") or {}
+                                param_size = details.get("parameter_size") or ""
+                                family = details.get("family") or ""
+                                desc_parts = [p for p in [param_size, family, "local model"] if p]
+                                desc = " ".join(desc_parts) if desc_parts else "Local Ollama model"
+                                live_models.append(
+                                    {
+                                        "id": m_id,
+                                        "name": m.get("name") or m_id,
+                                        "description": desc,
+                                        "recommended": idx == 0,
+                                    }
+                                )
+                            if live_models:
+                                return live_models
+            except Exception:
+                pass
+            return curated_ollama
 
         return [
             {
@@ -326,11 +375,37 @@ class UniversalAIAdvisorClient(BaseAIAdvisorClient):
         return data.get("content", [{}])[0].get("text", "")
 
     async def _call_ollama(self, client: httpx.AsyncClient, prompt: str) -> str:
-        url = self.base_url or "http://localhost:11434/api/generate"
-        resp = await client.post(
-            url, json={"model": self.model or "llama3", "prompt": prompt, "stream": False}
-        )
-        resp.raise_for_status()
+        host = (
+            self.base_url
+            or os.getenv("OLLAMA_HOST")
+            or os.getenv("OLLAMA_URL")
+            or "http://localhost:11434"
+        ).rstrip("/")
+        url = host if host.endswith("/api/generate") else f"{host}/api/generate"
+
+        model_name = self.model or "llama3.2"
+        try:
+            resp = await client.post(
+                url, json={"model": model_name, "prompt": prompt, "stream": False}
+            )
+        except (httpx.ConnectError, httpx.ConnectTimeout) as e:
+            raise RuntimeError(
+                f"Cannot connect to Ollama at {url}. Make sure Ollama is running ('ollama serve')."
+            ) from e
+
+        if resp.is_error:
+            try:
+                err_data = resp.json()
+                msg = err_data.get("error", resp.text)
+            except Exception:
+                msg = resp.text
+            if resp.status_code == 404:
+                raise RuntimeError(
+                    f"Ollama error (404): model '{model_name}' not found. "
+                    f"Run 'ollama pull {model_name}' or select an installed model from the dropdown."
+                )
+            raise RuntimeError(f"Ollama API error ({resp.status_code}): {msg}")
+
         return resp.json().get("response", "")
 
     def _generate_fallback_algorithmic_review(self, prompt: str) -> str:

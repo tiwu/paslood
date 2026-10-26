@@ -365,20 +365,29 @@ async function refreshAiModels() {
     const data = await res.json();
     const models = data.models || [];
     select.innerHTML = '';
+    let hasSelected = false;
     models.forEach(m => {
       const opt = document.createElement('option');
       opt.value = m.id;
       opt.textContent = `${m.name}${m.recommended ? ' ★ Recommended' : ''}`;
       if (previousModel && m.id === previousModel) {
         opt.selected = true;
-      } else if (!previousModel && m.recommended) {
-        opt.selected = true;
+        hasSelected = true;
       }
       select.appendChild(opt);
     });
+
+    if (!hasSelected && select.options.length > 0) {
+      const recIdx = models.findIndex(m => m.recommended);
+      select.selectedIndex = recIdx >= 0 ? recIdx : 0;
+    }
   } catch (err) {
     console.error('Failed to load AI models:', err);
-    select.innerHTML = '<option value="gemini-2.5-flash">Gemini 2.5 Flash ★ Recommended</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option>';
+    if (provider === 'ollama') {
+      select.innerHTML = '<option value="llama3.2">Llama 3.2 (Offline)</option>';
+    } else {
+      select.innerHTML = '<option value="gemini-2.5-flash">Gemini 2.5 Flash ★ Recommended</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option>';
+    }
   }
   updateAiActiveBadge();
 }

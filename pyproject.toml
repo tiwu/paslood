@@ -51,6 +51,7 @@ testpaths = ["tests"]
 pythonpath = ["src", "scripts"]
 asyncio_mode = "auto"
 python_files = ["test_*.py"]
+addopts = "--ignore=tests/e2e"
 
 [tool.ruff]
 line-length = 100

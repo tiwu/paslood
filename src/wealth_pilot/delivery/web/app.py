@@ -902,6 +902,7 @@ def create_app(
         request: Request,
         provider: str = "gemini",
         api_key: str | None = None,
+        base_url: str | None = None,
     ):
         header_key = request.headers.get("X-AI-API-Key")
         auth_header = request.headers.get("Authorization", "")
@@ -909,13 +910,20 @@ def create_app(
             header_key = header_key or auth_header.removeprefix("Bearer ").strip()
 
         effective_key = header_key or api_key
+        s = repo.load_settings()
         if not effective_key or _is_masked_secret(effective_key):
-            s = repo.load_settings()
             raw_key = s.get("ai", {}).get("api_key")
             effective_key = secret_vault.decrypt(raw_key) if raw_key else ""
-        models = await UniversalAIAdvisorClient.fetch_available_models(
-            provider=provider, api_key=effective_key
+
+        effective_base_url = (
+            base_url or s.get("ai", {}).get("ollama_url") if provider == "ollama" else base_url
         )
+
+        kwargs = {"provider": provider, "api_key": effective_key}
+        if effective_base_url:
+            kwargs["base_url"] = effective_base_url
+
+        models = await UniversalAIAdvisorClient.fetch_available_models(**kwargs)
         return {"models": models}
 
     @app.post("/api/ai/advise")
@@ -927,21 +935,23 @@ def create_app(
             liabilities=bs.liabilities, monthly_surplus=bs.free_monthly_cashflow
         )
 
+        s = repo.load_settings()
         effective_key = req.api_key
         if not effective_key or _is_masked_secret(effective_key):
-            s = repo.load_settings()
             raw_key = s.get("ai", {}).get("api_key")
             effective_key = secret_vault.decrypt(raw_key) if raw_key else ""
 
         effective_model = req.model
         if not effective_model:
-            s = repo.load_settings()
             effective_model = s.get("ai", {}).get("model")
+
+        effective_base_url = s.get("ai", {}).get("ollama_url") if req.provider == "ollama" else None
 
         ai_client = UniversalAIAdvisorClient(
             provider=req.provider,
             api_key=effective_key,
             model=effective_model,
+            base_url=effective_base_url,
         )
         ai_use_case = AdviseAiUseCase(ai_client=ai_client)
         try:
