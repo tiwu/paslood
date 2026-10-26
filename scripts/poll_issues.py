@@ -457,9 +457,7 @@ class IssuePoller:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Paslood Autonomous Issue Poller & Queue Helper"
-    )
+    parser = argparse.ArgumentParser(description="Paslood Autonomous Issue Poller & Queue Helper")
     parser.add_argument("--repo", default="tiwu/paslood", help="GitHub repo (owner/name)")
     parser.add_argument("--status", action="store_true", help="Display queue status")
     parser.add_argument("--next", action="store_true", help="Fetch next actionable issue")
