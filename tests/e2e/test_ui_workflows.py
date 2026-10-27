@@ -17,11 +17,11 @@ def test_initial_load_hydrates_dashboard_without_errors(app_page, live_server):
     app_page.locator("#setup-wizard-modal button", has_text="Skip").first.click()
     expect(wizard_modal).to_be_hidden()
 
-    # Verify KPI cards hydrated with real portfolio data (not stuck at € 0,00 / € 0.00)
+    # Verify the explicit €60k fixture total (without a synthetic default asset).
     total_assets_el = app_page.locator("#kpi-total-assets")
     expect(total_assets_el).not_to_have_text("€ 0.00")
     expect(total_assets_el).not_to_have_text("€ 0,00")
-    assert "75" in total_assets_el.inner_text()
+    assert "60" in total_assets_el.inner_text()
 
     total_debts_el = app_page.locator("#kpi-total-debts")
     expect(total_debts_el).not_to_have_text("€ 0.00")
@@ -51,6 +51,14 @@ def test_navigation_tabs_switch_active_views(app_page, live_server):
             if tab_name != "dashboard"
             else "tab-content space-y-6 active"
         )
+
+
+def test_legacy_setup_completion_is_saved_server_side(app_page, live_server):
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    settings = app_page.evaluate("fetch('/api/settings').then(response => response.json())")
+    assert settings["onboarding_complete"] is True
 
 
 def test_buckets_allocation_visualizer_and_modal(app_page, live_server):
@@ -84,6 +92,27 @@ def test_buckets_allocation_visualizer_and_modal(app_page, live_server):
     expect(bucket_modal).to_be_visible()
     app_page.evaluate("closeBucketModal()")
     expect(bucket_modal).to_be_hidden()
+
+    # Verify bucket total badge & live sum indicator
+    total_badge = app_page.locator("#bucket-total-badge")
+    expect(total_badge).to_be_visible()
+    expect(total_badge).to_contain_text("100%")
+
+    save_btn = app_page.locator("#btn-save-bucket-targets")
+    expect(save_btn).to_be_visible()
+
+    # Changing target input dynamically updates badge & toggles save button
+    first_input = app_page.locator(".bucket-target-input").first
+    first_input.fill("70.0")
+    first_input.dispatch_event("input")
+    expect(total_badge).to_contain_text("Over")
+    expect(save_btn).to_be_disabled()
+
+    # Return to balanced 50.0
+    first_input.fill("50.0")
+    first_input.dispatch_event("input")
+    expect(total_badge).to_contain_text("Balanced")
+    expect(save_btn).to_be_enabled()
 
 
 def test_setup_wizard_and_help_modals(app_page, live_server):

@@ -24,6 +24,34 @@ function selectBucketColor(color) {
   renderBucketColorPicker(color);
 }
 
+function getModalProjectedTotal() {
+  const bucketId = document.getElementById('bucket-modal-id')?.value || '';
+  const target = parseFloat(document.getElementById('bucket-modal-target')?.value) || 0;
+  const includeInRebalancing = document.getElementById('bucket-modal-include-rebalancing')?.checked ?? true;
+  const activeAllocs = (currentData?.allocations || []).filter(a => a.include_in_rebalancing !== false && a.bucket_id !== bucketId);
+  const otherTotal = activeAllocs.reduce((sum, a) => sum + (parseFloat(a.target_weight_pct) || 0), 0);
+  return includeInRebalancing ? (otherTotal + target) : otherTotal;
+}
+
+function updateModalProjectedTotal() {
+  const hint = document.getElementById('bucket-modal-total-hint');
+  if (!hint) return;
+  const total = Math.round(getModalProjectedTotal() * 10) / 10;
+  const isBalanced = Math.abs(total - 100) < 0.05;
+  if (isBalanced) {
+    hint.textContent = I18N.t('buckets.total_balanced', 'Balanced (100%)');
+    hint.className = 'text-[11px] font-medium text-emerald-400';
+  } else if (total > 100) {
+    const diff = (total - 100).toFixed(1);
+    hint.textContent = I18N.t('buckets.total_over', { total: total, diff: diff, _fallback: `${total}% (+${diff}% Over)` });
+    hint.className = 'text-[11px] font-medium text-rose-400';
+  } else {
+    const diff = (100 - total).toFixed(1);
+    hint.textContent = I18N.t('buckets.total_under', { total: total, diff: diff, _fallback: `${total}% (-${diff}% Under)` });
+    hint.className = 'text-[11px] font-medium text-amber-400';
+  }
+}
+
 function openAddBucketModal() {
   const titleElem = document.getElementById('bucket-modal-title');
   titleElem.textContent = I18N.t('modals.bucket_add_title', '🪣 Add Strategic Bucket');
@@ -32,12 +60,15 @@ function openAddBucketModal() {
   document.getElementById('bucket-modal-target').value = '10.0';
   document.getElementById('bucket-modal-tolerance').value = '3.0';
   document.getElementById('bucket-modal-desc').value = '';
-  document.getElementById('bucket-modal-include-rebalancing').checked = true;
+  const rebCheck = document.getElementById('bucket-modal-include-rebalancing');
+  rebCheck.checked = true;
+  rebCheck.onchange = updateModalProjectedTotal;
   const netWorthCheck = document.getElementById('bucket-modal-include-net-worth');
   if (netWorthCheck) netWorthCheck.checked = true;
   document.getElementById('bucket-modal-delete-btn').classList.add('hidden');
   const nextColor = BUCKET_PALETTE[(currentData?.allocations?.length || 0) % BUCKET_PALETTE.length];
   selectBucketColor(nextColor);
+  updateModalProjectedTotal();
   document.getElementById('bucket-modal').classList.remove('hidden');
 }
 
@@ -49,11 +80,14 @@ function openEditBucketModal(bucketId, name, color, target, tolerance, desc, inc
   document.getElementById('bucket-modal-target').value = target;
   document.getElementById('bucket-modal-tolerance').value = tolerance || 3.0;
   document.getElementById('bucket-modal-desc').value = desc || '';
-  document.getElementById('bucket-modal-include-rebalancing').checked = includeInRebalancing !== false;
+  const rebCheck = document.getElementById('bucket-modal-include-rebalancing');
+  rebCheck.checked = includeInRebalancing !== false;
+  rebCheck.onchange = updateModalProjectedTotal;
   const netWorthCheck = document.getElementById('bucket-modal-include-net-worth');
   if (netWorthCheck) netWorthCheck.checked = includeInNetWorth !== false;
   document.getElementById('bucket-modal-delete-btn').classList.remove('hidden');
   selectBucketColor(color || '#3B82F6');
+  updateModalProjectedTotal();
   document.getElementById('bucket-modal').classList.remove('hidden');
 }
 
@@ -90,6 +124,15 @@ async function saveBucketFromModal() {
   if (!name) {
     alert('Please enter a bucket name.');
     return;
+  }
+
+  if (includeInRebalancing && (currentData?.allocations?.length || 0) > 0) {
+    const projectedTotal = Math.round(getModalProjectedTotal() * 10) / 10;
+    if (Math.abs(projectedTotal - 100) >= 0.05) {
+      if (!confirm(`Warning: Active bucket weights will sum to ${projectedTotal}% (not 100%). Proceed anyway and adjust weights on the Buckets page?`)) {
+        return;
+      }
+    }
   }
 
   const payload = {
@@ -145,16 +188,106 @@ function deleteCurrentBucket() {
   if (bucketId) deleteBucket(bucketId, name);
 }
 
+function getActiveBucketInputsSum() {
+  const inputs = document.querySelectorAll('.bucket-target-input');
+  let total = 0;
+  inputs.forEach(input => {
+    total += parseFloat(input.value) || 0;
+  });
+  return Math.round(total * 10) / 10;
+}
+
+function updateBucketTotalBadge() {
+  const badge = document.getElementById('bucket-total-badge');
+  const saveBtn = document.getElementById('btn-save-bucket-targets');
+  if (!badge) return;
+
+  const total = getActiveBucketInputsSum();
+  const isBalanced = Math.abs(total - 100) < 0.05;
+
+  if (isBalanced) {
+    badge.textContent = I18N.t('buckets.total_balanced', 'Balanced (100%)');
+    badge.className = 'px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  } else if (total > 100) {
+    const diff = (total - 100).toFixed(1);
+    badge.textContent = I18N.t('buckets.total_over', { total: total, diff: diff, _fallback: `${total}% (+${diff}% Over)` });
+    badge.className = 'px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30';
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  } else {
+    const diff = (100 - total).toFixed(1);
+    badge.textContent = I18N.t('buckets.total_under', { total: total, diff: diff, _fallback: `${total}% (-${diff}% Under)` });
+    badge.className = 'px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30';
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  }
+}
+
+function onBucketTargetInput() {
+  updateBucketTotalBadge();
+}
+
+async function saveBucketTargets() {
+  const inputs = document.querySelectorAll('.bucket-target-input');
+  const targets = {};
+  let total = 0;
+  inputs.forEach(input => {
+    const bucketId = input.dataset.bucketId;
+    const val = parseFloat(input.value) || 0;
+    if (bucketId) {
+      targets[bucketId] = val;
+      total += val;
+    }
+  });
+
+  total = Math.round(total * 10) / 10;
+  if (Math.abs(total - 100) >= 0.05) {
+    alert(I18N.t('buckets.targets_unbalanced_error', 'Target weights must sum to exactly 100% across active buckets.'));
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/buckets/targets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targets: targets })
+    });
+    if (res.ok) {
+      await loadOverview();
+      showToast(I18N.t('buckets.targets_saved', 'Bucket target weights saved successfully!'));
+    } else {
+      const err = await res.json();
+      alert(err.detail || 'Failed to save targets');
+    }
+  } catch (err) {
+    console.error('Failed to save bucket targets:', err);
+  }
+}
+
 async function updateTarget(bucketId, val) {
   const a = (currentData?.allocations || []).find(b => b.bucket_id === bucketId);
   const name = a ? a.name : bucketId;
   try {
-    await fetch('/api/buckets/target', {
+    const res = await fetch('/api/buckets/target', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bucket_id: bucketId, name: name, target_weight_pct: parseFloat(val) })
     });
-    await loadOverview();
+    if (res.ok) {
+      await loadOverview();
+    } else {
+      const err = await res.json();
+      alert(err.detail || 'Failed to update target');
+      await loadOverview();
+    }
   } catch (err) {
     console.error('Failed to update bucket:', err);
   }
@@ -181,7 +314,7 @@ function renderBuckets(data) {
           : `<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">${escapeHtml(I18N.t('buckets.status_overweight', 'Overweight'))}</span>`));
     const diffDisplay = isExcluded ? '—' : `${a.diff_value > 0 ? '+' : ''}${I18N.formatCurrency(a.diff_value, 'EUR')}`;
     const weightDisplay = isExcluded ? '—' : I18N.formatPercent(a.current_weight_pct);
-    const targetDisplay = isExcluded ? '—' : `<span class="inline-flex items-center gap-1 whitespace-nowrap"><input type="number" step="0.5" value="${a.target_weight_pct}" onchange="updateTarget('${escapeHtml(a.bucket_id)}', this.value)" class="w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"><span>%</span></span>`;
+    const targetDisplay = isExcluded ? '—' : `<span class="inline-flex items-center gap-1 whitespace-nowrap"><input type="number" step="0.5" min="0" max="100" value="${a.target_weight_pct}" data-bucket-id="${escapeHtml(a.bucket_id)}" oninput="onBucketTargetInput()" class="bucket-target-input w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"><span>%</span></span>`;
 
     tr.innerHTML = `
       <td class="px-4 py-3 font-medium flex items-center gap-2">
@@ -212,6 +345,7 @@ function renderBuckets(data) {
   const driftContainer = document.getElementById('bucket-drift-container');
   if (driftContainer) renderDriftChart(activeAllocs, driftContainer);
   renderExcludedBuckets(excludedAllocs);
+  updateBucketTotalBadge();
 }
 
 function setAllocationVizMode(mode) {

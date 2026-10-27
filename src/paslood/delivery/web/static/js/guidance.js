@@ -321,12 +321,31 @@ function isMaskedOrNonByteString(val) {
 
 function updateAiActiveBadge() {
   const badge = document.getElementById('ai-active-provider-badge');
-  if (!badge) return;
   const prov = (document.getElementById('settings-ai-provider')?.value || 'gemini').toUpperCase();
   const model = document.getElementById('settings-ai-model')?.value || 'gemini-2.5-flash';
   const hasKey = Boolean((document.getElementById('settings-ai-key')?.value || '').trim());
   const keyLabel = (prov === 'OLLAMA' || prov === 'ALGORITHMIC') ? 'Local' : (hasKey ? 'Key Configured' : 'Algorithmic Fallback');
-  badge.textContent = `Provider: ${prov} • ${model} (${keyLabel})`;
+  if (badge) badge.textContent = `Provider: ${prov} • ${model} (${keyLabel})`;
+
+  const disclosure = document.getElementById('ai-data-provider');
+  if (!disclosure) return;
+  const provider = prov.toLowerCase();
+  if (provider === 'algorithmic') {
+    disclosure.textContent = I18N.t(
+      'ai.privacy_provider_local',
+      'Provider: Algorithmic — the review runs in Paslood and is not sent to an AI service.'
+    );
+  } else if (provider === 'ollama') {
+    disclosure.textContent = I18N.t(
+      'ai.privacy_provider_ollama',
+      'Provider: Ollama — the review is sent to the configured endpoint; verify whether it is local or hosted.'
+    );
+  } else {
+    disclosure.textContent = I18N.t('ai.privacy_provider_cloud', {
+      provider: prov,
+      _fallback: `Provider: ${prov} — prompt details are sent to that provider's cloud API.`
+    });
+  }
 }
 
 function toggleAiKeyVisibility() {

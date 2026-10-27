@@ -112,8 +112,10 @@ async function loadSettings() {
         I18N.setRegionalFormat(s.regional_format, false);
       }
     }
+    return s;
   } catch (err) {
     console.error('Failed to load settings:', err);
+    return null;
   }
 }
 
@@ -422,9 +424,31 @@ function closeSetupWizard() {
   document.getElementById('setup-wizard-modal')?.classList.add('hidden');
 }
 
-function skipSetupWizard() {
-  localStorage.setItem('paslood_setup_completed', 'true');
-  closeSetupWizard();
+async function saveWizardSettings(values) {
+  const response = await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(values)
+  });
+  if (!response.ok) {
+    let detail = `Request failed (${response.status})`;
+    try {
+      detail = (await response.json()).detail || detail;
+    } catch (err) {
+      // Keep the HTTP status as an actionable fallback for non-JSON errors.
+    }
+    throw new Error(detail);
+  }
+}
+
+async function skipSetupWizard() {
+  try {
+    await saveWizardSettings({ onboarding_complete: true });
+    localStorage.setItem('paslood_setup_completed', 'true');
+    closeSetupWizard();
+  } catch (err) {
+    showSettingsAlert(`Could not save setup status: ${err.message}`, true);
+  }
 }
 
 function updateWizardStepUI() {
@@ -554,36 +578,35 @@ async function wizardFinish() {
   const aiKey = document.getElementById('wiz-ai-key').value.trim();
 
   try {
-    await fetch('/api/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    await saveWizardSettings({
         tax: { annual_exemption: exemption, tax_rate_pct: taxRate, benchmark_date: '2025-12-31' },
         ai: { provider: aiProv, api_key: aiKey || null }
-      })
     });
 
-    await fetch('/api/buckets/target', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bucket_id: 'core-etf', name: 'Core World ETFs', target_weight_pct: b1 })
-    });
-    await fetch('/api/buckets/target', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bucket_id: 'tech-growth', name: 'High-Conviction Tech', target_weight_pct: b2 })
-    });
-    await fetch('/api/buckets/target', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bucket_id: 'commodities', name: 'Gold & Commodities', target_weight_pct: b3 })
-    });
-    await fetch('/api/buckets/target', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bucket_id: 'cash-buffer', name: 'Cash & Emergency Buffer', target_weight_pct: b4 })
-    });
+    const bucketTargets = [
+      { bucket_id: 'core-etf', name: 'Core World ETFs', target_weight_pct: b1 },
+      { bucket_id: 'tech-growth', name: 'High-Conviction Tech', target_weight_pct: b2 },
+      { bucket_id: 'commodities', name: 'Gold & Commodities', target_weight_pct: b3 },
+      { bucket_id: 'cash-buffer', name: 'Cash & Emergency Buffer', target_weight_pct: b4 }
+    ];
+    for (const target of bucketTargets) {
+      const response = await fetch('/api/buckets/target', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(target)
+      });
+      if (!response.ok) {
+        let detail = `Request failed (${response.status})`;
+        try {
+          detail = (await response.json()).detail || detail;
+        } catch (err) {
+          // Keep the HTTP status as an actionable fallback for non-JSON errors.
+        }
+        throw new Error(detail);
+      }
+    }
 
+    await saveWizardSettings({ onboarding_complete: true });
     localStorage.setItem('paslood_setup_completed', 'true');
     closeSetupWizard();
     await loadOverview();
@@ -591,7 +614,6 @@ async function wizardFinish() {
     showSettingsAlert('🎉 Setup complete! Welcome to Paslood.');
   } catch (err) {
     console.error('Wizard save error:', err);
-    localStorage.setItem('paslood_setup_completed', 'true');
-    closeSetupWizard();
+    showSettingsAlert(`Setup could not be saved: ${err.message}`, true);
   }
 }

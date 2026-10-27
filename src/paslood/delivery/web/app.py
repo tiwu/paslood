@@ -11,15 +11,18 @@ import tempfile
 import time
 import urllib.parse
 import uuid
+from collections.abc import Iterable
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+import httpcore
 import httpx
 from fastapi import FastAPI, HTTPException, Response, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from httpcore._backends.auto import AutoBackend
 from pydantic import BaseModel
 from starlette.requests import Request
 
@@ -47,6 +50,7 @@ from paslood.delivery.web.i18n import (
 )
 from paslood.domain.asset import Asset
 from paslood.domain.balance_sheet import BalanceSheet
+from paslood.domain.bucket import Bucket, validate_bucket_weights
 from paslood.domain.identity import TenantContext, TenantRole
 from paslood.domain.liability import Liability
 from paslood.domain.money import Money
@@ -60,6 +64,54 @@ from paslood.use_cases.optimize_tax import OptimizeTaxUseCase
 from paslood.use_cases.project_net_worth import ProjectNetWorthUseCase
 
 logger = logging.getLogger("paslood.web")
+
+
+class _PinnedMcpNetworkBackend(httpcore.AsyncNetworkBackend):
+    def __init__(self, hostname: str, addresses: list[str]) -> None:
+        self._hostname = hostname
+        self._addresses = tuple(addresses)
+        self._backend = AutoBackend()
+
+    async def connect_tcp(
+        self,
+        host: str,
+        port: int,
+        timeout: float | None = None,
+        local_address: str | None = None,
+        socket_options: Iterable[Any] | None = None,
+    ) -> httpcore.AsyncNetworkStream:
+        if host.lower() != self._hostname:
+            raise httpcore.ConnectError("Connection to an unvalidated host was blocked.")
+
+        last_error: Exception | None = None
+        for address in self._addresses:
+            try:
+                # Preserve the URL hostname for Host and TLS while pinning the TCP destination.
+                return await self._backend.connect_tcp(
+                    address,
+                    port,
+                    timeout=timeout,
+                    local_address=local_address,
+                    socket_options=socket_options,
+                )
+            except (httpcore.ConnectError, httpcore.ConnectTimeout, OSError) as exc:
+                last_error = exc
+        if last_error:
+            raise last_error
+        raise httpcore.ConnectError("No validated address is available.")
+
+    async def connect_unix_socket(
+        self,
+        path: str,
+        timeout: float | None = None,
+        socket_options: Iterable[Any] | None = None,
+    ) -> httpcore.AsyncNetworkStream:
+        return await self._backend.connect_unix_socket(
+            path, timeout=timeout, socket_options=socket_options
+        )
+
+    async def sleep(self, seconds: float) -> None:
+        await self._backend.sleep(seconds)
 
 
 # Request Models
@@ -80,8 +132,12 @@ class BucketCreateOrUpdateRequest(BaseModel):
 
 class TargetWeightRequest(BaseModel):
     bucket_id: str
-    name: str
+    name: str = ""
     target_weight_pct: float
+
+
+class BatchTargetWeightsRequest(BaseModel):
+    targets: dict[str, float]
 
 
 class RebucketRequest(BaseModel):
@@ -144,6 +200,7 @@ class SettingsUpdateRequest(BaseModel):
     pdt: dict[str, Any] | None = None
     language: str | None = None
     regional_format: str | None = None
+    onboarding_complete: bool | None = None
 
 
 class PdtManualTokenRequest(BaseModel):
@@ -205,6 +262,10 @@ def create_app(
     app_settings: AppSettings | None = None,
 ) -> FastAPI:
     settings = app_settings or AppSettings.from_env()
+    if settings.mode == "saas":
+        raise ValueError(
+            "SaaS mode is not supported until tenant-scoped financial storage is implemented."
+        )
     auth_manager = AuthManager(settings)
     secret_vault = SecretVault(settings.secret_key)
     pending_oauth: dict[str, Any] = {}
@@ -253,7 +314,7 @@ def create_app(
         cookie = request.cookies.get("wp_session")
         tenant = auth_manager.verify_session(cookie) if cookie else None
 
-        if tenant:
+        if tenant and auth_manager.is_owner_context(tenant):
             request.state.tenant = tenant
             return await call_next(request)
 
@@ -277,28 +338,43 @@ def create_app(
     async def local_origin_protection_middleware(request: Request, call_next):
         if request.method in ("POST", "PUT", "DELETE", "PATCH"):
             origin = request.headers.get("origin")
-            if origin:
-                parsed_origin = urllib.parse.urlparse(origin)
-                origin_host = (parsed_origin.hostname or "").lower()
-                allowed_hosts = {
-                    "localhost",
-                    "127.0.0.1",
-                    "test",
-                    "testserver",
-                }
-                for trusted in settings.trusted_origins:
-                    p = urllib.parse.urlparse(trusted)
-                    if p.hostname:
-                        allowed_hosts.add(p.hostname.lower())
-                if request.url.hostname:
-                    allowed_hosts.add(request.url.hostname.lower())
-                if origin_host not in allowed_hosts:
+            if not origin:
+                if settings.auth_mode != "none" and request.cookies.get("wp_session"):
                     return JSONResponse(
                         status_code=403,
-                        content={
-                            "detail": "Cross-origin request blocked: external origin not permitted."
-                        },
+                        content={"detail": "Origin header required for authenticated mutations."},
                     )
+                return await call_next(request)
+
+            def origin_key(value: str) -> tuple[str, str, int] | None:
+                parsed = urllib.parse.urlsplit(value)
+                if (
+                    parsed.scheme.lower() not in ("http", "https")
+                    or not parsed.hostname
+                    or parsed.username
+                    or parsed.password
+                    or parsed.path not in ("", "/")
+                    or parsed.query
+                    or parsed.fragment
+                ):
+                    return None
+                try:
+                    port = parsed.port
+                except ValueError:
+                    return None
+                effective_port = port or (443 if parsed.scheme.lower() == "https" else 80)
+                return parsed.scheme.lower(), parsed.hostname.lower(), effective_port
+
+            allowed_origins = {
+                key
+                for value in (str(request.base_url), *settings.trusted_origins)
+                if (key := origin_key(value)) is not None
+            }
+            if origin_key(origin) not in allowed_origins:
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Cross-origin request blocked: origin is not trusted."},
+                )
         return await call_next(request)
 
     base_dir = Path(__file__).parent
@@ -360,6 +436,8 @@ def create_app(
 
     app.state.repo = repo
     app.state.local_db = db
+    app.state.auth_manager = auth_manager
+    app.state.settings = settings
     app.state.kbc_gateway = kbc_gateway
     app.state.generic_gateway = generic_gateway
     app.state.pdt_gateway = pdt_gateway
@@ -517,9 +595,9 @@ def create_app(
             u_info = u_resp.json()
 
         email = u_info.get("email", "")
-        if not email or not settings.is_email_allowed(email):
+        if not email or not auth_manager.is_owner_email(email):
             return RedirectResponse(
-                url="/login?error=Email+not+authorized+on+this+server", status_code=303
+                url="/login?error=Configure+exactly+one+allowed+owner+email", status_code=303
             )
 
         sub = str(u_info.get("sub") or email)
@@ -608,9 +686,9 @@ def create_app(
         if not email:
             email = f"{u_info.get('login', 'github-user')}@users.noreply.github.com"
 
-        if not settings.is_email_allowed(email):
+        if not auth_manager.is_owner_email(email):
             return RedirectResponse(
-                url="/login?error=Email+not+authorized+on+this+server", status_code=303
+                url="/login?error=Configure+exactly+one+allowed+owner+email", status_code=303
             )
 
         sub = str(u_info.get("id"))
@@ -682,9 +760,9 @@ def create_app(
             u_info = u_resp.json()
 
         email = u_info.get("email") or f"{u_info.get('id')}@facebook.com"
-        if not settings.is_email_allowed(email):
+        if not auth_manager.is_owner_email(email):
             return RedirectResponse(
-                url="/login?error=Email+not+authorized+on+this+server", status_code=303
+                url="/login?error=Configure+exactly+one+allowed+owner+email", status_code=303
             )
 
         sub = str(u_info.get("id"))
@@ -873,11 +951,79 @@ def create_app(
 
     @app.post("/api/buckets/target")
     async def update_bucket_target(req: TargetWeightRequest):
+        buckets = repo.load_buckets()
+        new_weight = Decimal(str(req.target_weight_pct))
+        updated_buckets: list[Bucket] = []
+        found = False
+        for b in buckets:
+            if b.id == req.bucket_id:
+                found = True
+                updated_buckets.append(
+                    Bucket(
+                        id=b.id,
+                        name=req.name or b.name,
+                        target_weight_pct=new_weight,
+                        drift_tolerance_pct=b.drift_tolerance_pct,
+                        rules=b.rules,
+                        description=b.description,
+                        color=b.color,
+                        include_in_rebalancing=b.include_in_rebalancing,
+                        include_in_net_worth=b.include_in_net_worth,
+                    )
+                )
+            else:
+                updated_buckets.append(b)
+
+        if not found:
+            updated_buckets.append(
+                Bucket(
+                    id=req.bucket_id,
+                    name=req.name or req.bucket_id,
+                    target_weight_pct=new_weight,
+                )
+            )
+
+        try:
+            validate_bucket_weights(updated_buckets)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
         repo.save_bucket_target(
             bucket_id=req.bucket_id,
             name=req.name,
-            target_weight_pct=Decimal(str(req.target_weight_pct)),
+            target_weight_pct=new_weight,
         )
+        return {"status": "success"}
+
+    @app.post("/api/buckets/targets")
+    async def update_bucket_targets(req: BatchTargetWeightsRequest):
+        buckets = repo.load_buckets()
+        updated_buckets: list[Bucket] = []
+        for b in buckets:
+            if b.id in req.targets:
+                new_weight = Decimal(str(req.targets[b.id]))
+                updated_buckets.append(
+                    Bucket(
+                        id=b.id,
+                        name=b.name,
+                        target_weight_pct=new_weight,
+                        drift_tolerance_pct=b.drift_tolerance_pct,
+                        rules=b.rules,
+                        description=b.description,
+                        color=b.color,
+                        include_in_rebalancing=b.include_in_rebalancing,
+                        include_in_net_worth=b.include_in_net_worth,
+                    )
+                )
+            else:
+                updated_buckets.append(b)
+
+        try:
+            validate_bucket_weights(updated_buckets)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        repo.save_bucket_targets(req.targets)
         return {"status": "success"}
 
     @app.post("/api/transactions/rebucket")
@@ -1387,7 +1533,15 @@ def create_app(
                 status_code=400,
                 detail="Invalid URL scheme: only HTTP and HTTPS are permitted.",
             )
-        hostname = (parsed.hostname or "").lower()
+        if parsed.username or parsed.password or not parsed.hostname:
+            raise HTTPException(
+                status_code=400,
+                detail="MCP URL must include a hostname and cannot contain credentials.",
+            )
+        try:
+            hostname = (parsed.hostname or "").encode("idna").decode("ascii").lower()
+        except UnicodeError as exc:
+            raise HTTPException(status_code=400, detail="MCP hostname is invalid.") from exc
         if hostname in ("169.254.169.254", "metadata.google.internal", "metadata.turing"):
             raise HTTPException(
                 status_code=403,
@@ -1401,26 +1555,42 @@ def create_app(
                     detail="Access to link-local metadata addresses is prohibited.",
                 )
 
+        pinned_backend = None
         if settings.mode != "local":
             import socket
 
+            try:
+                addr_info = socket.getaddrinfo(
+                    hostname,
+                    parsed.port or (443 if parsed.scheme == "https" else 80),
+                    type=socket.SOCK_STREAM,
+                )
+            except (OSError, ValueError) as exc:
+                raise HTTPException(
+                    status_code=400, detail="MCP hostname could not be resolved."
+                ) from exc
+
             resolved_ips: list[ipaddress.IPv4Address | ipaddress.IPv6Address] = []
-            with contextlib.suppress(Exception):
-                addr_info = socket.getaddrinfo(hostname, None)
-                for info in addr_info:
-                    resolved_ips.append(ipaddress.ip_address(info[4][0]))
+            for info in addr_info:
+                try:
+                    resolved_ips.append(ipaddress.ip_address(info[4][0].split("%", 1)[0]))
+                except ValueError as exc:
+                    raise HTTPException(
+                        status_code=400, detail="MCP hostname resolved to an invalid address."
+                    ) from exc
+            if not resolved_ips:
+                raise HTTPException(
+                    status_code=400, detail="MCP hostname did not resolve to an address."
+                )
             for rip in resolved_ips:
-                if (
-                    rip.is_loopback
-                    or rip.is_private
-                    or rip.is_link_local
-                    or rip.is_reserved
-                    or rip.is_multicast
-                ):
+                if not rip.is_global:
                     raise HTTPException(
                         status_code=403,
                         detail="Access to internal or private network endpoints is prohibited.",
                     )
+            pinned_backend = _PinnedMcpNetworkBackend(
+                hostname, list(dict.fromkeys(str(resolved_ip) for resolved_ip in resolved_ips))
+            )
 
         start_t = time.time()
         headers = {
@@ -1443,7 +1613,15 @@ def create_app(
         }
 
         try:
-            async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
+            transport = (
+                httpx.AsyncHTTPTransport(network_backend=pinned_backend) if pinned_backend else None
+            )
+            async with httpx.AsyncClient(
+                timeout=5.0,
+                follow_redirects=False,
+                trust_env=False,
+                transport=transport,
+            ) as client:
                 resp = await client.post(req.url, json=payload, headers=headers)
                 latency_ms = int((time.time() - start_t) * 1000)
                 return {

@@ -1,6 +1,6 @@
 # Self-Hosting & Remote Access Guide
 
-Paslood is built local-first and privacy-respecting. You can run it on your local workstation, in a Docker container on a home server (NAS, Raspberry Pi, NUC), or deploy it to a private cloud instance.
+Paslood is built local-first and privacy-respecting. You can run it on your local workstation or in a Docker container on a home server (NAS, Raspberry Pi, NUC). Each installation has a single owner and one shared portfolio; SaaS and multi-user operation are not supported.
 
 This guide covers running Paslood containerized and securely accessing it from your smartphone or anywhere in the world.
 
@@ -109,9 +109,15 @@ For users with dynamic home IP addresses wanting direct HTTPS access:
 
 ---
 
-## 3. Social OAuth Logins
+## 3. Single-Owner Social OAuth Login
 
-You can enable seamless 1-click social logins alongside or instead of local password authentication:
+You can enable social login alongside local password authentication. OAuth is accepted only for one configured owner email because the installation uses a single portfolio:
+
+```dotenv
+PASLOOD_ALLOWED_EMAILS=you@example.com
+```
+
+Do not configure multiple addresses; the app rejects OAuth identities unless exactly one address is configured. Do not expose one installation as a shared service for multiple users.
 
 ### Google OAuth
 1. Go to [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials).
@@ -131,12 +137,6 @@ You can enable seamless 1-click social logins alongside or instead of local pass
    PASLOOD_GITHUB_CLIENT_ID=...
    PASLOOD_GITHUB_CLIENT_SECRET=...
    ```
-
-### Whitelisting Emails
-To restrict access strictly to you or family members:
-```dotenv
-PASLOOD_ALLOWED_EMAILS=alice@example.com,bob@example.com
-```
 
 ---
 

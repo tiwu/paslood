@@ -194,17 +194,7 @@ class ConfigRepository:
         if not self.config_path.exists():
             default_data = {
                 "buckets": DEFAULT_BUCKETS_CONFIG,
-                "manual_assets": [
-                    {
-                        "id": "bunq-savings",
-                        "name": "Bunq High-Yield Savings",
-                        "symbol": "SAVINGS",
-                        "asset_class": "CASH",
-                        "current_value": 15000.0,
-                        "institution": "Bunq",
-                        "currency": "EUR",
-                    }
-                ],
+                "manual_assets": [],
                 "manual_liabilities": [],
             }
             with open(self.config_path, "w", encoding="utf-8") as f:
@@ -268,6 +258,21 @@ class ConfigRepository:
         self.save_bucket(
             {"id": bucket_id, "name": name, "target_weight_pct": float(target_weight_pct)}
         )
+
+    def save_bucket_targets(self, targets: dict[str, Decimal | float]) -> None:
+        """Batch updates target weight percentages for multiple buckets."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        buckets = data.get("buckets", [])
+        for b in buckets:
+            bid = b.get("id")
+            if bid in targets:
+                b["target_weight_pct"] = float(targets[bid])
+
+        data["buckets"] = buckets
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
 
     def save_bucket(self, bucket_data: dict[str, Any]) -> str:
         """Adds or updates a strategic allocation bucket in portfolio.yaml."""
@@ -553,6 +558,7 @@ class ConfigRepository:
             },
             "language": settings.get("language", "en"),
             "regional_format": settings.get("regional_format", "auto"),
+            "onboarding_complete": bool(settings.get("onboarding_complete", False)),
         }
 
     def save_settings(self, settings_dict: dict[str, Any]) -> None:

@@ -103,6 +103,16 @@ class AuthManager:
         self._rate_limits[client_ip].append(now)
         return True
 
+    def is_owner_email(self, email: str) -> bool:
+        """Only enable OAuth for one explicitly configured owner identity."""
+        return len(self.settings.allowed_emails) == 1 and self.settings.is_email_allowed(email)
+
+    def is_owner_context(self, tenant: TenantContext) -> bool:
+        """Reject legacy sessions that do not belong to the configured owner."""
+        if tenant.user_id == "admin" and self.settings.has_password:
+            return True
+        return self.is_owner_email(tenant.email)
+
     def create_session(
         self, user_id: str, tenant_id: str | None = None, duration_secs: int = 86400 * 30
     ) -> str:
