@@ -641,15 +641,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-social-oauth-logins" class="md-nav__link">
+  <a href="#3-single-owner-social-oauth-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Social OAuth Logins
+        3. Single-Owner Social OAuth Login
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3. Social OAuth Logins">
+    <nav class="md-nav" aria-label="3. Single-Owner Social OAuth Login">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -668,17 +668,6 @@
     <span class="md-ellipsis">
       
         GitHub OAuth
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#whitelisting-emails" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Whitelisting Emails
       
     </span>
   </a>
@@ -1739,15 +1728,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-social-oauth-logins" class="md-nav__link">
+  <a href="#3-single-owner-social-oauth-login" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Social OAuth Logins
+        3. Single-Owner Social OAuth Login
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3. Social OAuth Logins">
+    <nav class="md-nav" aria-label="3. Single-Owner Social OAuth Login">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1766,17 +1755,6 @@
     <span class="md-ellipsis">
       
         GitHub OAuth
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#whitelisting-emails" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Whitelisting Emails
       
     </span>
   </a>
@@ -1848,7 +1826,7 @@
 
 
 <h1 id="self-hosting-remote-access-guide">Self-Hosting &amp; Remote Access Guide</h1>
-<p>Paslood is built local-first and privacy-respecting. You can run it on your local workstation, in a Docker container on a home server (NAS, Raspberry Pi, NUC), or deploy it to a private cloud instance.</p>
+<p>Paslood is built local-first and privacy-respecting. You can run it on your local workstation or in a Docker container on a home server (NAS, Raspberry Pi, NUC). Each installation has a single owner and one shared portfolio; SaaS and multi-user operation are not supported.</p>
 <p>This guide covers running Paslood containerized and securely accessing it from your smartphone or anywhere in the world.</p>
 <hr />
 <h2 id="1-quickstart-running-via-docker">1. Quickstart: Running via Docker</h2>
@@ -1964,16 +1942,19 @@
    Caddy will automatically provision and renew a free Let's Encrypt TLS certificate.</li>
 </ol>
 <hr />
-<h2 id="3-social-oauth-logins">3. Social OAuth Logins</h2>
-<p>You can enable seamless 1-click social logins alongside or instead of local password authentication:</p>
+<h2 id="3-single-owner-social-oauth-login">3. Single-Owner Social OAuth Login</h2>
+<p>You can enable social login alongside local password authentication. OAuth is accepted only for one configured owner email because the installation uses a single portfolio:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>PASLOOD_ALLOWED_EMAILS=you@example.com
+</code></pre></div>
+<p>Do not configure multiple addresses; the app rejects OAuth identities unless exactly one address is configured. Do not expose one installation as a shared service for multiple users.</p>
 <h3 id="google-oauth">Google OAuth</h3>
 <ol>
 <li>Go to <a href="https://console.cloud.google.com/apis/credentials">Google Cloud Console Credentials</a>.</li>
 <li>Create an <strong>OAuth 2.0 Client ID</strong> (Web application).</li>
 <li>Add Authorized redirect URI: <code>https://&lt;your-domain&gt;/auth/google/callback</code>.</li>
 <li>Add credentials to <code>.env</code>:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>PASLOOD_GOOGLE_CLIENT_ID=...
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>PASLOOD_GOOGLE_CLIENT_SECRET=...
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>PASLOOD_GOOGLE_CLIENT_ID=...
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>PASLOOD_GOOGLE_CLIENT_SECRET=...
 </code></pre></div></li>
 </ol>
 <h3 id="github-oauth">GitHub OAuth</h3>
@@ -1981,14 +1962,10 @@
 <li>In GitHub, go to <strong>Settings</strong> $\rightarrow$ <strong>Developer settings</strong> $\rightarrow$ <strong>OAuth Apps</strong> $\rightarrow$ <strong>New OAuth App</strong>.</li>
 <li>Set Authorization callback URL: <code>https://&lt;your-domain&gt;/auth/github/callback</code>.</li>
 <li>Add to <code>.env</code>:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>PASLOOD_GITHUB_CLIENT_ID=...
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>PASLOOD_GITHUB_CLIENT_SECRET=...
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>PASLOOD_GITHUB_CLIENT_ID=...
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>PASLOOD_GITHUB_CLIENT_SECRET=...
 </code></pre></div></li>
 </ol>
-<h3 id="whitelisting-emails">Whitelisting Emails</h3>
-<p>To restrict access strictly to you or family members:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>PASLOOD_ALLOWED_EMAILS=alice@example.com,bob@example.com
-</code></pre></div></p>
 <hr />
 <h2 id="4-backups-and-data-portability">4. Backups and Data Portability</h2>
 <p>All application data (portfolios, transaction cache, encrypted secrets, user database) lives inside the Docker volume <code>/data</code> (or your local directory <code>PASLOOD_DATA_DIR</code>).</p>
