@@ -6,7 +6,7 @@ This guide provides architectural principles, engineering standards, tooling com
 
 ## 1. Project Overview & Clean Architecture
 
-**Paslood** (*in het lood staan* — plumb-line alignment for your personal balance sheet) is a local-first, privacy-respecting strategic wealth planning and asset allocation platform. It unifies brokerage portfolios (PDT MCP) with off-broker bank accounts (KBC, Bunq), pension savings, real estate, loans (mortgages, consumer/vehicle loans), and employee share purchase plans (ASML on EquatePlus) to manage macro asset allocation, track portfolio drift, simulate compound wealth trajectories, optimize Belgian taxes (2026 Meerwaardebelasting, TOB, Reynders Art. 19bis), and receive strategic advice via pluggable AI advisors.
+**Paslood** (*in het lood staan* — plumb-line alignment for your personal balance sheet) is a local-first, privacy-respecting strategic wealth planning and asset allocation platform. It unifies brokerage portfolios (PDT MCP) with off-broker bank accounts (KBC, Bunq), pension savings, real estate, loans (mortgages, consumer/vehicle loans), and employee share purchase plans (EquatePlus) to manage macro asset allocation, track portfolio drift, simulate compound wealth trajectories, optimize Belgian taxes (2026 Meerwaardebelasting, TOB, Reynders Art. 19bis), and receive strategic advice via pluggable AI advisors.
 
 ### Architectural Philosophy: Pure Clean Architecture
 
