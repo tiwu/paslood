@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://tiwu.github.io/paslood/reviews/ARCHITECTURE-REVIEW/">
       
       
-        <link rel="prev" href="../../plans/PLAN-25-buckets-sum-can-be-100/">
+        <link rel="prev" href="../../plans/PLAN-29-modularize-routers-ports/">
       
       
         <link rel="next" href="../UX-REVIEW/">
@@ -1276,6 +1276,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-29-modularize-routers-ports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #29 - Modularize APIRouters & Ports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1903,6 +1931,7 @@
 <th style="text-align: left;">Location</th>
 <th style="text-align: left;">Problem</th>
 <th style="text-align: left;">Recommended Fix</th>
+<th style="text-align: left;">Status &amp; Resolution</th>
 </tr>
 </thead>
 <tbody>
@@ -1910,89 +1939,100 @@
 <td style="text-align: left;"><strong>ARCH-01</strong></td>
 <td style="text-align: left;">Critical</td>
 <td style="text-align: left;">Security / SaaS</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L1296-L1350">app.py:1296-1350</a></td>
+<td style="text-align: left;">app.py</td>
 <td style="text-align: left;"><code>/api/backup/cloud-sync</code> takes arbitrary <code>sync_dir</code> path from client request and reads/writes files on the server host.</td>
 <td style="text-align: left;">Disable host-filesystem path sync in container/SaaS mode; use browser download/upload (<code>/api/backup/export</code> &amp; <code>import</code>) or server-configured backup storage volume only.</td>
+<td style="text-align: left;"><strong>Partially Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (blocked in remote/container mode; tracked in <a href="https://github.com/tiwu/paslood/issues/30">#30</a>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-02</strong></td>
 <td style="text-align: left;">Critical</td>
 <td style="text-align: left;">Security / Auth</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L180-L1354">app.py:180-1354</a></td>
-<td style="text-align: left;">No authentication or authorization on any route. Origin check (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L209">L209</a>) only checks <code>Origin</code> header when present (easily bypassed or spoofed by non-browser clients).</td>
+<td style="text-align: left;">app.py</td>
+<td style="text-align: left;">No authentication or authorization on any route. Origin check only checks <code>Origin</code> header when present.</td>
 <td style="text-align: left;">Add OAuth2/OIDC authentication middleware + <code>CurrentTenant</code> FastAPI dependency injected into every <code>/api/*</code> router.</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (<code>AuthManager</code>, social OAuth, session cookies, external bind guard; multi-user SaaS rejected by product vision)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-03</strong></td>
 <td style="text-align: left;">Critical</td>
 <td style="text-align: left;">Concurrency / State</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L302-L305">app.py:302-305</a></td>
+<td style="text-align: left;">app.py</td>
 <td style="text-align: left;"><code>pending_oauth</code> and <code>state["pdt_assets"]</code> are module/app-scoped dicts shared across all requests and users.</td>
 <td style="text-align: left;">Store OAuth PKCE state in signed session cookie or DB table with TTL; persist PDT assets per <code>tenant_id</code> in DB (<code>discovered_assets</code>).</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/issues/29">#29</a></strong> (OAuth state persisted in SQLite <code>oauth_states</code>; PDT assets cached directly in <code>discovered_assets</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-04</strong></td>
 <td style="text-align: left;">High</td>
 <td style="text-align: left;">Clean Arch</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L307-L490">app.py:307-490</a></td>
+<td style="text-align: left;">app.py</td>
 <td style="text-align: left;"><code>get_overview</code> (200 lines) orchestrates asset deduplication, property filtering, drift AdviceItem creation, and milestone calculation inside the web layer.</td>
 <td style="text-align: left;">Extract <code>BuildPortfolioOverviewUseCase</code> in <code>use_cases/overview.py</code> tested purely against domain entities.</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a> &amp; <a href="https://github.com/tiwu/paslood/issues/29">#29</a></strong> (<code>BuildPortfolioOverviewUseCase</code> extracted in #11; <code>app.py</code> modularized into FastAPI APIRouters in #29)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-05</strong></td>
 <td style="text-align: left;">High</td>
 <td style="text-align: left;">Clean Arch / DRY</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L737-L766">app.py:737-766</a> &amp; <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L390-L409">config_repo.py:390-409</a></td>
+<td style="text-align: left;">app.py &amp; config_repo.py</td>
 <td style="text-align: left;">Loan amortization &amp; percentage-payment fallback logic is duplicated verbatim between <code>app.py</code> (using <code>float</code>) and <code>config_repo.py</code> (using <code>Decimal</code>).</td>
 <td style="text-align: left;">Move into <code>Liability.create_or_estimate(...)</code> domain factory method using <code>Decimal</code> exclusively.</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (<code>Liability.calculate_amortized_state</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-06</strong></td>
 <td style="text-align: left;">High</td>
 <td style="text-align: left;">Data / DDIA</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L166">config_repo.py:166</a>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/local_db.py#L25">local_db.py:25</a></td>
-<td style="text-align: left;">Hardcoded <code>Path.home() / ".paslood"</code> and <code>~/.pdt_auth.json</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L460">config_repo.py:460</a>); no env-var data directory configuration.</td>
+<td style="text-align: left;">config_repo.py, local_db.py</td>
+<td style="text-align: left;">Hardcoded <code>Path.home() / ".paslood"</code> and <code>~/.pdt_auth.json</code>; no env-var data directory configuration.</td>
 <td style="text-align: left;">Introduce <code>AppSettings</code> (<code>PASLOOD_DATA_DIR</code>) and migrate YAML state into tenant-scoped relational tables.</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (<code>AppSettings.from_env()</code> with <code>PASLOOD_DATA_DIR</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-07</strong></td>
 <td style="text-align: left;">High</td>
 <td style="text-align: left;">Security / SSRF</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L1114-L1165">app.py:1114-1165</a></td>
+<td style="text-align: left;">app.py</td>
 <td style="text-align: left;"><code>test_mcp_server</code> only blocks link-local IPs; permits loopback (<code>127.0.0.1</code>), private IPs (<code>10.x</code>, <code>192.168.x</code>), and DNS rebinding.</td>
 <td style="text-align: left;">Resolve hostname via <code>socket.getaddrinfo</code> and block <code>ip.is_private</code>, <code>ip.is_loopback</code>, <code>ip.is_link_local</code>, <code>ip.is_reserved</code> in SaaS/remote mode.</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (DNS resolution, global IP check, pinned backend)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-08</strong></td>
 <td style="text-align: left;">Medium</td>
 <td style="text-align: left;">Precision</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L57-L162">app.py:57-162</a>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/local_db.py#L49-L93">local_db.py:49-93</a></td>
+<td style="text-align: left;">app.py, local_db.py</td>
 <td style="text-align: left;">Request Pydantic models use <code>float</code> for money/weights; SQLite schema uses <code>REAL</code>.</td>
 <td style="text-align: left;">Use <code>Decimal</code> in Pydantic models and <code>NUMERIC(18,2)</code> / integer cents or text in SQLite/Postgres.</td>
+<td style="text-align: left;"><strong>In Progress — Tracked in <a href="https://github.com/tiwu/paslood/issues/30">#30</a></strong></td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-09</strong></td>
 <td style="text-align: left;">Medium</td>
 <td style="text-align: left;">Crypto / Secrets</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L33-L95">config_repo.py:33-95</a></td>
+<td style="text-align: left;">config_repo.py</td>
 <td style="text-align: left;">Custom home-rolled stream cipher (<code>PBKDF2</code> + HMAC-SHA256 CTR-XOR) for vault encryption; AI keys &amp; PDT tokens stored in plaintext in <code>portfolio.yaml</code>.</td>
 <td style="text-align: left;">Keep v1 decryptor for backward-compatible restore, but use standard <code>cryptography.fernet</code> / <code>AESGCM</code> for v2 vault and for per-tenant envelope encryption of stored API keys/tokens.</td>
+<td style="text-align: left;"><strong>Partially Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (<code>SecretVault</code> for keys/tokens; AES-256-GCM v2 backup vault tracked in <a href="https://github.com/tiwu/paslood/issues/30">#30</a>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-10</strong></td>
 <td style="text-align: left;">Medium</td>
 <td style="text-align: left;">CLI / Drift</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/cli.py#L61-L66">cli.py:61-66</a></td>
+<td style="text-align: left;">cli.py</td>
 <td style="text-align: left;"><code>paslood status</code> hardcodes fake cashflow numbers (<code>4800.0</code>, <code>1200.0</code>, <code>1553.92</code>, <code>800.0</code>) instead of reading <code>LocalDbRepository.get_monthly_cashflow()</code>.</td>
 <td style="text-align: left;">Wire <code>cli.py</code> to the same <code>PortfolioUnitOfWork</code> / <code>BuildPortfolioOverviewUseCase</code> as the web app.</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (<code>status</code> calls <code>BuildPortfolioOverviewUseCase</code> with real cashflow)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-11</strong></td>
 <td style="text-align: left;">Low</td>
 <td style="text-align: left;">CSP / AI</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L201">app.py:201</a></td>
+<td style="text-align: left;">app.py</td>
 <td style="text-align: left;"><code>connect-src</code> in CSP whitelists <code>generativelanguage.googleapis.com</code>, <code>api.openai.com</code>, <code>api.anthropic.com</code> even though AI calls are already executed via <code>/api/ai/advise</code> and <code>/api/ai/models</code>.</td>
-<td style="text-align: left;">Remove external LLM domains from browser <code>connect-src</code>; stop accepting raw <code>api_key</code> in <code>GET /api/ai/models</code> query params (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L673">app.py:673</a>) which leaks keys in access logs.</td>
+<td style="text-align: left;">Remove external LLM domains from browser <code>connect-src</code>; stop accepting raw <code>api_key</code> in <code>GET /api/ai/models</code> query params which leaks keys in access logs.</td>
+<td style="text-align: left;"><strong>Partially Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (CSP tightened; query param cleanup tracked in <a href="https://github.com/tiwu/paslood/issues/30">#30</a>)</td>
 </tr>
 </tbody>
 </table>
