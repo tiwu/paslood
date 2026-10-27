@@ -23,6 +23,7 @@ Please ensure all checks are satisfied before requesting review:
 - [ ] Business logic resides in Use Cases, not in web routes or controllers.
 - [ ] All financial values use `Money` and `Decimal` (no floating-point money math).
 - [ ] Avoided the zero-value truthiness trap (`value or fallback`).
+- [ ] Documentation is updated and clear.
 
 ### Testing & Verification
 - [ ] Automated tests added or updated in `tests/` capturing all changes.
