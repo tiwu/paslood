@@ -5,8 +5,10 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import json
 import sqlite3
 import time
+from typing import Any
 
 from paslood.adapters.settings import AppSettings
 from paslood.domain.identity import TenantContext, TenantRole, User
@@ -86,6 +88,15 @@ class AuthManager:
                     tenant_id TEXT,
                     expires_at REAL,
                     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS oauth_states (
+                    state_token TEXT PRIMARY KEY,
+                    data_json TEXT,
+                    expires_at REAL
                 )
                 """
             )
@@ -182,6 +193,41 @@ class AuthManager:
             with sqlite3.connect(str(self.db_path)) as conn:
                 conn.execute("DELETE FROM sessions WHERE session_id = ?", (session_id,))
                 conn.commit()
+
+    def save_oauth_state(self, state_token: str, data: dict[str, Any], ttl_secs: int = 600) -> None:
+        """Stores temporary OAuth state in SQLite with expiration."""
+        expires_at = time.time() + ttl_secs
+        with sqlite3.connect(str(self.db_path)) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO oauth_states (state_token, data_json, expires_at) VALUES (?, ?, ?)",
+                (state_token, json.dumps(data), expires_at),
+            )
+            conn.commit()
+
+    def pop_oauth_state(self, state_token: str) -> dict[str, Any] | None:
+        """Retrieves and deletes OAuth state if valid and not expired."""
+        if not state_token:
+            return None
+        now = time.time()
+        with sqlite3.connect(str(self.db_path)) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT data_json FROM oauth_states WHERE state_token = ? AND expires_at > ?",
+                (state_token, now),
+            )
+            row = cursor.fetchone()
+            conn.execute(
+                "DELETE FROM oauth_states WHERE state_token = ? OR expires_at <= ?",
+                (state_token, now),
+            )
+            conn.commit()
+            if row:
+                try:
+                    return json.loads(row["data_json"])
+                except Exception:
+                    return None
+            return None
 
     def get_or_create_user(
         self, provider: str, sub: str, email: str, display_name: str, avatar_url: str | None = None
