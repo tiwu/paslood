@@ -278,6 +278,15 @@ def test_auth_manager_unit(tmp_path: Path):
     assert u1.email == "u1@example.com"
     assert t1 == t2
 
+    # OAuth State Persistence (ARCH-03)
+    am.save_oauth_state("state-xyz", {"provider": "google", "extra": 42}, ttl_secs=60)
+    retrieved = am.pop_oauth_state("state-xyz")
+    assert retrieved == {"provider": "google", "extra": 42}
+    # Second pop returns None (single-use)
+    assert am.pop_oauth_state("state-xyz") is None
+    # Expired or nonexistent returns None
+    assert am.pop_oauth_state("nonexistent") is None
+
 
 def test_saas_mode_is_rejected_until_tenant_isolation_exists(tmp_path: Path):
     settings = AppSettings(mode="saas", data_dir=tmp_path)
