@@ -1473,6 +1473,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plans/PLAN-25-buckets-sum-can-be-100/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #25 - Bucket Weights Sum Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1841,7 +1869,7 @@
 <p>Generate a secure secret key:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span>
 </code></pre></div>
-   Paste the generated value into <code>WEALTH_PILOT_SECRET_KEY</code> in <code>.env</code>.</p>
+   Paste the generated value into <code>PASLOOD_SECRET_KEY</code> in <code>.env</code>.</p>
 </li>
 <li>
 <p>Set your admin password:
@@ -1897,7 +1925,7 @@
 <li>Generate an Auth Key in <strong>Tailscale Admin Console</strong> $\rightarrow$ <strong>Settings</strong> $\rightarrow$ <strong>Keys</strong>.</li>
 <li>In your <code>.env</code>:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>TAILSCALE_AUTHKEY=tskey-auth-...
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>WEALTH_PILOT_TRUSTED_ORIGINS=https://paslood.your-tailnet.ts.net,http://paslood:8000
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>PASLOOD_TRUSTED_ORIGINS=https://paslood.your-tailnet.ts.net,http://paslood:8000
 </code></pre></div></li>
 <li>Start with the Tailscale profile:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>tailscale<span class="w"> </span>up<span class="w"> </span>-d
@@ -1912,7 +1940,7 @@
 <li>Choose <strong>Docker</strong> as environment and copy the tunnel token.</li>
 <li>In <code>.env</code>:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>CLOUDFLARE_TUNNEL_TOKEN=eyJh...
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>WEALTH_PILOT_TRUSTED_ORIGINS=https://wealth.yourdomain.com
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>PASLOOD_TRUSTED_ORIGINS=https://wealth.yourdomain.com
 </code></pre></div></li>
 <li>Route hostname <code>wealth.yourdomain.com</code> to <code>http://paslood:8000</code> in the Cloudflare dashboard.</li>
 <li>Start:
@@ -1928,7 +1956,7 @@
 <li>In <code>.env</code>:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>DUCKDNS_DOMAIN=mywealth
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>ACME_EMAIL=your-email@example.com
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>WEALTH_PILOT_TRUSTED_ORIGINS=https://mywealth.duckdns.org
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>PASLOOD_TRUSTED_ORIGINS=https://mywealth.duckdns.org
 </code></pre></div></li>
 <li>Start with the DDNS profile:
    <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>docker<span class="w"> </span>compose<span class="w"> </span>--profile<span class="w"> </span>ddns<span class="w"> </span>up<span class="w"> </span>-d
@@ -1944,8 +1972,8 @@
 <li>Create an <strong>OAuth 2.0 Client ID</strong> (Web application).</li>
 <li>Add Authorized redirect URI: <code>https://&lt;your-domain&gt;/auth/google/callback</code>.</li>
 <li>Add credentials to <code>.env</code>:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>WEALTH_PILOT_GOOGLE_CLIENT_ID=...
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>WEALTH_PILOT_GOOGLE_CLIENT_SECRET=...
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>PASLOOD_GOOGLE_CLIENT_ID=...
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>PASLOOD_GOOGLE_CLIENT_SECRET=...
 </code></pre></div></li>
 </ol>
 <h3 id="github-oauth">GitHub OAuth</h3>
@@ -1953,23 +1981,23 @@
 <li>In GitHub, go to <strong>Settings</strong> $\rightarrow$ <strong>Developer settings</strong> $\rightarrow$ <strong>OAuth Apps</strong> $\rightarrow$ <strong>New OAuth App</strong>.</li>
 <li>Set Authorization callback URL: <code>https://&lt;your-domain&gt;/auth/github/callback</code>.</li>
 <li>Add to <code>.env</code>:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>WEALTH_PILOT_GITHUB_CLIENT_ID=...
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>WEALTH_PILOT_GITHUB_CLIENT_SECRET=...
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>PASLOOD_GITHUB_CLIENT_ID=...
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>PASLOOD_GITHUB_CLIENT_SECRET=...
 </code></pre></div></li>
 </ol>
 <h3 id="whitelisting-emails">Whitelisting Emails</h3>
 <p>To restrict access strictly to you or family members:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>WEALTH_PILOT_ALLOWED_EMAILS=alice@example.com,bob@example.com
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>PASLOOD_ALLOWED_EMAILS=alice@example.com,bob@example.com
 </code></pre></div></p>
 <hr />
 <h2 id="4-backups-and-data-portability">4. Backups and Data Portability</h2>
-<p>All application data (portfolios, transaction cache, encrypted secrets, user database) lives inside the Docker volume <code>/data</code> (or your local directory <code>WEALTH_PILOT_DATA_DIR</code>).</p>
+<p>All application data (portfolios, transaction cache, encrypted secrets, user database) lives inside the Docker volume <code>/data</code> (or your local directory <code>PASLOOD_DATA_DIR</code>).</p>
 <h3 id="taking-a-backup">Taking a Backup</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>wealthpilot_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/backup<span class="w"> </span>alpine<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>paslood_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/backup<span class="w"> </span>alpine<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span>tar<span class="w"> </span>czf<span class="w"> </span>/backup/paslood-backup-<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.tar.gz<span class="w"> </span>-C<span class="w"> </span>/data<span class="w"> </span>.
 </code></pre></div>
 <h3 id="restoring-a-backup">Restoring a Backup</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>wealthpilot_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/backup<span class="w"> </span>alpine<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span>paslood_data:/data<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/backup<span class="w"> </span>alpine<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span>tar<span class="w"> </span>xzf<span class="w"> </span>/backup/paslood-backup-YYYYMMDD.tar.gz<span class="w"> </span>-C<span class="w"> </span>/data
 </code></pre></div>
 

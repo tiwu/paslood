@@ -1423,6 +1423,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plans/PLAN-25-buckets-sum-can-be-100/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #25 - Bucket Weights Sum Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1757,7 +1785,7 @@
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Configure environment</span>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="w">  </span><span class="c1"># Copy to WEALTH_PILOT_SECRET_KEY in .env</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span><span class="w">  </span><span class="c1"># Copy to PASLOOD_SECRET_KEY in .env</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Set master admin password</span>
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>paslood<span class="w"> </span>set-password
@@ -1787,13 +1815,13 @@
 <hr />
 <h2 id="3-data-storage-privacy">3. Data Storage &amp; Privacy</h2>
 <p>All application data is stored locally in your data directory:
-- Local default: <code>~/.wealth_pilot/</code>
+- Local default: <code>~/.paslood/</code>
 - Docker default: mounted to <code>/data</code>
-- Configurable via environment variable: <code>WEALTH_PILOT_DATA_DIR</code></p>
+- Configurable via environment variable: <code>PASLOOD_DATA_DIR</code></p>
 <p>Key files created in this directory:
 - <code>portfolio.yaml</code>: User strategic buckets, asset rules, manual accounts, and liabilities.
 - <code>rules.yaml</code>: Custom transaction categorization rules.
-- <code>wealth_pilot.db</code>: SQLite database storing historical transactions, cashflow cache, and discovered holdings (WAL mode enabled).
+- <code>paslood.db</code>: SQLite database storing historical transactions, cashflow cache, and discovered holdings (WAL mode enabled).
 - <code>auth.db</code>: SQLite authentication database with encrypted session tokens and user accounts.
 - <code>.secret_key</code>: 32-byte master key for envelope encryption (<code>SecretVault</code>).</p>
 <p>All third-party credentials and AI keys are encrypted with <strong>AES-256-GCM</strong> before being written to disk.</p>

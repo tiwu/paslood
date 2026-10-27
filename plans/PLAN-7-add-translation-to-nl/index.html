@@ -1372,6 +1372,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PLAN-25-buckets-sum-can-be-100/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #25 - Bucket Weights Sum Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1629,8 +1657,8 @@
 <hr />
 <h2 id="2-architecture-plan-isolated-locale-files-complete-page-wiring">2. Architecture Plan: Isolated Locale Files &amp; Complete Page Wiring</h2>
 <h3 id="21-file-isolation-structure-single-source-of-truth">2.1 File Isolation Structure (Single Source of Truth)</h3>
-<p>All translatable strings are isolated into dedicated JSON locale files under <code>src/wealth_pilot/delivery/web/static/locales/</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>src/wealth_pilot/delivery/web/
+<p>All translatable strings are isolated into dedicated JSON locale files under <code>src/paslood/delivery/web/static/locales/</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>src/paslood/delivery/web/
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── i18n.py                       # Loads static/locales/{lang}.json dynamically
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── app.py                        # Exposes /api/i18n and /api/i18n/{lang}
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── static/
@@ -1679,7 +1707,7 @@
 <h2 id="3-test-driven-development-tdd-verification-plan">3. Test-Driven Development (TDD) &amp; Verification Plan</h2>
 <ol>
 <li><strong>Locale File Integrity Tests (<code>tests/delivery/test_i18n.py</code>)</strong>:</li>
-<li>Verify <code>en.json</code>, <code>nl.json</code>, <code>fr.json</code>, and <code>de.json</code> exist as standalone JSON files in <code>src/wealth_pilot/delivery/web/static/locales/</code>.</li>
+<li>Verify <code>en.json</code>, <code>nl.json</code>, <code>fr.json</code>, and <code>de.json</code> exist as standalone JSON files in <code>src/paslood/delivery/web/static/locales/</code>.</li>
 <li>Assert key parity across all 4 locale files (every section and key present in <code>en.json</code> exists in <code>nl.json</code>, <code>fr.json</code>, and <code>de.json</code>).</li>
 <li>Verify <code>/static/locales/nl.json</code> is served directly as a static asset.</li>
 <li>Verify <code>index.html</code> contains <code>data-i18n</code> bindings across all 6 tabs and modals.</li>
@@ -1687,7 +1715,7 @@
 <li><code>uv run ruff check src tests</code></li>
 <li><code>uv run ruff format --check src tests</code></li>
 <li><code>uv run mkdocs build --strict</code></li>
-<li><code>uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90</code></li>
+<li><code>uv run pytest -v --cov=src/paslood --cov-fail-under=90</code></li>
 </ol>
 
 

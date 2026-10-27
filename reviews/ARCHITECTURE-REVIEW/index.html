@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://tiwu.github.io/paslood/reviews/ARCHITECTURE-REVIEW/">
       
       
-        <link rel="prev" href="../../plans/PLAN-15-job-summaries/">
+        <link rel="prev" href="../../plans/PLAN-25-buckets-sum-can-be-100/">
       
       
         <link rel="next" href="../UX-REVIEW/">
@@ -1248,6 +1248,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-25-buckets-sum-can-be-100/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #25 - Bucket Weights Sum Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1855,11 +1883,11 @@
 <hr />
 <h2 id="1-executive-summary-top-5-findings">1. Executive Summary (Top 5 Findings)</h2>
 <ol>
-<li><strong>[CRITICAL] Zero Authentication &amp; Arbitrary Server-File Write (<code>app.py</code>)</strong>: All 35+ REST endpoints have no authentication. Worse, <code>POST /api/backup/cloud-sync</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L1296-L1350">app.py:1296-1350</a>) accepts an arbitrary <code>sync_dir</code> string from the JSON body and writes/reads <code>wealth_pilot_vault.wpbackup</code> anywhere on the host filesystem. In a remotely accessible or SaaS environment, this is a critical path-traversal / arbitrary file read-write vulnerability.</li>
-<li><strong>[CRITICAL] Process-Global Mutable State &amp; File-Based Single-Tenancy (<code>app.py</code>, <code>config_repo.py</code>)</strong>: <code>create_app()</code> holds mutable singleton dicts <code>pending_oauth</code> and <code>state["pdt_assets"]</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L302-L305">app.py:302-305</a>) in memory, and <code>ConfigRepository</code> does unguarded read-modify-write cycles on <code>~/.wealth_pilot/portfolio.yaml</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/adapters/repositories/config_repo.py#L166">config_repo.py:166</a>). Concurrent requests or multiple users will overwrite each other's portfolios and leak holdings across sessions.</li>
-<li><strong>[HIGH] Fat Delivery Controller &amp; Business Logic Leakage (<code>app.py</code>)</strong>: <code>app.py</code> is 1,357 lines with 35+ endpoints defined inline inside <code>create_app()</code>. Domain rules—balance sheet consolidation (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L307-L342">L307-342</a>), property exclusion filtering (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L355-L363">L355-363</a>), drift alert construction (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L380-L392">L380-392</a>), milestone math (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L474-L490">L474-490</a>), and loan amortization fallback (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L737-L766">L737-766</a>)—live inside HTTP route handlers instead of Use Cases.</li>
-<li><strong>[HIGH] Missing Repository Ports &amp; Split-Brain Persistence (<code>config_repo.py</code>, <code>local_db.py</code>)</strong>: <code>use_cases/</code> has zero <code>Protocol</code> interfaces for persistence. Manual liabilities are written to both <code>portfolio.yaml</code> and SQLite <code>discovered_liabilities</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L771-L788">app.py:771-788</a>), creating dual sources of truth. SQLite stores monetary amounts as IEEE 754 <code>REAL</code> floats (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/adapters/repositories/local_db.py#L49-L93">local_db.py:49-93</a>) instead of integer cents or exact numeric strings.</li>
-<li><strong>[MEDIUM] SSRF &amp; Secret Exposure Surfaces (<code>app.py</code>, <code>llm_client.py</code>)</strong>: <code>POST /api/settings/mcp/servers/test</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L1114-L1165">app.py:1114-1165</a>) blocks link-local IPs (<code>169.254.169.254</code>) but allows <code>127.0.0.1</code>, <code>localhost</code>, and RFC1918 private networks (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>), enabling SSRF against internal container services (including Ollama or Redis/Postgres).</li>
+<li><strong>[CRITICAL] Zero Authentication &amp; Arbitrary Server-File Write (<code>app.py</code>)</strong>: All 35+ REST endpoints have no authentication. Worse, <code>POST /api/backup/cloud-sync</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L1296-L1350">app.py:1296-1350</a>) accepts an arbitrary <code>sync_dir</code> string from the JSON body and writes/reads <code>paslood_vault.wpbackup</code> anywhere on the host filesystem. In a remotely accessible or SaaS environment, this is a critical path-traversal / arbitrary file read-write vulnerability.</li>
+<li><strong>[CRITICAL] Process-Global Mutable State &amp; File-Based Single-Tenancy (<code>app.py</code>, <code>config_repo.py</code>)</strong>: <code>create_app()</code> holds mutable singleton dicts <code>pending_oauth</code> and <code>state["pdt_assets"]</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L302-L305">app.py:302-305</a>) in memory, and <code>ConfigRepository</code> does unguarded read-modify-write cycles on <code>~/.paslood/portfolio.yaml</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L166">config_repo.py:166</a>). Concurrent requests or multiple users will overwrite each other's portfolios and leak holdings across sessions.</li>
+<li><strong>[HIGH] Fat Delivery Controller &amp; Business Logic Leakage (<code>app.py</code>)</strong>: <code>app.py</code> is 1,357 lines with 35+ endpoints defined inline inside <code>create_app()</code>. Domain rules—balance sheet consolidation (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L307-L342">L307-342</a>), property exclusion filtering (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L355-L363">L355-363</a>), drift alert construction (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L380-L392">L380-392</a>), milestone math (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L474-L490">L474-490</a>), and loan amortization fallback (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L737-L766">L737-766</a>)—live inside HTTP route handlers instead of Use Cases.</li>
+<li><strong>[HIGH] Missing Repository Ports &amp; Split-Brain Persistence (<code>config_repo.py</code>, <code>local_db.py</code>)</strong>: <code>use_cases/</code> has zero <code>Protocol</code> interfaces for persistence. Manual liabilities are written to both <code>portfolio.yaml</code> and SQLite <code>discovered_liabilities</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L771-L788">app.py:771-788</a>), creating dual sources of truth. SQLite stores monetary amounts as IEEE 754 <code>REAL</code> floats (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/local_db.py#L49-L93">local_db.py:49-93</a>) instead of integer cents or exact numeric strings.</li>
+<li><strong>[MEDIUM] SSRF &amp; Secret Exposure Surfaces (<code>app.py</code>, <code>llm_client.py</code>)</strong>: <code>POST /api/settings/mcp/servers/test</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L1114-L1165">app.py:1114-1165</a>) blocks link-local IPs (<code>169.254.169.254</code>) but allows <code>127.0.0.1</code>, <code>localhost</code>, and RFC1918 private networks (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>), enabling SSRF against internal container services (including Ollama or Redis/Postgres).</li>
 </ol>
 <hr />
 <h2 id="2-detailed-findings-table">2. Detailed Findings Table</h2>
@@ -1879,7 +1907,7 @@
 <td style="text-align: left;"><strong>ARCH-01</strong></td>
 <td style="text-align: left;">Critical</td>
 <td style="text-align: left;">Security / SaaS</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L1296-L1350">app.py:1296-1350</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L1296-L1350">app.py:1296-1350</a></td>
 <td style="text-align: left;"><code>/api/backup/cloud-sync</code> takes arbitrary <code>sync_dir</code> path from client request and reads/writes files on the server host.</td>
 <td style="text-align: left;">Disable host-filesystem path sync in container/SaaS mode; use browser download/upload (<code>/api/backup/export</code> &amp; <code>import</code>) or server-configured backup storage volume only.</td>
 </tr>
@@ -1887,15 +1915,15 @@
 <td style="text-align: left;"><strong>ARCH-02</strong></td>
 <td style="text-align: left;">Critical</td>
 <td style="text-align: left;">Security / Auth</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L180-L1354">app.py:180-1354</a></td>
-<td style="text-align: left;">No authentication or authorization on any route. Origin check (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L209">L209</a>) only checks <code>Origin</code> header when present (easily bypassed or spoofed by non-browser clients).</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L180-L1354">app.py:180-1354</a></td>
+<td style="text-align: left;">No authentication or authorization on any route. Origin check (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L209">L209</a>) only checks <code>Origin</code> header when present (easily bypassed or spoofed by non-browser clients).</td>
 <td style="text-align: left;">Add OAuth2/OIDC authentication middleware + <code>CurrentTenant</code> FastAPI dependency injected into every <code>/api/*</code> router.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-03</strong></td>
 <td style="text-align: left;">Critical</td>
 <td style="text-align: left;">Concurrency / State</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L302-L305">app.py:302-305</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L302-L305">app.py:302-305</a></td>
 <td style="text-align: left;"><code>pending_oauth</code> and <code>state["pdt_assets"]</code> are module/app-scoped dicts shared across all requests and users.</td>
 <td style="text-align: left;">Store OAuth PKCE state in signed session cookie or DB table with TTL; persist PDT assets per <code>tenant_id</code> in DB (<code>discovered_assets</code>).</td>
 </tr>
@@ -1903,7 +1931,7 @@
 <td style="text-align: left;"><strong>ARCH-04</strong></td>
 <td style="text-align: left;">High</td>
 <td style="text-align: left;">Clean Arch</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L307-L490">app.py:307-490</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L307-L490">app.py:307-490</a></td>
 <td style="text-align: left;"><code>get_overview</code> (200 lines) orchestrates asset deduplication, property filtering, drift AdviceItem creation, and milestone calculation inside the web layer.</td>
 <td style="text-align: left;">Extract <code>BuildPortfolioOverviewUseCase</code> in <code>use_cases/overview.py</code> tested purely against domain entities.</td>
 </tr>
@@ -1911,7 +1939,7 @@
 <td style="text-align: left;"><strong>ARCH-05</strong></td>
 <td style="text-align: left;">High</td>
 <td style="text-align: left;">Clean Arch / DRY</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L737-L766">app.py:737-766</a> &amp; <a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/adapters/repositories/config_repo.py#L390-L409">config_repo.py:390-409</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L737-L766">app.py:737-766</a> &amp; <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L390-L409">config_repo.py:390-409</a></td>
 <td style="text-align: left;">Loan amortization &amp; percentage-payment fallback logic is duplicated verbatim between <code>app.py</code> (using <code>float</code>) and <code>config_repo.py</code> (using <code>Decimal</code>).</td>
 <td style="text-align: left;">Move into <code>Liability.create_or_estimate(...)</code> domain factory method using <code>Decimal</code> exclusively.</td>
 </tr>
@@ -1919,15 +1947,15 @@
 <td style="text-align: left;"><strong>ARCH-06</strong></td>
 <td style="text-align: left;">High</td>
 <td style="text-align: left;">Data / DDIA</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/adapters/repositories/config_repo.py#L166">config_repo.py:166</a>, <a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/adapters/repositories/local_db.py#L25">local_db.py:25</a></td>
-<td style="text-align: left;">Hardcoded <code>Path.home() / ".wealth_pilot"</code> and <code>~/.pdt_auth.json</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/adapters/repositories/config_repo.py#L460">config_repo.py:460</a>); no env-var data directory configuration.</td>
-<td style="text-align: left;">Introduce <code>AppSettings</code> (<code>WEALTH_PILOT_DATA_DIR</code>) and migrate YAML state into tenant-scoped relational tables.</td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L166">config_repo.py:166</a>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/local_db.py#L25">local_db.py:25</a></td>
+<td style="text-align: left;">Hardcoded <code>Path.home() / ".paslood"</code> and <code>~/.pdt_auth.json</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L460">config_repo.py:460</a>); no env-var data directory configuration.</td>
+<td style="text-align: left;">Introduce <code>AppSettings</code> (<code>PASLOOD_DATA_DIR</code>) and migrate YAML state into tenant-scoped relational tables.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-07</strong></td>
 <td style="text-align: left;">High</td>
 <td style="text-align: left;">Security / SSRF</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L1114-L1165">app.py:1114-1165</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L1114-L1165">app.py:1114-1165</a></td>
 <td style="text-align: left;"><code>test_mcp_server</code> only blocks link-local IPs; permits loopback (<code>127.0.0.1</code>), private IPs (<code>10.x</code>, <code>192.168.x</code>), and DNS rebinding.</td>
 <td style="text-align: left;">Resolve hostname via <code>socket.getaddrinfo</code> and block <code>ip.is_private</code>, <code>ip.is_loopback</code>, <code>ip.is_link_local</code>, <code>ip.is_reserved</code> in SaaS/remote mode.</td>
 </tr>
@@ -1935,7 +1963,7 @@
 <td style="text-align: left;"><strong>ARCH-08</strong></td>
 <td style="text-align: left;">Medium</td>
 <td style="text-align: left;">Precision</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L57-L162">app.py:57-162</a>, <a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/adapters/repositories/local_db.py#L49-L93">local_db.py:49-93</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L57-L162">app.py:57-162</a>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/local_db.py#L49-L93">local_db.py:49-93</a></td>
 <td style="text-align: left;">Request Pydantic models use <code>float</code> for money/weights; SQLite schema uses <code>REAL</code>.</td>
 <td style="text-align: left;">Use <code>Decimal</code> in Pydantic models and <code>NUMERIC(18,2)</code> / integer cents or text in SQLite/Postgres.</td>
 </tr>
@@ -1943,7 +1971,7 @@
 <td style="text-align: left;"><strong>ARCH-09</strong></td>
 <td style="text-align: left;">Medium</td>
 <td style="text-align: left;">Crypto / Secrets</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/adapters/repositories/config_repo.py#L33-L95">config_repo.py:33-95</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L33-L95">config_repo.py:33-95</a></td>
 <td style="text-align: left;">Custom home-rolled stream cipher (<code>PBKDF2</code> + HMAC-SHA256 CTR-XOR) for vault encryption; AI keys &amp; PDT tokens stored in plaintext in <code>portfolio.yaml</code>.</td>
 <td style="text-align: left;">Keep v1 decryptor for backward-compatible restore, but use standard <code>cryptography.fernet</code> / <code>AESGCM</code> for v2 vault and for per-tenant envelope encryption of stored API keys/tokens.</td>
 </tr>
@@ -1951,7 +1979,7 @@
 <td style="text-align: left;"><strong>ARCH-10</strong></td>
 <td style="text-align: left;">Medium</td>
 <td style="text-align: left;">CLI / Drift</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/cli.py#L61-L66">cli.py:61-66</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/cli.py#L61-L66">cli.py:61-66</a></td>
 <td style="text-align: left;"><code>paslood status</code> hardcodes fake cashflow numbers (<code>4800.0</code>, <code>1200.0</code>, <code>1553.92</code>, <code>800.0</code>) instead of reading <code>LocalDbRepository.get_monthly_cashflow()</code>.</td>
 <td style="text-align: left;">Wire <code>cli.py</code> to the same <code>PortfolioUnitOfWork</code> / <code>BuildPortfolioOverviewUseCase</code> as the web app.</td>
 </tr>
@@ -1959,9 +1987,9 @@
 <td style="text-align: left;"><strong>ARCH-11</strong></td>
 <td style="text-align: left;">Low</td>
 <td style="text-align: left;">CSP / AI</td>
-<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L201">app.py:201</a></td>
+<td style="text-align: left;"><a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L201">app.py:201</a></td>
 <td style="text-align: left;"><code>connect-src</code> in CSP whitelists <code>generativelanguage.googleapis.com</code>, <code>api.openai.com</code>, <code>api.anthropic.com</code> even though AI calls are already executed via <code>/api/ai/advise</code> and <code>/api/ai/models</code>.</td>
-<td style="text-align: left;">Remove external LLM domains from browser <code>connect-src</code>; stop accepting raw <code>api_key</code> in <code>GET /api/ai/models</code> query params (<a href="file:///Users/tiwu/Downloads/paslood/src/wealth_pilot/delivery/web/app.py#L673">app.py:673</a>) which leaks keys in access logs.</td>
+<td style="text-align: left;">Remove external LLM domains from browser <code>connect-src</code>; stop accepting raw <code>api_key</code> in <code>GET /api/ai/models</code> query params (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L673">app.py:673</a>) which leaks keys in access logs.</td>
 </tr>
 </tbody>
 </table>
@@ -1969,10 +1997,10 @@
 <h2 id="3-clean-architecture-bounded-context-map-ddd">3. Clean Architecture &amp; Bounded Context Map (DDD)</h2>
 <h3 id="31-current-vs-target-layering">3.1 Current vs. Target Layering</h3>
 <ul>
-<li><strong>Domain (<code>src/wealth_pilot/domain/</code>)</strong>: 100% pure Python today (passes the Dependency Rule check—zero framework imports).</li>
-<li><strong>Use Cases (<code>src/wealth_pilot/use_cases/</code>)</strong>: Pure today, <strong>but</strong> missing repository ports (<code>Protocol</code>) and missing an application-level orchestrator for the consolidated dashboard, forcing <code>app.py</code> and <code>cli.py</code> to duplicate orchestration logic.</li>
-<li><strong>Adapters (<code>src/wealth_pilot/adapters/</code>)</strong>: <code>ConfigRepository</code> (814 lines) is a "God Repository" managing 6 distinct aggregates in one YAML file (<code>buckets</code>, <code>manual_assets</code>, <code>manual_liabilities</code>, <code>milestones</code>, <code>settings</code>, <code>rules</code>).</li>
-<li><strong>Delivery (<code>src/wealth_pilot/delivery/</code>)</strong>: Monolithic <code>app.py</code> (1,357 lines) + <code>index.html</code> (3,815 lines).</li>
+<li><strong>Domain (<code>src/paslood/domain/</code>)</strong>: 100% pure Python today (passes the Dependency Rule check—zero framework imports).</li>
+<li><strong>Use Cases (<code>src/paslood/use_cases/</code>)</strong>: Pure today, <strong>but</strong> missing repository ports (<code>Protocol</code>) and missing an application-level orchestrator for the consolidated dashboard, forcing <code>app.py</code> and <code>cli.py</code> to duplicate orchestration logic.</li>
+<li><strong>Adapters (<code>src/paslood/adapters/</code>)</strong>: <code>ConfigRepository</code> (814 lines) is a "God Repository" managing 6 distinct aggregates in one YAML file (<code>buckets</code>, <code>manual_assets</code>, <code>manual_liabilities</code>, <code>milestones</code>, <code>settings</code>, <code>rules</code>).</li>
+<li><strong>Delivery (<code>src/paslood/delivery/</code>)</strong>: Monolithic <code>app.py</code> (1,357 lines) + <code>index.html</code> (3,815 lines).</li>
 </ul>
 <h3 id="32-six-bounded-contexts">3.2 Six Bounded Contexts</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flowchart TB
@@ -2055,13 +2083,13 @@
 <li>Tables: <code>users</code>, <code>oauth_identities</code>, <code>tenants</code>, <code>tenant_memberships</code>, <code>buckets</code>, <code>bucket_rules</code>, <code>assets</code>, <code>liabilities</code>, <code>transactions</code>, <code>transaction_rules</code>, <code>milestones</code>, <code>tenant_settings</code>, <code>encrypted_secrets</code>.</li>
 <li>Every domain table includes <code>tenant_id TEXT NOT NULL</code> indexed as <code>(tenant_id, id)</code>.</li>
 <li><strong>Dual-Dialect Support (<code>DATABASE_URL</code>)</strong>:</li>
-<li><strong>Self-Hosted Default</strong>: <code>sqlite:////data/wealth_pilot.db</code> (with <code>PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;</code>). Zero extra containers required.</li>
+<li><strong>Self-Hosted Default</strong>: <code>sqlite:////data/paslood.db</code> (with <code>PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;</code>). Zero extra containers required.</li>
 <li><strong>SaaS Production</strong>: <code>postgresql+psycopg://...</code> with PostgreSQL <strong>Row-Level Security (RLS)</strong> policies (<code>USING (tenant_id = current_setting('app.current_tenant_id'))</code>) as defense-in-depth so even a buggy query cannot read another tenant's rows.</li>
-<li><strong>Automatic One-Time Migration from Legacy <code>~/.wealth_pilot/portfolio.yaml</code></strong>:</li>
+<li><strong>Automatic One-Time Migration from Legacy <code>~/.paslood/portfolio.yaml</code></strong>:</li>
 <li>On startup, if <code>portfolio.yaml</code> exists and the default tenant has not been migrated, import buckets, manual assets/liabilities, milestones, rules, and settings into the DB and rename <code>portfolio.yaml</code> to <code>portfolio.yaml.migrated.bak</code>.</li>
 <li><strong>Per-Tenant Envelope Encryption for Secrets (<code>SecretVault</code>)</strong>:</li>
 <li>AI API keys (<code>gemini</code>, <code>openai</code>, <code>anthropic</code>) and PDT OAuth tokens (<code>access_token</code>, <code>refresh_token</code>) are never stored in plaintext.</li>
-<li>Derived per-tenant Data Encryption Key (DEK) via <code>HKDF-SHA256(master_key=WEALTH_PILOT_SECRET_KEY, salt=tenant_id)</code> encrypts each secret with <code>AES-256-GCM</code>.</li>
+<li>Derived per-tenant Data Encryption Key (DEK) via <code>HKDF-SHA256(master_key=PASLOOD_SECRET_KEY, salt=tenant_id)</code> encrypts each secret with <code>AES-256-GCM</code>.</li>
 <li>Keys never leave the server: <code>GET /api/ai/models</code> uses the stored server-side key for the authenticated tenant; <code>POST /api/ai/advise</code> executes strictly server-side.</li>
 </ol>
 <hr />
@@ -2115,7 +2143,7 @@
 <li>Callback verifies <code>state</code> + PKCE <code>code_verifier</code>.</li>
 <li>Look up <code>OAuthIdentity(provider, sub)</code>.</li>
 <li>If not found and email is verified by the IdP, link to existing <code>User</code> with matching <code>primary_email</code> (or create new <code>User</code> + personal <code>Tenant</code> with default buckets).</li>
-<li><strong>Self-Host Guard</strong>: If <code>WEALTH_PILOT_ALLOWED_EMAILS</code> is set (e.g. <code>you@gmail.com,partner@gmail.com</code>), reject any login not in the allow-list with <code>403 Forbidden</code>.</li>
+<li><strong>Self-Host Guard</strong>: If <code>PASLOOD_ALLOWED_EMAILS</code> is set (e.g. <code>you@gmail.com,partner@gmail.com</code>), reject any login not in the allow-list with <code>403 Forbidden</code>.</li>
 </ul>
 <hr />
 <h2 id="6-poller-scriptspoll_issuespy-vs-github-action-evaluation">6. Poller (<code>scripts/poll_issues.py</code>) vs. GitHub Action Evaluation</h2>
@@ -2153,7 +2181,7 @@
 <tr>
 <td style="text-align: left;"></td>
 <td style="text-align: left;"><code>P1-2</code></td>
-<td style="text-align: left;"><code>feat(config): add AppSettings with WEALTH_PILOT_DATA_DIR and disable arbitrary host path sync</code></td>
+<td style="text-align: left;"><code>feat(config): add AppSettings with PASLOOD_DATA_DIR and disable arbitrary host path sync</code></td>
 <td style="text-align: left;">S</td>
 </tr>
 <tr>

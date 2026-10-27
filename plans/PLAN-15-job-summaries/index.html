@@ -18,7 +18,7 @@
         <link rel="prev" href="../PLAN-7-add-translation-to-nl/">
       
       
-        <link rel="next" href="../../reviews/ARCHITECTURE-REVIEW/">
+        <link rel="next" href="../PLAN-25-buckets-sum-can-be-100/">
       
       
         
@@ -1326,10 +1326,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#31-domain-layer-srcwealth_pilotdomain" class="md-nav__link">
+  <a href="#31-domain-layer-srcpaslooddomain" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.1 Domain Layer (src/wealth_pilot/domain/)
+        3.1 Domain Layer (src/paslood/domain/)
       
     </span>
   </a>
@@ -1337,10 +1337,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#32-use-cases-layer-srcwealth_pilotuse_cases" class="md-nav__link">
+  <a href="#32-use-cases-layer-srcpaslooduse_cases" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.2 Use Cases Layer (src/wealth_pilot/use_cases/)
+        3.2 Use Cases Layer (src/paslood/use_cases/)
       
     </span>
   </a>
@@ -1348,10 +1348,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#33-adapters-repositories-srcwealth_pilotadapters" class="md-nav__link">
+  <a href="#33-adapters-repositories-srcpasloodadapters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.3 Adapters &amp; Repositories (src/wealth_pilot/adapters/)
+        3.3 Adapters &amp; Repositories (src/paslood/adapters/)
       
     </span>
   </a>
@@ -1400,6 +1400,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PLAN-25-buckets-sum-can-be-100/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #25 - Bucket Weights Sum Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1588,10 +1616,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#31-domain-layer-srcwealth_pilotdomain" class="md-nav__link">
+  <a href="#31-domain-layer-srcpaslooddomain" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.1 Domain Layer (src/wealth_pilot/domain/)
+        3.1 Domain Layer (src/paslood/domain/)
       
     </span>
   </a>
@@ -1599,10 +1627,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#32-use-cases-layer-srcwealth_pilotuse_cases" class="md-nav__link">
+  <a href="#32-use-cases-layer-srcpaslooduse_cases" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.2 Use Cases Layer (src/wealth_pilot/use_cases/)
+        3.2 Use Cases Layer (src/paslood/use_cases/)
       
     </span>
   </a>
@@ -1610,10 +1638,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#33-adapters-repositories-srcwealth_pilotadapters" class="md-nav__link">
+  <a href="#33-adapters-repositories-srcpasloodadapters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.3 Adapters &amp; Repositories (src/wealth_pilot/adapters/)
+        3.3 Adapters &amp; Repositories (src/paslood/adapters/)
       
     </span>
   </a>
@@ -1723,17 +1751,17 @@
 </ul>
 <hr />
 <h2 id="3-hexagonal-architecture-impact">3. Hexagonal Architecture Impact</h2>
-<h3 id="31-domain-layer-srcwealth_pilotdomain">3.1 Domain Layer (<code>src/wealth_pilot/domain/</code>)</h3>
+<h3 id="31-domain-layer-srcpaslooddomain">3.1 Domain Layer (<code>src/paslood/domain/</code>)</h3>
 <ul>
 <li>Pure Python domain models (<code>Money</code>, <code>Asset</code>, <code>Liability</code>, <code>Bucket</code>, <code>BalanceSheet</code>, <code>User</code>, <code>TenantContext</code>) remain 100% untouched.</li>
 <li>Invariants maintained: zero external dependencies, pure standard library, exact <code>Decimal</code> arithmetic.</li>
 </ul>
-<h3 id="32-use-cases-layer-srcwealth_pilotuse_cases">3.2 Use Cases Layer (<code>src/wealth_pilot/use_cases/</code>)</h3>
+<h3 id="32-use-cases-layer-srcpaslooduse_cases">3.2 Use Cases Layer (<code>src/paslood/use_cases/</code>)</h3>
 <ul>
 <li>Application orchestrators (<code>CalculateBucketAllocation</code>, <code>OptimizeTax</code>, <code>AdviseDebtPayoff</code>, <code>BuildOverview</code>, etc.) remain untouched.</li>
 <li>Pure input/output boundaries preserved.</li>
 </ul>
-<h3 id="33-adapters-repositories-srcwealth_pilotadapters">3.3 Adapters &amp; Repositories (<code>src/wealth_pilot/adapters/</code>)</h3>
+<h3 id="33-adapters-repositories-srcpasloodadapters">3.3 Adapters &amp; Repositories (<code>src/paslood/adapters/</code>)</h3>
 <ul>
 <li>Adapters, repositories, and third-party gateways remain untouched.</li>
 </ul>
@@ -1759,7 +1787,7 @@
 <li><strong>Refactor &amp; Quality</strong>:</li>
 <li>Ensure clean formatting and no lint warnings (<code>uv run ruff check src tests scripts</code>).</li>
 <li>Validate documentation build (<code>uv run mkdocs build --strict</code>).</li>
-<li>Verify overall test coverage remains $\ge 90\%$ (<code>uv run pytest --cov=src/wealth_pilot --cov-fail-under=90</code>).</li>
+<li>Verify overall test coverage remains $\ge 90\%$ (<code>uv run pytest --cov=src/paslood --cov-fail-under=90</code>).</li>
 </ol>
 <hr />
 <h2 id="5-verification-rollout-checklist">5. Verification &amp; Rollout Checklist</h2>

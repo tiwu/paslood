@@ -1242,10 +1242,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#31-domain-layer-srcwealth_pilotdomain" class="md-nav__link">
+  <a href="#31-domain-layer-srcpaslooddomain" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.1 Domain Layer (src/wealth_pilot/domain/)
+        3.1 Domain Layer (src/paslood/domain/)
       
     </span>
   </a>
@@ -1253,10 +1253,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#32-use-cases-layer-srcwealth_pilotuse_cases" class="md-nav__link">
+  <a href="#32-use-cases-layer-srcpaslooduse_cases" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.2 Use Cases Layer (src/wealth_pilot/use_cases/)
+        3.2 Use Cases Layer (src/paslood/use_cases/)
       
     </span>
   </a>
@@ -1264,10 +1264,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#33-adapters-repositories-srcwealth_pilotadapters" class="md-nav__link">
+  <a href="#33-adapters-repositories-srcpasloodadapters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.3 Adapters &amp; Repositories (src/wealth_pilot/adapters/)
+        3.3 Adapters &amp; Repositories (src/paslood/adapters/)
       
     </span>
   </a>
@@ -1275,10 +1275,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#34-delivery-frameworks-srcwealth_pilotdelivery" class="md-nav__link">
+  <a href="#34-delivery-frameworks-srcpaslooddelivery" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.4 Delivery Frameworks (src/wealth_pilot/delivery/)
+        3.4 Delivery Frameworks (src/paslood/delivery/)
       
     </span>
   </a>
@@ -1392,6 +1392,34 @@
     
   
     Issue #15 - Workflow Job Summaries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PLAN-25-buckets-sum-can-be-100/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #25 - Bucket Weights Sum Validation
   
 
     
@@ -1588,10 +1616,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#31-domain-layer-srcwealth_pilotdomain" class="md-nav__link">
+  <a href="#31-domain-layer-srcpaslooddomain" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.1 Domain Layer (src/wealth_pilot/domain/)
+        3.1 Domain Layer (src/paslood/domain/)
       
     </span>
   </a>
@@ -1599,10 +1627,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#32-use-cases-layer-srcwealth_pilotuse_cases" class="md-nav__link">
+  <a href="#32-use-cases-layer-srcpaslooduse_cases" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.2 Use Cases Layer (src/wealth_pilot/use_cases/)
+        3.2 Use Cases Layer (src/paslood/use_cases/)
       
     </span>
   </a>
@@ -1610,10 +1638,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#33-adapters-repositories-srcwealth_pilotadapters" class="md-nav__link">
+  <a href="#33-adapters-repositories-srcpasloodadapters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.3 Adapters &amp; Repositories (src/wealth_pilot/adapters/)
+        3.3 Adapters &amp; Repositories (src/paslood/adapters/)
       
     </span>
   </a>
@@ -1621,10 +1649,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#34-delivery-frameworks-srcwealth_pilotdelivery" class="md-nav__link">
+  <a href="#34-delivery-frameworks-srcpaslooddelivery" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3.4 Delivery Frameworks (src/wealth_pilot/delivery/)
+        3.4 Delivery Frameworks (src/paslood/delivery/)
       
     </span>
   </a>
@@ -1700,21 +1728,21 @@
 </ul>
 <hr />
 <h2 id="3-hexagonal-architecture-impact">3. Hexagonal Architecture Impact</h2>
-<h3 id="31-domain-layer-srcwealth_pilotdomain">3.1 Domain Layer (<code>src/wealth_pilot/domain/</code>)</h3>
+<h3 id="31-domain-layer-srcpaslooddomain">3.1 Domain Layer (<code>src/paslood/domain/</code>)</h3>
 <ul>
 <li>Entities / Value Objects modified or introduced</li>
 <li>Invariants maintained (pure Python, Decimal money arithmetic, no framework imports)</li>
 </ul>
-<h3 id="32-use-cases-layer-srcwealth_pilotuse_cases">3.2 Use Cases Layer (<code>src/wealth_pilot/use_cases/</code>)</h3>
+<h3 id="32-use-cases-layer-srcpaslooduse_cases">3.2 Use Cases Layer (<code>src/paslood/use_cases/</code>)</h3>
 <ul>
 <li>Application orchestrators added or updated</li>
 <li>Pure input/output interfaces</li>
 </ul>
-<h3 id="33-adapters-repositories-srcwealth_pilotadapters">3.3 Adapters &amp; Repositories (<code>src/wealth_pilot/adapters/</code>)</h3>
+<h3 id="33-adapters-repositories-srcpasloodadapters">3.3 Adapters &amp; Repositories (<code>src/paslood/adapters/</code>)</h3>
 <ul>
 <li>Gateways, database schemas (<code>LocalDbRepository</code>), external API clients</li>
 </ul>
-<h3 id="34-delivery-frameworks-srcwealth_pilotdelivery">3.4 Delivery Frameworks (<code>src/wealth_pilot/delivery/</code>)</h3>
+<h3 id="34-delivery-frameworks-srcpaslooddelivery">3.4 Delivery Frameworks (<code>src/paslood/delivery/</code>)</h3>
 <ul>
 <li>REST endpoints in <code>app.py</code>, template additions in <code>index.html</code>, CLI commands in <code>cli.py</code></li>
 </ul>
@@ -1725,12 +1753,12 @@
 <li>Specific unit tests in <code>tests/unit/</code></li>
 <li>Specific delivery/integration tests in <code>tests/delivery/</code></li>
 <li><strong>Green (Implementation)</strong>:</li>
-<li>Minimal implementation code in <code>src/wealth_pilot/</code></li>
+<li>Minimal implementation code in <code>src/paslood/</code></li>
 <li><strong>Refactor &amp; Quality</strong>:</li>
 <li>Clean architecture check</li>
 <li>Zero lint errors (<code>uv run ruff check</code>)</li>
 <li>Format check (<code>uv run ruff format --check</code>)</li>
-<li>90%+ coverage (<code>uv run pytest --cov=src/wealth_pilot --cov-fail-under=90</code>)</li>
+<li>90%+ coverage (<code>uv run pytest --cov=src/paslood --cov-fail-under=90</code>)</li>
 </ol>
 <hr />
 <h2 id="5-verification-rollout-checklist">5. Verification &amp; Rollout Checklist</h2>
