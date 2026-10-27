@@ -89,3 +89,23 @@ class BucketAllocationResult:
     color: str = "#3B82F6"
     include_in_rebalancing: bool = True
     include_in_net_worth: bool = True
+
+
+def calculate_active_bucket_weight_sum(buckets: list[Bucket]) -> Decimal:
+    """Calculate the sum of target weights for active (rebalanceable) buckets."""
+    active = [b for b in buckets if b.include_in_rebalancing]
+    return sum((b.target_weight_pct for b in active), Decimal("0.0"))
+
+
+def validate_bucket_weights(buckets: list[Bucket], tolerance: Decimal = Decimal("0.01")) -> None:
+    """Validate that active (rebalanceable) buckets sum to 100% within tolerance.
+
+    Raises:
+        ValueError: If active buckets sum does not equal 100.0% within tolerance.
+    """
+    active = [b for b in buckets if b.include_in_rebalancing]
+    if not active:
+        return
+    total = calculate_active_bucket_weight_sum(buckets)
+    if abs(total - Decimal("100.0")) > tolerance:
+        raise ValueError(f"Active bucket target weights must sum to 100% (currently {total}%).")

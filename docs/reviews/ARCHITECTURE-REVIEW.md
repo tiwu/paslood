@@ -1,5 +1,7 @@
 # Paslood — Software Architecture & SaaS/IaaS Readiness Review
 
+> Historical assessment dated 2026-10-25. The application currently enforces a single-owner storage model and rejects SaaS mode; SaaS and multi-user recommendations below are not current product capabilities.
+
 - **Date**: 2026-10-25
 - **Lenses Applied**: Clean Architecture (`.agents/skills/clean-architecture`), Kent Beck Simple Design (`.agents/skills/kent-beck-style`), Domain-Driven Design (`.agents/skills/domain-driven-design`), Designing Data-Intensive Applications (`.agents/skills/ddia-systems`)
 - **Strategic Target**: Dual-mode deployment — **Self-Hosted Container / IaaS** (Docker + Tailscale/Cloudflare/DDNS) and **Multi-Tenant SaaS** with OAuth/OIDC Social Login (Google, GitHub, Meta), server-side AI, and strict tenant isolation.

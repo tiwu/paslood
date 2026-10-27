@@ -1,5 +1,7 @@
 # Paslood — Product UI/UX & Information Architecture Review
 
+> Historical assessment dated 2026-10-25. It describes planned SaaS and multi-user flows that the application does not currently support.
+
 - **Date**: 2026-10-25
 - **Lenses Applied**: Usability Heuristics (`.agents/skills/ux-heuristics`), Visual Hierarchy & Dark UI (`.agents/skills/refactoring-ui`), Jobs-to-be-Done (`.agents/skills/jobs-to-be-done`)
 - **Primary Sources Audited**: `src/paslood/delivery/web/templates/index.html` (3,815 lines), `src/paslood/delivery/web/i18n.py`, `src/paslood/cli.py`

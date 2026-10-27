@@ -104,9 +104,32 @@ async def test_local_origin_protection_blocks_external_csrf(test_app):
         # Trusted local origin should be permitted
         resp_allowed = await client.post(
             "/api/data/reset-cache",
-            headers={"Origin": "http://localhost:8000"},
+            headers={"Origin": "http://test"},
         )
         assert resp_allowed.status_code == 200
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("origin", ["https://test", "http://test:8001"])
+async def test_local_origin_protection_requires_exact_scheme_and_port(test_app, origin):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post("/api/data/reset-cache", headers={"Origin": origin})
+
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_onboarding_completion_is_saved_server_side(test_app):
+    transport = ASGITransport(app=test_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        initial = await client.get("/api/settings")
+        saved = await client.post("/api/settings", json={"onboarding_complete": True})
+        current = await client.get("/api/settings")
+
+    assert initial.json()["onboarding_complete"] is False
+    assert saved.status_code == 200
+    assert current.json()["onboarding_complete"] is True
 
 
 @pytest.mark.asyncio

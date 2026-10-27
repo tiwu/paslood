@@ -24,7 +24,7 @@ Paslood unifies your PDT portfolio with your off-broker balance sheet to answer 
 - **Privacy & Security First**:
   - Local SQLite with WAL mode + AES-256-GCM envelope encryption (`SecretVault`).
   - Network bind guard preventing unauthenticated public exposure.
-  - Multi-tenant isolation ready for private self-hosting or SaaS.
+  - Single-owner private self-hosting; multi-user and SaaS modes are not supported.
 - **Flexible Delivery**:
   - **Web Dashboard**: Responsive dark-mode dashboard (with mobile bottom navigation & PWA support).
   - **Scriptable CLI**: Direct terminal reporting (`status`, `advise`, `ingest`, `set-password`).
@@ -109,9 +109,9 @@ Paslood includes a secure, built-in identity and session manager:
    uv run paslood set-password
    ```
 2. **Social OAuth 2.0**:
-   Configure `PASLOOD_GOOGLE_CLIENT_ID`, `PASLOOD_GITHUB_CLIENT_ID`, or `PASLOOD_META_CLIENT_ID` in `.env` to enable 1-click social logins.
-3. **Email Whitelisting**:
-   Restrict access exclusively to authorized users via `PASLOOD_ALLOWED_EMAILS=alice@example.com,bob@example.com`.
+   Configure a provider and exactly one `PASLOOD_ALLOWED_EMAILS` owner address to enable social login. Multiple OAuth identities are rejected because storage is single-owner.
+3. **Single-Owner Storage**:
+   Password and OAuth access share one portfolio. SaaS mode is deliberately rejected until tenant-scoped persistence is implemented.
 4. **Envelope Encryption**:
    Sensitive API keys and external credentials stored in `portfolio.yaml` are encrypted at rest with AES-256-GCM using per-tenant keys derived via HKDF-SHA256.
 

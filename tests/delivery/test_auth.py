@@ -9,7 +9,7 @@ from httpx import ASGITransport, AsyncClient, Response
 from paslood.adapters.repositories.config_repo import ConfigRepository
 from paslood.adapters.settings import AppSettings
 from paslood.delivery.web.app import create_app
-from paslood.delivery.web.auth import hash_password
+from paslood.delivery.web.auth import AuthManager, hash_password
 
 
 @pytest.fixture
@@ -45,6 +45,35 @@ async def test_unauthenticated_access_is_blocked(auth_app):
         res_page = await client.get("/")
         assert res_page.status_code == 307
         assert res_page.headers["location"] == "/login"
+
+
+@pytest.mark.asyncio
+async def test_existing_session_for_second_identity_is_rejected(auth_app):
+    auth_manager = auth_app.state.auth_manager
+    user, tenant_id = auth_manager.get_or_create_user(
+        "google", "second-subject", "second@example.com", "Second User"
+    )
+    token = auth_manager.create_session(user.id, tenant_id)
+
+    transport = ASGITransport(app=auth_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/api/overview", cookies={"wp_session": token})
+
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_authenticated_mutation_requires_origin(auth_app):
+    auth_manager = auth_app.state.auth_manager
+    tenant = auth_manager.authenticate_local_password("secret-master-pass")
+    assert tenant is not None
+    token = auth_manager.create_session(tenant.user_id, tenant.tenant_id)
+
+    transport = ASGITransport(app=auth_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post("/api/data/reset-cache", cookies={"wp_session": token})
+
+    assert response.status_code == 403
 
 
 @pytest.mark.asyncio
@@ -146,7 +175,7 @@ async def test_oauth_unauthorized_email_rejected(auth_app):
                 f"/auth/google/callback?code=mock-code&state={state_token}", follow_redirects=False
             )
             assert res_cb.status_code == 303
-            assert "error=Email+not+authorized" in res_cb.headers["location"]
+            assert "error=Configure+exactly+one+allowed+owner+email" in res_cb.headers["location"]
 
 
 @pytest.mark.asyncio
@@ -209,7 +238,6 @@ async def test_meta_oauth_callback(auth_app):
 
 def test_auth_manager_unit(tmp_path: Path):
     from paslood.adapters.settings import AppSettings
-    from paslood.delivery.web.auth import AuthManager
 
     settings = AppSettings(
         data_dir=tmp_path,
@@ -249,3 +277,24 @@ def test_auth_manager_unit(tmp_path: Path):
     assert u1.id == u2.id
     assert u1.email == "u1@example.com"
     assert t1 == t2
+
+
+def test_saas_mode_is_rejected_until_tenant_isolation_exists(tmp_path: Path):
+    settings = AppSettings(mode="saas", data_dir=tmp_path)
+
+    with pytest.raises(ValueError, match="SaaS mode is not supported"):
+        create_app(app_settings=settings)
+
+
+def test_oauth_owner_allowlist_must_identify_exactly_one_email(tmp_path: Path):
+    settings = AppSettings(
+        data_dir=tmp_path,
+        secret_key="test-auth-secret-key",
+        auth_mode="oauth",
+        allowed_emails={"owner@example.com", "another@example.com"},
+    )
+    auth_manager = AuthManager(settings)
+
+    assert not auth_manager.is_owner_email("owner@example.com")
+    settings.allowed_emails = {"owner@example.com"}
+    assert auth_manager.is_owner_email("OWNER@example.com")

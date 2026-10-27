@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Live Bucket Allocation Total Badge**: Added real-time sum indicator badge and batch target update endpoint (`POST /api/buckets/targets`) allowing atomic allocation reallocation.
 
 ### Changed
 
 ### Fixed
+- **Bucket Allocation Balance Enforcement (#25)**: Prevented bucket target weights summing to >100% with domain validation and disabled save action when active buckets are unbalanced.
 
 ---
 

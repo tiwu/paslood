@@ -52,6 +52,29 @@ def test_modular_js_files_exist_and_index_is_clean():
         assert f'/static/js/{mod}"' in index_html, f"index.html missing script tag for {mod}"
 
 
+def test_ai_privacy_disclosure_covers_prompt_data_and_provider():
+    index_html = (TEMPLATES_DIR / "index.html").read_text(encoding="utf-8")
+    guidance_js = (JS_MODULES_DIR / "guidance.js").read_text(encoding="utf-8")
+    en_locale = json.loads((STATIC_DIR / "locales" / "en.json").read_text(encoding="utf-8"))
+
+    for key in [
+        "ai.privacy_title",
+        "ai.privacy_notice",
+        "ai.privacy_item_totals",
+        "ai.privacy_item_buckets",
+        "ai.privacy_item_debts",
+        "ai.privacy_item_engine_findings",
+        "ai.privacy_item_question",
+    ]:
+        assert f'data-i18n="{key}"' in index_html
+        section, item = key.split(".", 1)
+        assert en_locale[section][item]
+
+    assert "privacy_provider_local" in guidance_js
+    assert "privacy_provider_ollama" in guidance_js
+    assert "privacy_provider_cloud" in guidance_js
+
+
 def test_all_static_js_and_inline_scripts_valid_syntax():
     """Validate every static .js file and any inline <script> tag with `node --check`."""
     js_files = list(STATIC_DIR.rglob("*.js"))
@@ -105,7 +128,7 @@ async def test_static_js_files_served_by_fastapi(test_app):
 def test_inline_event_handlers_reference_defined_functions():
     """Verify every inline on*='...' attribute in HTML has valid JS syntax and calls defined functions."""
     combined_js = "\n".join(p.read_text(encoding="utf-8") for p in sorted(STATIC_DIR.rglob("*.js")))
-    defined_funcs = set(re.findall(r"function\s+([a-zA-Z0-9_]+)\s*\(", combined_js))
+    defined_funcs = set(re.findall(r"(?:async\s+)?function\s+([a-zA-Z0-9_]+)\s*\(", combined_js))
 
     for html_file in sorted(TEMPLATES_DIR.glob("*.html")):
         html = html_file.read_text(encoding="utf-8")

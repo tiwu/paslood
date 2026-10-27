@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
+      - name: Audit locked dependencies
+        run: uv audit --preview-features audit
+
       - name: Run Ruff Linter
         id: linter
         run: uv run ruff check src tests scripts
@@ -95,6 +98,5 @@ jobs:
             --status "${{ steps.test.outcome }}" \
             --ui-status "${{ steps.ui_test.outcome }}" \
             --run-id "${{ github.run_id }}"
-
 
 

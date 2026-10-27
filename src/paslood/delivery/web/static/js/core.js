@@ -220,8 +220,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     await I18N.init();
   }
   syncThemeToggleUI();
+  const savedSettings = typeof loadSettings === 'function' ? await loadSettings() : null;
   await loadOverview();
-  if (typeof loadSettings === 'function') await loadSettings();
   if (typeof runTaxSimulation === 'function') await runTaxSimulation();
   if (typeof refreshAiModels === 'function') await refreshAiModels();
 
@@ -238,7 +238,24 @@ window.addEventListener('DOMContentLoaded', async () => {
   } catch (e) {}
 
   // Check first-time setup
-  if (localStorage.getItem('paslood_setup_completed') !== 'true') {
+  if (savedSettings?.onboarding_complete) {
+    localStorage.setItem('paslood_setup_completed', 'true');
+  } else if (
+    savedSettings &&
+    localStorage.getItem('paslood_setup_completed') === 'true' &&
+    typeof saveWizardSettings === 'function'
+  ) {
+    try {
+      await saveWizardSettings({ onboarding_complete: true });
+      savedSettings.onboarding_complete = true;
+    } catch (err) {
+      console.error('Failed to migrate setup completion state:', err);
+    }
+  }
+  if (
+    !savedSettings?.onboarding_complete &&
+    localStorage.getItem('paslood_setup_completed') !== 'true'
+  ) {
     if (typeof openSetupWizard === 'function') openSetupWizard();
   }
 

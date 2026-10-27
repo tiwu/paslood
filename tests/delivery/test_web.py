@@ -96,10 +96,10 @@ async def test_kbc_file_upload_and_rebucketing(test_app):
 async def test_update_target_and_ai_consultation(test_app):
     transport = ASGITransport(app=test_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        # Update target weight
+        # Update target weights
         tgt_resp = await client.post(
-            "/api/buckets/target",
-            json={"bucket_id": "core-etf", "name": "Core World ETFs", "target_weight_pct": 55.0},
+            "/api/buckets/targets",
+            json={"targets": {"core-etf": 55.0, "tech-growth": 30.0}},
         )
         assert tgt_resp.status_code == 200
 

@@ -387,14 +387,22 @@
 
     <!-- TAB 2: BUCKETS & DRIFT -->
     <section id="tab-buckets" class="tab-content space-y-6">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 data-i18n="buckets.title" class="text-lg font-bold text-white">Strategic Allocation Buckets</h2>
           <p data-i18n="buckets.subtitle" class="text-xs text-slate-400">Define macro pillars, set target percentages, and track portfolio drift.</p>
         </div>
-        <button onclick="openAddBucketModal()" data-i18n="buckets.add_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition">
-          + Add Bucket
-        </button>
+        <div class="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          <div id="bucket-total-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            Balanced (100%)
+          </div>
+          <button id="btn-save-bucket-targets" onclick="saveBucketTargets()" data-i18n="buckets.save_targets_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            💾 Save Allocations
+          </button>
+          <button onclick="openAddBucketModal()" data-i18n="buckets.add_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow transition">
+            + Add Bucket
+          </button>
+        </div>
       </div>
 
       <!-- Buckets Table -->
@@ -904,7 +912,7 @@
               <span id="ai-active-provider-badge" class="text-xs font-medium text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">Configured in Settings</span>
             </h3>
             <p data-i18n="ai.subtitle" class="text-xs text-slate-400 mt-1">
-              Your consolidated financial data (net worth, bucket drift, debts, cashflow) is synthesized into an anonymized prompt for qualitative strategic review.
+              Your financial data is included in the advisory prompt; review what is shared before using an external provider.
             </p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -915,6 +923,24 @@
               <span data-i18n="ai.run_btn">⚡ Run Strategic Review</span>
             </button>
           </div>
+        </div>
+
+        <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-100 space-y-2" role="note">
+          <p data-i18n="ai.privacy_title" class="font-semibold">Privacy before you run an AI review</p>
+          <p data-i18n="ai.privacy_notice" class="text-amber-100/80">
+            Your selected advisor may receive the financial details below. Paslood does not send account numbers, but financial values can still be identifying. Choose Algorithmic in Settings for a local, rule-based review.
+          </p>
+          <p id="ai-data-provider" class="font-medium" aria-live="polite"></p>
+          <details class="text-amber-100/80">
+            <summary data-i18n="ai.privacy_details" class="cursor-pointer">Show the data included in the prompt</summary>
+            <ul class="list-disc pl-5 pt-2 space-y-1">
+              <li data-i18n="ai.privacy_item_totals">Total assets, liabilities, net worth, income, debt payments, free cashflow, and savings rate.</li>
+              <li data-i18n="ai.privacy_item_buckets">Bucket names, allocation percentages, differences, and status.</li>
+              <li data-i18n="ai.privacy_item_debts">Liability names, balances, interest rates, and monthly payments.</li>
+              <li data-i18n="ai.privacy_item_engine_findings">Algorithmic advice titles and explanations.</li>
+              <li data-i18n="ai.privacy_item_question">Your question or scenario, if you enter one.</li>
+            </ul>
+          </details>
         </div>
 
         <!-- Default Strategy Prompts / Quick Questions -->
@@ -1512,13 +1538,14 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label data-i18n="modals.bucket_target_label" class="block font-medium text-slate-300 mb-1">Target Weight (%)</label>
-            <input type="number" id="bucket-modal-target" step="0.5" min="0" max="100" placeholder="e.g. 15.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <input type="number" id="bucket-modal-target" step="0.5" min="0" max="100" placeholder="e.g. 15.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono" oninput="updateModalProjectedTotal()">
           </div>
           <div>
             <label data-i18n="modals.bucket_tolerance_label" class="block font-medium text-slate-300 mb-1">Drift Tolerance (±%)</label>
             <input type="number" id="bucket-modal-tolerance" step="0.5" min="0.5" max="20" value="3.0" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
         </div>
+        <div id="bucket-modal-total-hint" class="text-[11px] text-slate-400 font-medium"></div>
         <div>
           <label data-i18n="modals.bucket_color_label" class="block font-medium text-slate-300 mb-1.5">Color Palette</label>
           <div id="bucket-color-picker" class="flex items-center gap-2 pt-1 flex-wrap">
