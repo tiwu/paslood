@@ -144,7 +144,7 @@ def update_pyproject_version(pyproject_content: str, new_version: str) -> str:
 
 
 def update_init_version(init_content: str, new_version: str) -> str:
-    """Update __version__ = "..." in src/wealth_pilot/__init__.py."""
+    """Update __version__ = "..." in src/paslood/__init__.py."""
     pattern = r'(__version__\s*=\s*")[^"]+(")'
     updated, count = re.subn(pattern, rf"\g<1>{new_version}\g<2>", init_content, count=1)
     if count == 0:
@@ -160,7 +160,7 @@ def perform_bump(
     """Orchestrate version bumping across pyproject.toml, __init__.py, and CHANGELOG.md."""
     root = Path(root_dir)
     pyproject_path = root / "pyproject.toml"
-    init_path = root / "src" / "wealth_pilot" / "__init__.py"
+    init_path = root / "src" / "paslood" / "__init__.py"
     changelog_path = root / "CHANGELOG.md"
 
     if not pyproject_path.exists():

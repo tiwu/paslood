@@ -39,11 +39,10 @@ dev = [
 ]
 
 [project.scripts]
-paslood = "wealth_pilot.cli:app"
-wealth-pilot = "wealth_pilot.cli:app"
+paslood = "paslood.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/wealth_pilot"]
+packages = ["src/paslood"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"

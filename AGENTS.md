@@ -6,14 +6,14 @@ This guide provides architectural principles, engineering standards, tooling com
 
 ## 1. Project Overview & Clean Architecture
 
-**Paslood** (*in het lood staan* — plumb-line alignment for your personal balance sheet) is a local-first, privacy-respecting strategic wealth planning and asset allocation platform. It unifies brokerage portfolios (PDT MCP) with off-broker bank accounts (KBC, Bunq), pension savings, real estate, loans (mortgages, consumer/vehicle loans), and employee share purchase plans (ASML on EquatePlus) to manage macro asset allocation, track portfolio drift, simulate compound wealth trajectories, optimize Belgian taxes (2026 Meerwaardebelasting, TOB, Reynders Art. 19bis), and receive strategic advice via pluggable AI advisors.
+**Paslood** (*in het lood staan* — plumb-line alignment for your personal balance sheet) is a local-first, privacy-respecting strategic wealth planning and asset allocation platform. It unifies brokerage portfolios (PDT MCP) with off-broker bank accounts (KBC, Bunq), pension savings, real estate, loans (mortgages, consumer/vehicle loans), and employee share purchase plans (EquatePlus) to manage macro asset allocation, track portfolio drift, simulate compound wealth trajectories, optimize Belgian taxes (2026 Meerwaardebelasting, TOB, Reynders Art. 19bis), and receive strategic advice via pluggable AI advisors.
 
 ### Architectural Philosophy: Pure Clean Architecture
 
 Paslood strictly adheres to **Clean Architecture (Hexagonal / Ports & Adapters)**. Dependencies point inward only:
 
 ```text
-src/wealth_pilot/
+src/paslood/
 ├── domain/        # Enterprise Business Rules (Pure Python dataclasses, Value Objects)
 │                  # NO framework imports (no FastAPI, Typer, YAML, or httpx)
 │                  # Asset, Liability, Bucket, Money, BalanceSheet, AdviceItem
@@ -48,7 +48,7 @@ Always use `uv` for package management, running tests, linting, formatting, and 
 | **Install all dependencies** | `uv sync --all-extras --dev` |
 | **Install Playwright Chromium** | `uv run playwright install chromium` |
 | **Run all tests** | `uv run pytest` |
-| **Run tests with coverage** | `uv run pytest --cov=src/wealth_pilot --cov-report=term-missing` |
+| **Run tests with coverage** | `uv run pytest --cov=src/paslood --cov-report=term-missing` |
 | **Run Frontend JS & E2E UI tests** | `uv run pytest tests/delivery/test_frontend_integrity.py tests/e2e/test_ui_workflows.py` |
 | **Run specific test file** | `uv run pytest tests/delivery/test_new_features.py` |
 | **Run single test function** | `uv run pytest tests/delivery/test_web.py -k test_web_index_and_overview` |
@@ -56,7 +56,7 @@ Always use `uv` for package management, running tests, linting, formatting, and 
 | **Lint auto-fix** | `uv run ruff check --fix src tests` |
 | **Format check** | `uv run ruff format --check src tests` |
 | **Format code** | `uv run ruff format src tests` |
-| **Run Web Dashboard** | `uv run paslood web --port 8000` (or `uv run python -m wealth_pilot.cli web`) |
+| **Run Web Dashboard** | `uv run paslood web --port 8000` (or `uv run python -m paslood.cli web`) |
 | **Run CLI Status** | `uv run paslood status` |
 | **Build Documentation** | `uv run mkdocs build --strict` |
 | **Serve Documentation** | `uv run mkdocs serve` |
@@ -92,7 +92,7 @@ We strictly follow the **Red-Green-Refactor** methodology for all new features a
   - Always use `Money` (backed by Python's `Decimal` with 2 decimal places) for financial calculations, asset values, debts, and cashflows to prevent floating-point rounding errors.
 - **Local-First & Absolute Privacy**:
   - Paslood is designed to run locally. User financial balances, account references, and tokens must never be logged to external analytics or hardcoded into repo files.
-  - Configuration files (`~/.wealth_pilot/portfolio.yaml`, `pdt_auth.json`, `.env`) are strictly gitignored.
+  - Configuration files (`~/.paslood/portfolio.yaml`, `pdt_auth.json`, `.env`) are strictly gitignored.
 - **Belgian 2026 Capital Gains Tax Model**:
   - Pre-2026 acquisitions use the **Dec 31, 2025 closing price** as the benchmark cost basis.
   - Post-2025 acquisitions use the **actual purchase price** per share.
@@ -102,7 +102,7 @@ We strictly follow the **Red-Green-Refactor** methodology for all new features a
   - Re-assigning an asset cleans up matching symbols from other buckets to prevent ambiguous multi-bucket allocation.
 - **Headless Web & Browser E2E UI Testing**:
   - FastAPI endpoints are tested in memory using `httpx.ASGITransport(app=test_app)`.
-  - Frontend JavaScript is modularized under `src/wealth_pilot/delivery/web/static/js/` (`core.js`, `dashboard.js`, `buckets.js`, `guidance.js`, `assets_cashflow.js`, `settings_wizard.js`) — do not dump large inline `<script>` blocks into `index.html`.
+  - Frontend JavaScript is modularized under `src/paslood/delivery/web/static/js/` (`core.js`, `dashboard.js`, `buckets.js`, `guidance.js`, `assets_cashflow.js`, `settings_wizard.js`) — do not dump large inline `<script>` blocks into `index.html`.
   - Every UI change MUST pass both `tests/delivery/test_frontend_integrity.py` (Node.js syntax, handler contract & unit tests) and `tests/e2e/test_ui_workflows.py` (Playwright headless Chromium E2E tests with zero `pageerror` / `console.error`).
 - **Tailwind UI Standards**:
   - Use dark mode by default (`bg-slate-950`, cards `bg-slate-900 border border-slate-800`).
@@ -118,10 +118,10 @@ When delegating tasks to subagents or prompt-chaining in this repo, use these ba
 ```text
 Task: Implement a new statement ingestion gateway for <Bank/Broker Name>.
 Architecture Guidelines:
-1. Create src/wealth_pilot/adapters/ingestion/<name>_csv.py implementing BaseIngestionGateway.
+1. Create src/paslood/adapters/ingestion/<name>_csv.py implementing BaseIngestionGateway.
 2. In domain/, ensure any new transaction categories map cleanly to Category enum.
 3. Write comprehensive tests in tests/integration/test_ingestion_<name>.py with realistic mock CSV fixtures.
-4. Wire the gateway into src/wealth_pilot/delivery/web/app.py under POST /api/ingest/<name>.
+4. Wire the gateway into src/paslood/delivery/web/app.py under POST /api/ingest/<name>.
 5. Follow Red-Green-Refactor: write tests first, verify with 'uv run pytest', and ensure zero ruff errors.
 ```
 
@@ -129,18 +129,18 @@ Architecture Guidelines:
 ```text
 Task: Implement a new financial use case: <Use Case Name>.
 Architecture Guidelines:
-1. Place the pure calculation in src/wealth_pilot/use_cases/<use_case_file>.py.
+1. Place the pure calculation in src/paslood/use_cases/<use_case_file>.py.
 2. Accept domain Value Objects (Money, Decimal, BalanceSheet, Asset) as inputs.
 3. Write unit tests in tests/unit/use_cases/ capturing boundary conditions (zero balances, high interest, edge dates).
-4. Expose the use case via a delivery route in src/wealth_pilot/delivery/web/app.py and add interactive controls in index.html.
-5. Verify test coverage remains above 90% using 'uv run pytest --cov=src/wealth_pilot'.
+4. Expose the use case via a delivery route in src/paslood/delivery/web/app.py and add interactive controls in index.html.
+5. Verify test coverage remains above 90% using 'uv run pytest --cov=src/paslood'.
 ```
 
 ### Prompt 3: Modifying Web UI Widgets & Dashboards
 ```text
 Task: Add or update <Widget Name> in the web dashboard.
 Guidelines:
-1. Modify src/wealth_pilot/delivery/web/templates/index.html and the corresponding module in src/wealth_pilot/delivery/web/static/js/ adhering to the slate-950 dark theme.
+1. Modify src/paslood/delivery/web/templates/index.html and the corresponding module in src/paslood/delivery/web/static/js/ adhering to the slate-950 dark theme.
 2. Ensure any new API responses are parsed safely (check res.ok, handle errors gracefully without crashing JSON.parse).
 3. Provide keyboard accessibility and auto-updating state on modal dismissal.
 4. Add delivery integration tests in tests/delivery/ and E2E browser assertions in tests/e2e/test_ui_workflows.py.

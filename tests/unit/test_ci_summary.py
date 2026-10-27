@@ -52,7 +52,7 @@ def test_extract_coverage_percentage():
     table = (
         "| Name | Stmts | Miss | Cover |\n"
         "|---|---:|---:|---:|\n"
-        "| src/wealth_pilot/domain.py | 10 | 0 | 100% |\n"
+        "| src/paslood/domain.py | 10 | 0 | 100% |\n"
         "| **TOTAL** | **100** | **9** | **91%** |\n"
     )
     assert extract_coverage_percentage(table) == 91.0
@@ -110,9 +110,9 @@ def test_generate_docs_summary():
 def test_generate_release_summary(tmp_path: Path):
     dist = tmp_path / "dist"
     dist.mkdir()
-    whl = dist / "wealth_pilot-1.0.0-py3-none-any.whl"
+    whl = dist / "paslood-1.0.0-py3-none-any.whl"
     whl.write_bytes(b"x" * 2048)
-    tar = dist / "wealth_pilot-1.0.0.tar.gz"
+    tar = dist / "paslood-1.0.0.tar.gz"
     tar.write_bytes(b"y" * 1024)
 
     summary = generate_release_summary(
@@ -122,8 +122,8 @@ def test_generate_release_summary(tmp_path: Path):
     )
     assert "## 📦 Release Artifact Summary" in summary
     assert "- **Release Tag**: `v1.0.0`" in summary
-    assert "wealth_pilot-1.0.0-py3-none-any.whl" in summary
-    assert "wealth_pilot-1.0.0.tar.gz" in summary
+    assert "paslood-1.0.0-py3-none-any.whl" in summary
+    assert "paslood-1.0.0.tar.gz" in summary
     assert "https://github.com/tiwu/paslood/releases/tag/v1.0.0" in summary
 
 

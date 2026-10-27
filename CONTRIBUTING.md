@@ -60,7 +60,7 @@ We follow the **Red-Green-Refactor** workflow:
    ```
 
 3. **Implement the code (🟢 Green)**:
-   Make targeted changes in `src/wealth_pilot/`. Keep logic in Use Cases and routes thin. Run tests to confirm they pass:
+   Make targeted changes in `src/paslood/`. Keep logic in Use Cases and routes thin. Run tests to confirm they pass:
    ```bash
    uv run pytest
    ```
@@ -74,7 +74,7 @@ We follow the **Red-Green-Refactor** workflow:
    uv run ruff format src tests
 
    # Verify code coverage
-   uv run pytest --cov=src/wealth_pilot --cov-report=term-missing
+   uv run pytest --cov=src/paslood --cov-report=term-missing
    ```
 
 5. **Test the Web Dashboard locally**:

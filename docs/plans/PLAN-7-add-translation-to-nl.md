@@ -19,10 +19,10 @@ During local verification of PR #8, the following gaps were identified:
 ## 2. Architecture Plan: Isolated Locale Files & Complete Page Wiring
 
 ### 2.1 File Isolation Structure (Single Source of Truth)
-All translatable strings are isolated into dedicated JSON locale files under `src/wealth_pilot/delivery/web/static/locales/`:
+All translatable strings are isolated into dedicated JSON locale files under `src/paslood/delivery/web/static/locales/`:
 
 ```text
-src/wealth_pilot/delivery/web/
+src/paslood/delivery/web/
 ├── i18n.py                       # Loads static/locales/{lang}.json dynamically
 ├── app.py                        # Exposes /api/i18n and /api/i18n/{lang}
 ├── static/
@@ -72,7 +72,7 @@ Each locale file (`en.json`, `nl.json`, `fr.json`, `de.json`) is organized into 
 
 ## 3. Test-Driven Development (TDD) & Verification Plan
 1. **Locale File Integrity Tests (`tests/delivery/test_i18n.py`)**:
-   - Verify `en.json`, `nl.json`, `fr.json`, and `de.json` exist as standalone JSON files in `src/wealth_pilot/delivery/web/static/locales/`.
+   - Verify `en.json`, `nl.json`, `fr.json`, and `de.json` exist as standalone JSON files in `src/paslood/delivery/web/static/locales/`.
    - Assert key parity across all 4 locale files (every section and key present in `en.json` exists in `nl.json`, `fr.json`, and `de.json`).
    - Verify `/static/locales/nl.json` is served directly as a static asset.
    - Verify `index.html` contains `data-i18n` bindings across all 6 tabs and modals.
@@ -80,4 +80,4 @@ Each locale file (`en.json`, `nl.json`, `fr.json`, `de.json`) is organized into 
    - `uv run ruff check src tests`
    - `uv run ruff format --check src tests`
    - `uv run mkdocs build --strict`
-   - `uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90`
+   - `uv run pytest -v --cov=src/paslood --cov-fail-under=90`

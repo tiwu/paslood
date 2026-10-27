@@ -6,10 +6,10 @@ import pytest
 import respx
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.delivery.web.app import create_app
-from wealth_pilot.domain.asset import Asset
-from wealth_pilot.domain.money import Money
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.delivery.web.app import create_app
+from paslood.domain.asset import Asset
+from paslood.domain.money import Money
 
 
 @pytest.fixture
@@ -74,7 +74,7 @@ async def test_pdt_oauth_connect_and_callback(test_app):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # Connect initiates OAuth and returns auth_url
         with patch(
-            "wealth_pilot.adapters.ingestion.pdt_auth.PdtAuthManager.register_client",
+            "paslood.adapters.ingestion.pdt_auth.PdtAuthManager.register_client",
             new_callable=AsyncMock,
             return_value="client-xyz",
         ):
@@ -107,7 +107,7 @@ async def test_pdt_sync_endpoint(test_app):
 
         # Mock sync holdings
         with patch(
-            "wealth_pilot.adapters.ingestion.pdt_mcp.PdtMcpGateway.fetch_portfolio_assets",
+            "paslood.adapters.ingestion.pdt_mcp.PdtMcpGateway.fetch_portfolio_assets",
             new_callable=AsyncMock,
             return_value=[Asset(id="1", name="Apple", current_value=Money.from_val(5000.0))],
         ):

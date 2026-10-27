@@ -2,16 +2,16 @@
 
 from decimal import Decimal
 
-from wealth_pilot.domain.asset import Asset
-from wealth_pilot.domain.balance_sheet import BalanceSheet, MonthlyCashflow
-from wealth_pilot.domain.bucket import Bucket, BucketAllocationResult, DriftStatus
-from wealth_pilot.domain.liability import Liability, LoanType
-from wealth_pilot.domain.money import Money
-from wealth_pilot.use_cases.advise_ai import AdviseAiUseCase
-from wealth_pilot.use_cases.advise_contribution import AdviseContributionUseCase
-from wealth_pilot.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
-from wealth_pilot.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
-from wealth_pilot.use_cases.optimize_tax import OptimizeTaxUseCase
+from paslood.domain.asset import Asset
+from paslood.domain.balance_sheet import BalanceSheet, MonthlyCashflow
+from paslood.domain.bucket import Bucket, BucketAllocationResult, DriftStatus
+from paslood.domain.liability import Liability, LoanType
+from paslood.domain.money import Money
+from paslood.use_cases.advise_ai import AdviseAiUseCase
+from paslood.use_cases.advise_contribution import AdviseContributionUseCase
+from paslood.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
+from paslood.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
+from paslood.use_cases.optimize_tax import OptimizeTaxUseCase
 
 
 def test_advise_contribution_balanced_portfolio_proportional_distribution():
@@ -131,7 +131,7 @@ def test_tax_loss_selling_and_zero_gain():
 
 
 async def test_advise_ai_algorithmic_fallback():
-    from wealth_pilot.adapters.ai.llm_client import UniversalAIAdvisorClient
+    from paslood.adapters.ai.llm_client import UniversalAIAdvisorClient
 
     ai_client = UniversalAIAdvisorClient(provider="algorithmic", api_key="")
     use_case = AdviseAiUseCase(ai_client=ai_client)
@@ -157,8 +157,8 @@ async def test_advise_ai_algorithmic_fallback():
 async def test_advise_ai_prompt_guardrails_and_precheck():
     import pytest
 
-    from wealth_pilot.adapters.ai.llm_client import UniversalAIAdvisorClient
-    from wealth_pilot.use_cases.advise_ai import SYSTEM_PROMPT
+    from paslood.adapters.ai.llm_client import UniversalAIAdvisorClient
+    from paslood.use_cases.advise_ai import SYSTEM_PROMPT
 
     ai_client = UniversalAIAdvisorClient(provider="algorithmic", api_key="")
     use_case = AdviseAiUseCase(ai_client=ai_client)

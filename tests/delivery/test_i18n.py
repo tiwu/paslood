@@ -9,8 +9,8 @@ from tempfile import TemporaryDirectory
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.delivery.web.app import create_app
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.delivery.web.app import create_app
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def test_isolated_locale_files_exist_and_have_key_parity():
     locales_dir = (
         Path(__file__).resolve().parents[2]
         / "src"
-        / "wealth_pilot"
+        / "paslood"
         / "delivery"
         / "web"
         / "static"
@@ -186,7 +186,7 @@ def test_i18n_js_contains_regional_formatters():
     i18n_file = (
         Path(__file__).resolve().parents[2]
         / "src"
-        / "wealth_pilot"
+        / "paslood"
         / "delivery"
         / "web"
         / "static"

@@ -2,16 +2,16 @@
 
 from decimal import Decimal
 
-from wealth_pilot.domain.asset import Asset, AssetClass
-from wealth_pilot.domain.bucket import AllocationRule, Bucket, DriftStatus
-from wealth_pilot.domain.liability import Liability, LoanType
-from wealth_pilot.domain.money import Money
-from wealth_pilot.use_cases.advise_contribution import AdviseContributionUseCase
-from wealth_pilot.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
-from wealth_pilot.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
-from wealth_pilot.use_cases.categorize_transactions import CategorizeTransactionsUseCase
-from wealth_pilot.use_cases.optimize_tax import OptimizeTaxUseCase
-from wealth_pilot.use_cases.project_net_worth import ProjectNetWorthUseCase
+from paslood.domain.asset import Asset, AssetClass
+from paslood.domain.bucket import AllocationRule, Bucket, DriftStatus
+from paslood.domain.liability import Liability, LoanType
+from paslood.domain.money import Money
+from paslood.use_cases.advise_contribution import AdviseContributionUseCase
+from paslood.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
+from paslood.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
+from paslood.use_cases.categorize_transactions import CategorizeTransactionsUseCase
+from paslood.use_cases.optimize_tax import OptimizeTaxUseCase
+from paslood.use_cases.project_net_worth import ProjectNetWorthUseCase
 
 
 def test_calculate_bucket_allocation_and_drift():
@@ -285,7 +285,7 @@ def test_project_net_worth_compounding():
 
 
 def test_categorize_transactions_and_rule_learning():
-    from wealth_pilot.domain.balance_sheet import Transaction
+    from paslood.domain.balance_sheet import Transaction
 
     txs = [
         Transaction(

@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.delivery.web.app import create_app
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.delivery.web.app import create_app
 
 
 @pytest.fixture
@@ -49,13 +49,7 @@ async def test_allocation_visualizer_dom_elements(test_app):
 def test_i18n_locales_contain_allocation_keys():
     """Verify that all four locales (en, nl, fr, de) contain the required visualizer keys."""
     locales_dir = (
-        Path(__file__).parents[2]
-        / "src"
-        / "wealth_pilot"
-        / "delivery"
-        / "web"
-        / "static"
-        / "locales"
+        Path(__file__).parents[2] / "src" / "paslood" / "delivery" / "web" / "static" / "locales"
     )
     required_keys = [
         "visualizer_title",

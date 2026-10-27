@@ -7,10 +7,10 @@ import httpx
 import pytest
 import respx
 
-from wealth_pilot.adapters.ingestion.generic_csv import GenericCsvGateway
-from wealth_pilot.adapters.ingestion.pdt_auth import PdtAuthManager, generate_pkce_pair
-from wealth_pilot.adapters.ingestion.pdt_mcp import PdtMcpGateway
-from wealth_pilot.domain.asset import AssetClass
+from paslood.adapters.ingestion.generic_csv import GenericCsvGateway
+from paslood.adapters.ingestion.pdt_auth import PdtAuthManager, generate_pkce_pair
+from paslood.adapters.ingestion.pdt_mcp import PdtMcpGateway
+from paslood.domain.asset import AssetClass
 
 
 def test_pkce_generation():

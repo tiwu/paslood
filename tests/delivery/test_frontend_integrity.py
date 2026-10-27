@@ -11,10 +11,10 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.delivery.web.app import create_app
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.delivery.web.app import create_app
 
-WEB_DIR = Path(__file__).parents[2] / "src" / "wealth_pilot" / "delivery" / "web"
+WEB_DIR = Path(__file__).parents[2] / "src" / "paslood" / "delivery" / "web"
 TEMPLATES_DIR = WEB_DIR / "templates"
 STATIC_DIR = WEB_DIR / "static"
 JS_MODULES_DIR = STATIC_DIR / "js"

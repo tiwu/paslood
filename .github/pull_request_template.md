@@ -19,15 +19,16 @@ Please provide a concise summary of the changes proposed in this Pull Request.
 Please ensure all checks are satisfied before requesting review:
 
 ### Architecture & Domain Integrity
-- [ ] Domain models in `src/wealth_pilot/domain/` remain pure Python with NO framework dependencies.
+- [ ] Domain models in `src/paslood/domain/` remain pure Python with NO framework dependencies.
 - [ ] Business logic resides in Use Cases, not in web routes or controllers.
 - [ ] All financial values use `Money` and `Decimal` (no floating-point money math).
 - [ ] Avoided the zero-value truthiness trap (`value or fallback`).
+- [ ] Documentation is updated and clear.
 
 ### Testing & Verification
 - [ ] Automated tests added or updated in `tests/` capturing all changes.
 - [ ] All tests pass locally: `uv run pytest`.
-- [ ] Test coverage meets or exceeds 90%: `uv run pytest --cov=src/wealth_pilot`.
+- [ ] Test coverage meets or exceeds 90%: `uv run pytest --cov=src/paslood`.
 - [ ] Ruff linting passes: `uv run ruff check src tests`.
 - [ ] Ruff formatting passes: `uv run ruff format --check src tests`.
 

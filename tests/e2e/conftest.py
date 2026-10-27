@@ -9,9 +9,9 @@ import time
 import pytest
 import uvicorn
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.adapters.repositories.local_db import LocalDbRepository
-from wealth_pilot.delivery.web.app import create_app
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.adapters.repositories.local_db import LocalDbRepository
+from paslood.delivery.web.app import create_app
 
 
 def _get_free_port() -> int:
@@ -56,7 +56,7 @@ def live_server(tmp_path):
         }
     )
 
-    local_db = LocalDbRepository(db_path=tmp_path / "e2e_wealth_pilot.db")
+    local_db = LocalDbRepository(db_path=tmp_path / "e2e_paslood.db")
     app = create_app(config_repo=repo, local_db=local_db)
     port = _get_free_port()
     config = uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")

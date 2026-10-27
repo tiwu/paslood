@@ -6,7 +6,7 @@
 }
 
 {$DUCKDNS_DOMAIN}.duckdns.org {
-    reverse_proxy wealth-pilot:8000 {
+    reverse_proxy paslood:8000 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}

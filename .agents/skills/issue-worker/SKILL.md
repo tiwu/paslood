@@ -42,7 +42,7 @@ When `stage` is `"planning"`:
 1. **Parse Issue Data**:
    - Extract `number`, `title`, `body`, and compute `slug`.
 2. **Targeted Code Reading**:
-   - Read only the specific file(s) in `src/wealth_pilot/` directly affected by the feature (max 3 files).
+   - Read only the specific file(s) in `src/paslood/` directly affected by the feature (max 3 files).
 3. **Read Plan Template**:
    - Read `docs/plans/PLAN-TEMPLATE.md`.
 4. **Author Architecture Plan**:
@@ -82,10 +82,10 @@ When `stage` is `"implementation"`:
      uv run pytest tests/path/to/new_test.py
      ```
 4. **Green (Minimal Implementation)**:
-   - Implement minimal required code in `src/wealth_pilot/`.
+   - Implement minimal required code in `src/paslood/`.
 5. **Verification**:
    ```bash
-   uv run pytest --cov=src/wealth_pilot
+   uv run pytest --cov=src/paslood
    uv run pytest tests/delivery/test_frontend_integrity.py tests/e2e/test_ui_workflows.py
    uv run ruff check src tests
    uv run ruff format --check src tests

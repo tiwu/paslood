@@ -109,7 +109,7 @@ def test_update_changelog():
 
 
 def test_update_pyproject_version():
-    content = '[build-system]\nrequires = ["hatchling"]\n\n[project]\nname = "wealth-pilot"\nversion = "0.1.0"\n'
+    content = '[build-system]\nrequires = ["hatchling"]\n\n[project]\nname = "paslood"\nversion = "0.1.0"\n'
     updated = update_pyproject_version(content, "0.4.0")
     assert 'version = "0.4.0"' in updated
     assert 'version = "0.1.0"' not in updated
@@ -155,11 +155,9 @@ def test_cli_bump(tmp_path: Path):
     cl_file.write_text(SAMPLE_CHANGELOG, encoding="utf-8")
 
     pyproject_file = tmp_path / "pyproject.toml"
-    pyproject_file.write_text(
-        '[project]\nname = "wealth-pilot"\nversion = "0.3.0"\n', encoding="utf-8"
-    )
+    pyproject_file.write_text('[project]\nname = "paslood"\nversion = "0.3.0"\n', encoding="utf-8")
 
-    init_dir = tmp_path / "src" / "wealth_pilot"
+    init_dir = tmp_path / "src" / "paslood"
     init_dir.mkdir(parents=True)
     init_file = init_dir / "__init__.py"
     init_file.write_text('__version__ = "0.3.0"\n', encoding="utf-8")

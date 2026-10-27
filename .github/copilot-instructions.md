@@ -8,10 +8,10 @@ These instructions guide GitHub Copilot when generating code, answering question
 
 Paslood is a local-first, privacy-respecting strategic wealth planning and asset allocation platform.
 It uses **Clean Architecture (Hexagonal)**:
-- `src/wealth_pilot/domain/`: Pure business models and Value Objects (`Asset`, `Liability`, `Bucket`, `Money`, `BalanceSheet`, `AdviceItem`). Must remain 100% pure Python with NO framework imports.
-- `src/wealth_pilot/use_cases/`: Pure calculation and orchestration use cases (`CalculateBucketAllocationUseCase`, `OptimizeTaxUseCase`, `AdviseDebtPayoffUseCase`, `AdviseContributionUseCase`, `ProjectNetWorthUseCase`, `CategorizeTransactionsUseCase`, `AdviseAiUseCase`).
-- `src/wealth_pilot/adapters/`: Gateways, repositories, and external integration (`ConfigRepository`, `PdtMcpGateway`, `PdtAuthManager`, `KbcCsvGateway`, `GenericCsvGateway`, `UniversalAIAdvisorClient`).
-- `src/wealth_pilot/delivery/`: Web FastAPI application (`app.py`, `templates/index.html`) and Typer/Textual CLI (`cli.py`).
+- `src/paslood/domain/`: Pure business models and Value Objects (`Asset`, `Liability`, `Bucket`, `Money`, `BalanceSheet`, `AdviceItem`). Must remain 100% pure Python with NO framework imports.
+- `src/paslood/use_cases/`: Pure calculation and orchestration use cases (`CalculateBucketAllocationUseCase`, `OptimizeTaxUseCase`, `AdviseDebtPayoffUseCase`, `AdviseContributionUseCase`, `ProjectNetWorthUseCase`, `CategorizeTransactionsUseCase`, `AdviseAiUseCase`).
+- `src/paslood/adapters/`: Gateways, repositories, and external integration (`ConfigRepository`, `PdtMcpGateway`, `PdtAuthManager`, `KbcCsvGateway`, `GenericCsvGateway`, `UniversalAIAdvisorClient`).
+- `src/paslood/delivery/`: Web FastAPI application (`app.py`, `templates/index.html`) and Typer/Textual CLI (`cli.py`).
 - `tests/`: Pytest test suite with >90% coverage.
 
 ---
@@ -21,8 +21,8 @@ It uses **Clean Architecture (Hexagonal)**:
 When reviewing pull requests in this repository, rigorously verify the following rules:
 
 ### A. Architecture & Boundary Rules
-- [ ] **Pure Domain**: Ensure no files in `src/wealth_pilot/domain/` import `fastapi`, `starlette`, `httpx`, `yaml`, or third-party frameworks.
-- [ ] **Thin Delivery**: Ensure routes in `src/wealth_pilot/delivery/web/app.py` delegate business logic to use cases or repositories rather than embedding calculation algorithms directly in endpoints.
+- [ ] **Pure Domain**: Ensure no files in `src/paslood/domain/` import `fastapi`, `starlette`, `httpx`, `yaml`, or third-party frameworks.
+- [ ] **Thin Delivery**: Ensure routes in `src/paslood/delivery/web/app.py` delegate business logic to use cases or repositories rather than embedding calculation algorithms directly in endpoints.
 - [ ] **Config Persistence**: Ensure configuration updates (buckets, manual assets, manual debts, milestones) use `ConfigRepository` methods rather than opening files directly in routes.
 
 ### B. Financial Calculations & Precision
