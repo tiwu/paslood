@@ -47,7 +47,7 @@ cd paslood
 
 # Configure environment
 cp .env.example .env
-openssl rand -hex 32  # Copy to WEALTH_PILOT_SECRET_KEY in .env
+openssl rand -hex 32  # Copy to PASLOOD_SECRET_KEY in .env
 
 # Set master admin password
 docker compose run --rm paslood set-password
@@ -80,14 +80,14 @@ When you open Paslood for the first time:
 ## 3. Data Storage & Privacy
 
 All application data is stored locally in your data directory:
-- Local default: `~/.wealth_pilot/`
+- Local default: `~/.paslood/`
 - Docker default: mounted to `/data`
-- Configurable via environment variable: `WEALTH_PILOT_DATA_DIR`
+- Configurable via environment variable: `PASLOOD_DATA_DIR`
 
 Key files created in this directory:
 - `portfolio.yaml`: User strategic buckets, asset rules, manual accounts, and liabilities.
 - `rules.yaml`: Custom transaction categorization rules.
-- `wealth_pilot.db`: SQLite database storing historical transactions, cashflow cache, and discovered holdings (WAL mode enabled).
+- `paslood.db`: SQLite database storing historical transactions, cashflow cache, and discovered holdings (WAL mode enabled).
 - `auth.db`: SQLite authentication database with encrypted session tokens and user accounts.
 - `.secret_key`: 32-byte master key for envelope encryption (`SecretVault`).
 

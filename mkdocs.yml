@@ -47,6 +47,7 @@ nav:
       - "Issue #3 - Exclude Bucket from Rebalancing": plans/PLAN-3-option-to-exclude-bucket-from-weight-cal.md
       - "Issue #7 - Dutch (NL) Translation and Localization": plans/PLAN-7-add-translation-to-nl.md
       - "Issue #15 - Workflow Job Summaries": plans/PLAN-15-job-summaries.md
+      - "Issue #25 - Bucket Weights Sum Validation": plans/PLAN-25-buckets-sum-can-be-100.md
   - Architecture & UX Reviews:
       - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
       - UI/UX Review: reviews/UX-REVIEW.md

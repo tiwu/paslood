@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.delivery.web.app import create_app
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.delivery.web.app import create_app
 
 
 @pytest.fixture
@@ -77,7 +77,7 @@ async def test_oauth_redirect_uri_hijack_rejected(test_app):
 
         # Valid local redirect_uri should succeed
         with patch(
-            "wealth_pilot.adapters.ingestion.pdt_auth.PdtAuthManager.register_client",
+            "paslood.adapters.ingestion.pdt_auth.PdtAuthManager.register_client",
             new_callable=AsyncMock,
             return_value="valid-client",
         ):
@@ -115,7 +115,7 @@ async def test_ai_models_header_key_supported(test_app):
     transport = ASGITransport(app=test_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         with patch(
-            "wealth_pilot.adapters.ai.llm_client.UniversalAIAdvisorClient.fetch_available_models",
+            "paslood.adapters.ai.llm_client.UniversalAIAdvisorClient.fetch_available_models",
             new_callable=AsyncMock,
             return_value=[{"id": "test-model", "name": "Test Model"}],
         ) as mock_fetch:

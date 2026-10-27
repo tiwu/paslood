@@ -31,7 +31,7 @@ def test_initial_load_hydrates_dashboard_without_errors(app_page, live_server):
 
 def test_navigation_tabs_switch_active_views(app_page, live_server):
     """Verify clicking every navigation tab switches the active view without errors."""
-    app_page.add_init_script("localStorage.setItem('wealth_pilot_setup_completed', 'true');")
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
     app_page.goto(live_server, wait_until="networkidle")
 
     tabs = [
@@ -55,7 +55,7 @@ def test_navigation_tabs_switch_active_views(app_page, live_server):
 
 def test_buckets_allocation_visualizer_and_modal(app_page, live_server):
     """Verify the Buckets tab renders bullet meters, toggles to Drift Divergence chart, and opens Add Bucket modal."""
-    app_page.add_init_script("localStorage.setItem('wealth_pilot_setup_completed', 'true');")
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
     app_page.goto(live_server, wait_until="networkidle")
 
     app_page.locator("#nav-buckets").click()
@@ -88,7 +88,7 @@ def test_buckets_allocation_visualizer_and_modal(app_page, live_server):
 
 def test_setup_wizard_and_help_modals(app_page, live_server):
     """Verify Setup Wizard steps and Help modal open and close cleanly."""
-    app_page.add_init_script("localStorage.setItem('wealth_pilot_setup_completed', 'true');")
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
     app_page.goto(live_server, wait_until="networkidle")
 
     # Open Help Modal via button
@@ -119,7 +119,7 @@ def test_setup_wizard_and_help_modals(app_page, live_server):
 
 def test_language_switching_and_theme_toggle(app_page, live_server):
     """Verify switching language to NL updates UI text and theme toggle switches light/dark classes."""
-    app_page.add_init_script("localStorage.setItem('wealth_pilot_setup_completed', 'true');")
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
     app_page.goto(live_server, wait_until="networkidle")
 
     # Switch language to Dutch (NL)
@@ -137,7 +137,7 @@ def test_language_switching_and_theme_toggle(app_page, live_server):
 
 def test_page_load_with_configured_ai_key_has_no_console_errors(app_page, live_server):
     """Verify page load with an existing masked AI API key triggers no console or ByteString errors."""
-    app_page.add_init_script("localStorage.setItem('wealth_pilot_setup_completed', 'true');")
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
     app_page.goto(live_server, wait_until="networkidle")
 
     # Configure an AI key via settings

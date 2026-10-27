@@ -1,6 +1,6 @@
 """Unit tests for SecretVault envelope encryption."""
 
-from wealth_pilot.adapters.security.secret_vault import SecretVault
+from paslood.adapters.security.secret_vault import SecretVault
 
 
 def test_secret_vault_roundtrip():

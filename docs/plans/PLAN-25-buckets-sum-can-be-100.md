@@ -41,27 +41,27 @@ While the onboarding setup wizard includes a dynamic status badge (`wizard-total
 
 ## 3. Hexagonal Architecture Impact
 
-### 3.1 Domain Layer (`src/wealth_pilot/domain/`)
+### 3.1 Domain Layer (`src/paslood/domain/`)
 - Pure Python business rules for bucket allocation validation:
-  - Add validation utility or method in `src/wealth_pilot/domain/portfolio.py` (or `bucket.py`) to verify that a set of rebalanceable buckets sums to 100% (`Decimal('100.0')`).
+  - Add validation utility or method in `src/paslood/domain/portfolio.py` (or `bucket.py`) to verify that a set of rebalanceable buckets sums to 100% (`Decimal('100.0')`).
   - Preserves pure Python standard library conventions (using `Decimal`, no framework imports).
 
-### 3.2 Use Cases Layer (`src/wealth_pilot/use_cases/`)
+### 3.2 Use Cases Layer (`src/paslood/use_cases/`)
 - Update bucket management use cases:
   - Validate total target weight when updating targets.
   - Support atomic batch update of multiple bucket targets so users can reallocate weights across several buckets simultaneously without intermediate failure.
 
-### 3.3 Adapters & Repositories (`src/wealth_pilot/adapters/`)
+### 3.3 Adapters & Repositories (`src/paslood/adapters/`)
 - `ConfigRepository`:
   - Ensure persistence in `portfolio.yaml` writes validated bucket target allocations atomically.
 
-### 3.4 Delivery Frameworks (`src/wealth_pilot/delivery/`)
-- **FastAPI Endpoints (`src/wealth_pilot/delivery/web/app.py`)**:
+### 3.4 Delivery Frameworks (`src/paslood/delivery/`)
+- **FastAPI Endpoints (`src/paslood/delivery/web/app.py`)**:
   - `POST /api/buckets/target`: Validate new sum of active bucket targets, returning HTTP 400 if sum $\ne 100\%$.
   - `POST /api/buckets/targets`: Add batch target update endpoint accepting `{ targets: { bucket_id: weight } }` to allow atomic reallocation.
-- **HTML Template (`src/wealth_pilot/delivery/web/templates/index.html`)**:
+- **HTML Template (`src/paslood/delivery/web/templates/index.html`)**:
   - Add `#bucket-total-badge` and a Save button `#btn-save-bucket-targets` in the header or table action bar of the Buckets section.
-- **Frontend JavaScript (`src/wealth_pilot/delivery/web/static/js/buckets.js`)**:
+- **Frontend JavaScript (`src/paslood/delivery/web/static/js/buckets.js`)**:
   - Implement `updateBucketTotalBadge()` calculating sum of all active bucket weights from table inputs.
   - Bind `oninput` to target weight inputs to provide instant feedback.
   - Enable save action only when total equals 100%.
@@ -83,7 +83,7 @@ While the onboarding setup wizard includes a dynamic status badge (`wizard-total
    - Verify Clean Architecture boundary integrity.
    - Run linter: `uv run ruff check src tests`
    - Run formatter: `uv run ruff format --check src tests`
-   - Verify test suite and coverage: `uv run pytest --cov=src/wealth_pilot` ($\ge 90\%$)
+   - Verify test suite and coverage: `uv run pytest --cov=src/paslood` ($\ge 90\%$)
 
 ---
 

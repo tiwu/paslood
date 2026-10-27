@@ -44,15 +44,15 @@ GitHub Actions provides `$GITHUB_STEP_SUMMARY`, which renders Markdown directly 
 
 ## 3. Hexagonal Architecture Impact
 
-### 3.1 Domain Layer (`src/wealth_pilot/domain/`)
+### 3.1 Domain Layer (`src/paslood/domain/`)
 - Pure Python domain models (`Money`, `Asset`, `Liability`, `Bucket`, `BalanceSheet`, `User`, `TenantContext`) remain 100% untouched.
 - Invariants maintained: zero external dependencies, pure standard library, exact `Decimal` arithmetic.
 
-### 3.2 Use Cases Layer (`src/wealth_pilot/use_cases/`)
+### 3.2 Use Cases Layer (`src/paslood/use_cases/`)
 - Application orchestrators (`CalculateBucketAllocation`, `OptimizeTax`, `AdviseDebtPayoff`, `BuildOverview`, etc.) remain untouched.
 - Pure input/output boundaries preserved.
 
-### 3.3 Adapters & Repositories (`src/wealth_pilot/adapters/`)
+### 3.3 Adapters & Repositories (`src/paslood/adapters/`)
 - Adapters, repositories, and third-party gateways remain untouched.
 
 ### 3.4 Delivery Frameworks & CI/CD Infrastructure (`.github/workflows/`, `scripts/`)
@@ -76,7 +76,7 @@ GitHub Actions provides `$GITHUB_STEP_SUMMARY`, which renders Markdown directly 
 3. **Refactor & Quality**:
    - Ensure clean formatting and no lint warnings (`uv run ruff check src tests scripts`).
    - Validate documentation build (`uv run mkdocs build --strict`).
-   - Verify overall test coverage remains $\ge 90\%$ (`uv run pytest --cov=src/wealth_pilot --cov-fail-under=90`).
+   - Verify overall test coverage remains $\ge 90\%$ (`uv run pytest --cov=src/paslood --cov-fail-under=90`).
 
 ---
 

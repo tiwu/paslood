@@ -23,7 +23,7 @@ This guide covers running Paslood containerized and securely accessing it from y
    ```bash
    openssl rand -hex 32
    ```
-   Paste the generated value into `WEALTH_PILOT_SECRET_KEY` in `.env`.
+   Paste the generated value into `PASLOOD_SECRET_KEY` in `.env`.
 
 3. Set your admin password:
    ```bash
@@ -60,7 +60,7 @@ Tailscale connects your devices securely over an encrypted WireGuard mesh withou
 3. In your `.env`:
    ```dotenv
    TAILSCALE_AUTHKEY=tskey-auth-...
-   WEALTH_PILOT_TRUSTED_ORIGINS=https://paslood.your-tailnet.ts.net,http://paslood:8000
+   PASLOOD_TRUSTED_ORIGINS=https://paslood.your-tailnet.ts.net,http://paslood:8000
    ```
 4. Start with the Tailscale profile:
    ```bash
@@ -79,7 +79,7 @@ Cloudflare Tunnel exposes your local service via Cloudflare's edge network witho
 3. In `.env`:
    ```dotenv
    CLOUDFLARE_TUNNEL_TOKEN=eyJh...
-   WEALTH_PILOT_TRUSTED_ORIGINS=https://wealth.yourdomain.com
+   PASLOOD_TRUSTED_ORIGINS=https://wealth.yourdomain.com
    ```
 4. Route hostname `wealth.yourdomain.com` to `http://paslood:8000` in the Cloudflare dashboard.
 5. Start:
@@ -99,7 +99,7 @@ For users with dynamic home IP addresses wanting direct HTTPS access:
    ```dotenv
    DUCKDNS_DOMAIN=mywealth
    ACME_EMAIL=your-email@example.com
-   WEALTH_PILOT_TRUSTED_ORIGINS=https://mywealth.duckdns.org
+   PASLOOD_TRUSTED_ORIGINS=https://mywealth.duckdns.org
    ```
 4. Start with the DDNS profile:
    ```bash
@@ -119,8 +119,8 @@ You can enable seamless 1-click social logins alongside or instead of local pass
 3. Add Authorized redirect URI: `https://<your-domain>/auth/google/callback`.
 4. Add credentials to `.env`:
    ```dotenv
-   WEALTH_PILOT_GOOGLE_CLIENT_ID=...
-   WEALTH_PILOT_GOOGLE_CLIENT_SECRET=...
+   PASLOOD_GOOGLE_CLIENT_ID=...
+   PASLOOD_GOOGLE_CLIENT_SECRET=...
    ```
 
 ### GitHub OAuth
@@ -128,30 +128,30 @@ You can enable seamless 1-click social logins alongside or instead of local pass
 2. Set Authorization callback URL: `https://<your-domain>/auth/github/callback`.
 3. Add to `.env`:
    ```dotenv
-   WEALTH_PILOT_GITHUB_CLIENT_ID=...
-   WEALTH_PILOT_GITHUB_CLIENT_SECRET=...
+   PASLOOD_GITHUB_CLIENT_ID=...
+   PASLOOD_GITHUB_CLIENT_SECRET=...
    ```
 
 ### Whitelisting Emails
 To restrict access strictly to you or family members:
 ```dotenv
-WEALTH_PILOT_ALLOWED_EMAILS=alice@example.com,bob@example.com
+PASLOOD_ALLOWED_EMAILS=alice@example.com,bob@example.com
 ```
 
 ---
 
 ## 4. Backups and Data Portability
 
-All application data (portfolios, transaction cache, encrypted secrets, user database) lives inside the Docker volume `/data` (or your local directory `WEALTH_PILOT_DATA_DIR`).
+All application data (portfolios, transaction cache, encrypted secrets, user database) lives inside the Docker volume `/data` (or your local directory `PASLOOD_DATA_DIR`).
 
 ### Taking a Backup
 ```bash
-docker run --rm -v wealthpilot_data:/data -v $(pwd):/backup alpine \
+docker run --rm -v paslood_data:/data -v $(pwd):/backup alpine \
   tar czf /backup/paslood-backup-$(date +%Y%m%d).tar.gz -C /data .
 ```
 
 ### Restoring a Backup
 ```bash
-docker run --rm -v wealthpilot_data:/data -v $(pwd):/backup alpine \
+docker run --rm -v paslood_data:/data -v $(pwd):/backup alpine \
   tar xzf /backup/paslood-backup-YYYYMMDD.tar.gz -C /data
 ```

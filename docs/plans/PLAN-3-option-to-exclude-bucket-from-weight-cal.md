@@ -28,15 +28,15 @@ Add an `excluded` boolean flag to `Bucket` models and provide a toggle in the UI
 
 ## 3. Hexagonal Architecture Impact
 
-### 3.1 Domain Layer (`src/wealth_pilot/domain/`)
+### 3.1 Domain Layer (`src/paslood/domain/`)
 - `Bucket`: added `excluded: bool = False` attribute
 - Maintained pure Python and `Decimal` financial arithmetic
 
-### 3.2 Use Cases Layer (`src/wealth_pilot/use_cases/`)
+### 3.2 Use Cases Layer (`src/paslood/use_cases/`)
 - `CalculateBucketAllocationUseCase`: filters out excluded buckets during allocation proportion and rebalance calculation
 
-### 3.3 Delivery Frameworks (`src/wealth_pilot/delivery/`)
-- Web UI in `src/wealth_pilot/delivery/web/templates/index.html` updated with excluded badge and modal toggle
+### 3.3 Delivery Frameworks (`src/paslood/delivery/`)
+- Web UI in `src/paslood/delivery/web/templates/index.html` updated with excluded badge and modal toggle
 
 ---
 
@@ -51,5 +51,5 @@ Add an `excluded` boolean flag to `Bucket` models and provide a toggle in the UI
 - [x] `uv run ruff check src tests`
 - [x] `uv run ruff format --check src tests`
 - [x] `uv run mkdocs build --strict`
-- [x] `uv run pytest -v --cov=src/wealth_pilot --cov-fail-under=90`
+- [x] `uv run pytest -v --cov=src/paslood --cov-fail-under=90`
 - [x] PR merged with `Closes #3`

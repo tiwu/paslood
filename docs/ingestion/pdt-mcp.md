@@ -17,7 +17,7 @@ Paslood connects directly to the **Portfolio Dividend Tracker (PDT)** MCP server
 
 ## Configuration
 
-In `~/.wealth_pilot/portfolio.yaml` or environment variables:
+In `~/.paslood/portfolio.yaml` or environment variables:
 
 ```yaml
 pdt_mcp:

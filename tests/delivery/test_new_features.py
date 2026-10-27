@@ -11,10 +11,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.delivery.web.app import create_app
-from wealth_pilot.domain.asset import Asset, AssetClass
-from wealth_pilot.domain.money import Money
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.delivery.web.app import create_app
+from paslood.domain.asset import Asset, AssetClass
+from paslood.domain.money import Money
 
 
 @pytest.fixture
@@ -268,11 +268,11 @@ async def test_pdt_oauth_auto_sync_callback(test_app):
 
         with (
             patch(
-                "wealth_pilot.adapters.ingestion.pdt_auth.PdtAuthManager.exchange_code",
+                "paslood.adapters.ingestion.pdt_auth.PdtAuthManager.exchange_code",
                 new_callable=AsyncMock,
             ) as mock_exchange,
             patch(
-                "wealth_pilot.adapters.ingestion.pdt_mcp.PdtMcpGateway.fetch_portfolio_assets",
+                "paslood.adapters.ingestion.pdt_mcp.PdtMcpGateway.fetch_portfolio_assets",
                 new_callable=AsyncMock,
             ) as mock_fetch,
         ):
@@ -464,7 +464,7 @@ async def test_masked_api_key_preservation_and_advise_fallback(test_app):
 
         # 3. Call /api/ai/advise with masked key in request payload -> should use stored real key
         with patch(
-            "wealth_pilot.adapters.ai.llm_client.UniversalAIAdvisorClient.generate_advice",
+            "paslood.adapters.ai.llm_client.UniversalAIAdvisorClient.generate_advice",
             new_callable=AsyncMock,
             return_value="Claude Strategic Advice",
         ):
@@ -504,7 +504,7 @@ async def test_pdt_persistence_in_sqlite_and_token_refresh(test_app):
 
         with (
             patch(
-                "wealth_pilot.adapters.ingestion.pdt_auth.PdtAuthManager.refresh_tokens",
+                "paslood.adapters.ingestion.pdt_auth.PdtAuthManager.refresh_tokens",
                 new_callable=AsyncMock,
                 return_value={
                     "access_token": "fresh-access-token",
@@ -514,7 +514,7 @@ async def test_pdt_persistence_in_sqlite_and_token_refresh(test_app):
                 },
             ) as mock_refresh,
             patch(
-                "wealth_pilot.adapters.ingestion.pdt_mcp.PdtMcpGateway.fetch_portfolio_assets",
+                "paslood.adapters.ingestion.pdt_mcp.PdtMcpGateway.fetch_portfolio_assets",
                 new_callable=AsyncMock,
                 return_value=[mock_asset],
             ),
@@ -589,4 +589,4 @@ async def test_encrypted_backup_export_and_import_and_cloud_sync_path(test_app, 
             },
         )
         assert sync_resp.status_code == 200
-        assert (sync_folder / "wealth_pilot_vault.wpbackup").exists()
+        assert (sync_folder / "paslood_vault.wpbackup").exists()

@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.adapters.repositories.local_db import LocalDbRepository
-from wealth_pilot.delivery.web.app import create_app
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.adapters.repositories.local_db import LocalDbRepository
+from paslood.delivery.web.app import create_app
 
 SAMPLE_CSV_JAN = """Rekeningnummer;Rubrieknaam;Naam;Munt;Afschriftnummer;Datum;Omschrijving;Valuta;Bedrag;Saldo;credit;debet;rekeningnummer tegenpartij;BIC tegenpartij;Naam tegenpartij;Adres tegenpartij;gestructureerde mededeling;Vrije mededeling
 BE00123456789012; ;USER;EUR; 02026101;15/01/2026;SALARIS JANUARI;15/01/2026;4500,00;4500,00;4500,00; ; ; ;EMPLOYER; ; ;
@@ -23,7 +23,7 @@ BE00123456789012; ;USER;EUR; 02026202;18/02/2026;TERUGBETALING WONINGKREDIET 420
 @pytest.fixture
 def app_with_db(tmp_path: Path):
     repo = ConfigRepository(config_path=tmp_path / "portfolio.yaml")
-    local_db = LocalDbRepository(db_path=tmp_path / "wealth_pilot.db")
+    local_db = LocalDbRepository(db_path=tmp_path / "paslood.db")
     return create_app(config_repo=repo, local_db=local_db)
 
 

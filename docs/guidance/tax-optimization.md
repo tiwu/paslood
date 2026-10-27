@@ -6,7 +6,7 @@ Paslood includes a legally grounded Belgian tax engine designed for DIY investor
 
 ## 1. Official Statutory Sources (FOD Financiën)
 
-All rates, thresholds, caps, and cost-basis rules in [`tax_rules.py`](https://github.com/tiwu/paslood/blob/main/src/wealth_pilot/domain/tax_rules.py) and [`optimize_tax.py`](https://github.com/tiwu/paslood/blob/main/src/wealth_pilot/use_cases/optimize_tax.py) follow official Belgian legislation:
+All rates, thresholds, caps, and cost-basis rules in [`tax_rules.py`](https://github.com/tiwu/paslood/blob/main/src/paslood/domain/tax_rules.py) and [`optimize_tax.py`](https://github.com/tiwu/paslood/blob/main/src/paslood/use_cases/optimize_tax.py) follow official Belgian legislation:
 
 1. **Meerwaardebelasting op financiële activa (Effective 1 Jan 2026)**:
    - **Legal Basis**: *Wetboek van de Inkomstenbelastingen 1992 (WIB 92), Art. 90, eerste lid, 9° & Art. 101–102*.

@@ -6,10 +6,10 @@ import pytest
 import respx
 from httpx import ASGITransport, AsyncClient, Response
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.adapters.settings import AppSettings
-from wealth_pilot.delivery.web.app import create_app
-from wealth_pilot.delivery.web.auth import hash_password
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.adapters.settings import AppSettings
+from paslood.delivery.web.app import create_app
+from paslood.delivery.web.auth import hash_password
 
 
 @pytest.fixture
@@ -208,8 +208,8 @@ async def test_meta_oauth_callback(auth_app):
 
 
 def test_auth_manager_unit(tmp_path: Path):
-    from wealth_pilot.adapters.settings import AppSettings
-    from wealth_pilot.delivery.web.auth import AuthManager
+    from paslood.adapters.settings import AppSettings
+    from paslood.delivery.web.auth import AuthManager
 
     settings = AppSettings(
         data_dir=tmp_path,

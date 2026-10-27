@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.adapters.settings import AppSettings
-from wealth_pilot.delivery.web.app import create_app
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.adapters.settings import AppSettings
+from paslood.delivery.web.app import create_app
 
 
 @pytest.fixture

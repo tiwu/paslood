@@ -3,7 +3,7 @@
 import httpx
 import pytest
 
-from wealth_pilot.adapters.ai.llm_client import UniversalAIAdvisorClient
+from paslood.adapters.ai.llm_client import UniversalAIAdvisorClient
 
 
 @pytest.mark.asyncio

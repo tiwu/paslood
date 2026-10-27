@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from wealth_pilot.domain.money import Money
-from wealth_pilot.domain.tax_rules import (
+from paslood.domain.money import Money
+from paslood.domain.tax_rules import (
     ASML_2025_12_31_BENCHMARK_EUR,
     BELGIAN_TAX_CITATIONS,
     BrokerTaxProfile,
     TobTier,
     calculate_tob_tax,
 )
-from wealth_pilot.use_cases.optimize_tax import OptimizeTaxUseCase
+from paslood.use_cases.optimize_tax import OptimizeTaxUseCase
 
 
 def test_belgian_official_tax_citations_present():

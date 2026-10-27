@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from wealth_pilot.adapters.settings import AppSettings
+from paslood.adapters.settings import AppSettings
 
 
 def test_settings_defaults(tmp_path: Path):
@@ -24,10 +24,10 @@ def test_settings_allowed_emails():
 
 
 def test_settings_from_env(monkeypatch, tmp_path: Path):
-    monkeypatch.setenv("WEALTH_PILOT_MODE", "self_host")
-    monkeypatch.setenv("WEALTH_PILOT_DATA_DIR", str(tmp_path))
-    monkeypatch.setenv("WEALTH_PILOT_AUTH_MODE", "password")
-    monkeypatch.setenv("WEALTH_PILOT_ALLOWED_EMAILS", "user1@test.com, user2@test.com ")
+    monkeypatch.setenv("PASLOOD_MODE", "self_host")
+    monkeypatch.setenv("PASLOOD_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("PASLOOD_AUTH_MODE", "password")
+    monkeypatch.setenv("PASLOOD_ALLOWED_EMAILS", "user1@test.com, user2@test.com ")
     monkeypatch.setenv("GOOGLE_CLIENT_ID", "google-id")
     monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "google-secret")
 

@@ -66,7 +66,7 @@ cd paslood
 
 # 2. Copy environment template and generate secret key
 cp .env.example .env
-openssl rand -hex 32  # Copy output to WEALTH_PILOT_SECRET_KEY in .env
+openssl rand -hex 32  # Copy output to PASLOOD_SECRET_KEY in .env
 
 # 3. Set master admin password
 docker compose run --rm paslood set-password
@@ -109,9 +109,9 @@ Paslood includes a secure, built-in identity and session manager:
    uv run paslood set-password
    ```
 2. **Social OAuth 2.0**:
-   Configure `WEALTH_PILOT_GOOGLE_CLIENT_ID`, `WEALTH_PILOT_GITHUB_CLIENT_ID`, or `WEALTH_PILOT_META_CLIENT_ID` in `.env` to enable 1-click social logins.
+   Configure `PASLOOD_GOOGLE_CLIENT_ID`, `PASLOOD_GITHUB_CLIENT_ID`, or `PASLOOD_META_CLIENT_ID` in `.env` to enable 1-click social logins.
 3. **Email Whitelisting**:
-   Restrict access exclusively to authorized users via `WEALTH_PILOT_ALLOWED_EMAILS=alice@example.com,bob@example.com`.
+   Restrict access exclusively to authorized users via `PASLOOD_ALLOWED_EMAILS=alice@example.com,bob@example.com`.
 4. **Envelope Encryption**:
    Sensitive API keys and external credentials stored in `portfolio.yaml` are encrypted at rest with AES-256-GCM using per-tenant keys derived via HKDF-SHA256.
 
@@ -146,7 +146,7 @@ uv run paslood web --port 8000
 Paslood strictly adheres to **Uncle Bob's Clean Architecture**:
 
 ```text
-src/wealth_pilot/
+src/paslood/
 ├── domain/        # Pure Python enterprise business rules (Money, Asset, Liability, Bucket, Identity)
 ├── use_cases/     # Application orchestrators (CalculateBucketAllocation, AdviseContribution, BuildOverview)
 ├── adapters/      # Gateways (PDT MCP, KBC/Generic CSV, SecretVault, Settings, ConfigRepository)
@@ -162,7 +162,7 @@ src/wealth_pilot/
 uv run pytest
 
 # Run tests with coverage (target >= 90%)
-uv run pytest --cov=src/wealth_pilot --cov-report=term-missing
+uv run pytest --cov=src/paslood --cov-report=term-missing
 
 # Lint & code format checks
 uv run ruff check src tests scripts

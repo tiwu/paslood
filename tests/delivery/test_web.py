@@ -3,9 +3,9 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from wealth_pilot import __version__
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.delivery.web.app import create_app
+from paslood import __version__
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.delivery.web.app import create_app
 
 SAMPLE_KBC_CSV = """Rekeningnummer;Rubrieknaam;Naam;Munt;Afschriftnummer;Datum;Omschrijving;Valuta;Bedrag;Saldo;credit;debet;rekeningnummer tegenpartij;BIC tegenpartij;Naam tegenpartij;Adres tegenpartij;gestructureerde mededeling;Vrije mededeling
 BE00987654321098; ;TEST HOLDER;EUR; 02026213;02/10/2026;OVERSCHRIJVING NAAR 02-10 BE45 0000 0000 0000;02/10/2026;-50,00;822,36; ;-50,00;BE45 0000 0000 0000;BIBLBE21XXX;COUNTERPARTY CORP; ; ;inst01336810

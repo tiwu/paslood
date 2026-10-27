@@ -50,7 +50,7 @@ docs_dist/
 pdt_auth.json
 portfolio.yaml
 rules.yaml
-wealth_pilot.db
+paslood.db
 *.db
 *.sqlite
 *.sqlite3

@@ -3,10 +3,10 @@
 from decimal import Decimal
 from pathlib import Path
 
-from wealth_pilot.adapters.ingestion.generic_csv import GenericCsvGateway
-from wealth_pilot.adapters.ingestion.kbc_csv import KbcCsvGateway
-from wealth_pilot.adapters.repositories.config_repo import ConfigRepository
-from wealth_pilot.domain.asset import AssetClass
+from paslood.adapters.ingestion.generic_csv import GenericCsvGateway
+from paslood.adapters.ingestion.kbc_csv import KbcCsvGateway
+from paslood.adapters.repositories.config_repo import ConfigRepository
+from paslood.domain.asset import AssetClass
 
 SAMPLE_KBC_CSV_CONTENT = """Rekeningnummer;Rubrieknaam;Naam;Munt;Afschriftnummer;Datum;Omschrijving;Valuta;Bedrag;Saldo;credit;debet;rekeningnummer tegenpartij;BIC tegenpartij;Naam tegenpartij;Adres tegenpartij;gestructureerde mededeling;Vrije mededeling
 BE00123456789012; ;ALICE EXAMPLE;EUR; 02026213;02/10/2026;OVERSCHRIJVING NAAR 02-10 BE45 0000 0000 0000;02/10/2026;-50,00;822,36; ;-50,00;BE45 0000 0000 0000;BIBLBE21XXX;BOB RECIPIENT; ; ;inst01336810
@@ -99,7 +99,7 @@ def test_config_repository_persistence(tmp_path: Path):
 async def test_pdt_mcp_historical_price_lookup():
     import httpx
 
-    from wealth_pilot.adapters.ingestion.pdt_mcp import PdtMcpGateway
+    from paslood.adapters.ingestion.pdt_mcp import PdtMcpGateway
 
     gateway = PdtMcpGateway(auth_token="test-token")
 

@@ -19,22 +19,22 @@ FROM python:3.14-slim-bookworm AS runtime
 WORKDIR /app
 
 # Create non-root system user
-RUN groupadd -g 1000 wealthpilot && \
-    useradd -u 1000 -g wealthpilot -s /bin/bash -m wealthpilot && \
-    mkdir -p /data && chown -R wealthpilot:wealthpilot /data /app
+RUN groupadd -g 1000 paslood && \
+    useradd -u 1000 -g paslood -s /bin/bash -m paslood && \
+    mkdir -p /data && chown -R paslood:paslood /data /app
 
 # Copy built virtual environment, app source and docs
-COPY --from=builder --chown=wealthpilot:wealthpilot /app/.venv /app/.venv
-COPY --from=builder --chown=wealthpilot:wealthpilot /app/src /app/src
-COPY --from=builder --chown=wealthpilot:wealthpilot /app/site /app/site
+COPY --from=builder --chown=paslood:paslood /app/.venv /app/.venv
+COPY --from=builder --chown=paslood:paslood /app/src /app/src
+COPY --from=builder --chown=paslood:paslood /app/site /app/site
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
-    WEALTH_PILOT_DATA_DIR=/data \
-    WEALTH_PILOT_MODE=self_host \
+    PASLOOD_DATA_DIR=/data \
+    PASLOOD_MODE=self_host \
     PORT=8000
 
-USER wealthpilot
+USER paslood
 VOLUME ["/data"]
 EXPOSE 8000
 

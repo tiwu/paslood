@@ -23,18 +23,18 @@
 
 ## 3. Hexagonal Architecture Impact
 
-### 3.1 Domain Layer (`src/wealth_pilot/domain/`)
+### 3.1 Domain Layer (`src/paslood/domain/`)
 - Entities / Value Objects modified or introduced
 - Invariants maintained (pure Python, Decimal money arithmetic, no framework imports)
 
-### 3.2 Use Cases Layer (`src/wealth_pilot/use_cases/`)
+### 3.2 Use Cases Layer (`src/paslood/use_cases/`)
 - Application orchestrators added or updated
 - Pure input/output interfaces
 
-### 3.3 Adapters & Repositories (`src/wealth_pilot/adapters/`)
+### 3.3 Adapters & Repositories (`src/paslood/adapters/`)
 - Gateways, database schemas (`LocalDbRepository`), external API clients
 
-### 3.4 Delivery Frameworks (`src/wealth_pilot/delivery/`)
+### 3.4 Delivery Frameworks (`src/paslood/delivery/`)
 - REST endpoints in `app.py`, template additions in `index.html`, CLI commands in `cli.py`
 
 ---
@@ -44,12 +44,12 @@
    - Specific unit tests in `tests/unit/`
    - Specific delivery/integration tests in `tests/delivery/`
 2. **Green (Implementation)**:
-   - Minimal implementation code in `src/wealth_pilot/`
+   - Minimal implementation code in `src/paslood/`
 3. **Refactor & Quality**:
    - Clean architecture check
    - Zero lint errors (`uv run ruff check`)
    - Format check (`uv run ruff format --check`)
-   - 90%+ coverage (`uv run pytest --cov=src/wealth_pilot --cov-fail-under=90`)
+   - 90%+ coverage (`uv run pytest --cov=src/paslood --cov-fail-under=90`)
 
 ---
 

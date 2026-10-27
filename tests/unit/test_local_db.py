@@ -7,16 +7,16 @@ from pathlib import Path
 
 import pytest
 
-from wealth_pilot.adapters.repositories.local_db import LocalDbRepository
-from wealth_pilot.domain.asset import Asset, AssetClass
-from wealth_pilot.domain.balance_sheet import Transaction
-from wealth_pilot.domain.liability import Liability, LoanType
-from wealth_pilot.domain.money import Money
+from paslood.adapters.repositories.local_db import LocalDbRepository
+from paslood.domain.asset import Asset, AssetClass
+from paslood.domain.balance_sheet import Transaction
+from paslood.domain.liability import Liability, LoanType
+from paslood.domain.money import Money
 
 
 @pytest.fixture
 def local_db(tmp_path: Path) -> LocalDbRepository:
-    db_file = tmp_path / "test_wealth_pilot.db"
+    db_file = tmp_path / "test_paslood.db"
     return LocalDbRepository(db_path=db_file)
 
 

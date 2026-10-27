@@ -2,11 +2,11 @@
 
 from decimal import Decimal
 
-from wealth_pilot.domain.asset import Asset, AssetClass
-from wealth_pilot.domain.balance_sheet import BalanceSheet, MonthlyCashflow
-from wealth_pilot.domain.bucket import AllocationRule, Bucket
-from wealth_pilot.domain.liability import Liability, LoanType
-from wealth_pilot.domain.money import Money
+from paslood.domain.asset import Asset, AssetClass
+from paslood.domain.balance_sheet import BalanceSheet, MonthlyCashflow
+from paslood.domain.bucket import AllocationRule, Bucket
+from paslood.domain.liability import Liability, LoanType
+from paslood.domain.money import Money
 
 
 def test_money_creation_and_arithmetic():
