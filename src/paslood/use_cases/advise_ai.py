@@ -18,6 +18,14 @@ _INJECTION_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
+MAX_QUESTION_LENGTH = 1000
+_INJECTION_PATTERNS = re.compile(
+    r"(ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules)|"
+    r"disregard\s+(all\s+)?(previous|prior)\s+(instructions|prompts)|"
+    r"you\s+are\s+now\s+a|forget\s+your\s+system\s+prompt)",
+    re.IGNORECASE,
+)
+
 SYSTEM_PROMPT = """You are Paslood AI, an experienced fee-only financial planner and strategic wealth advisor.
 Your goal is to provide objective, mathematical, and actionable long-term financial guidance based strictly on the user's consolidated balance sheet metrics.
 Focus on:
