@@ -310,6 +310,7 @@ async function uploadFiles(files) {
   let totalAssets = 0;
   let successCount = 0;
   const errors = [];
+  const discoveredUnregistered = [];
 
   for (const file of files) {
     const formData = new FormData();
@@ -324,6 +325,13 @@ async function uploadFiles(files) {
         totalNewTxs += (result.new_transactions || 0);
         totalProcessedTxs += (result.transactions_processed || result.transaction_count || 0);
         totalAssets += (result.asset_count || 0);
+        if (result.unregistered_accounts && Array.isArray(result.unregistered_accounts)) {
+          result.unregistered_accounts.forEach(u => {
+            if (!discoveredUnregistered.some(existing => existing.account_id === u.account_id)) {
+              discoveredUnregistered.push(u);
+            }
+          });
+        }
       } else {
         errors.push(`${file.name}: ${result.detail || 'Upload failed'}`);
       }
@@ -344,11 +352,42 @@ async function uploadFiles(files) {
     status.textContent = summary;
     showToast(summary, 'success');
     await loadOverview();
+
+    // Check if new accounts were discovered
+    if (discoveredUnregistered.length > 0) {
+      promptAddUnregisteredAccounts(discoveredUnregistered);
+    }
   } else {
     status.className = 'text-xs py-2 px-3 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30';
     status.textContent = `Upload failed: ${errors.join('; ')}`;
     showToast(`Upload failed: ${errors.join('; ')}`, 'error');
   }
+}
+
+function promptAddUnregisteredAccounts(unregistered) {
+  if (!unregistered || unregistered.length === 0) return;
+  const first = unregistered[0];
+  const countExtra = unregistered.length - 1;
+  const extraText = countExtra > 0 ? ` (+${countExtra} more)` : '';
+
+  const msg = `Discovered new account statement: ${first.account_id} (${first.institution_hint})${extraText}. Register this account?`;
+  
+  showToast(
+    `${msg} <button onclick="goToRegisterKnownAccount('${escapeHtml(first.account_id)}', '${escapeHtml(first.institution_hint)}')" class="underline ml-2 font-bold hover:text-white">Register Account</button>`,
+    'info',
+    10000
+  );
+}
+
+function goToRegisterKnownAccount(accountId, institution) {
+  if (typeof switchWorkspace === 'function') {
+    switchWorkspace('settings');
+  }
+  setTimeout(() => {
+    if (typeof prefillKnownAccountForm === 'function') {
+      prefillKnownAccountForm(accountId, institution);
+    }
+  }, 150);
 }
 
 // Re-Bucketing Modal

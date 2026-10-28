@@ -339,6 +339,70 @@ class LocalDbRepository:
             )
         return assets
 
+    def get_discovered_account_summaries(self) -> list[dict[str, Any]]:
+        """Returns distinct discovered account IDs with inferred institution and transaction counts."""
+        account_map: dict[str, dict[str, Any]] = {}
+
+        # 1. Accounts from transactions
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT account_id, COUNT(*) as tx_count, MIN(date) as first_date, MAX(date) as last_date
+                FROM transactions
+                WHERE account_id IS NOT NULL AND TRIM(account_id) != ''
+                GROUP BY account_id
+                """
+            )
+            for r in cursor.fetchall():
+                acc = r["account_id"].strip()
+                inst = self._infer_institution_from_account(acc)
+                account_map[acc] = {
+                    "account_id": acc,
+                    "institution_hint": inst,
+                    "transaction_count": r["tx_count"],
+                    "first_date": r["first_date"],
+                    "last_date": r["last_date"],
+                    "has_cash_asset": False,
+                }
+
+        # 2. Accounts from discovered_assets
+        for a in self.get_discovered_assets():
+            acc = (a.account_id or "").strip()
+            if not acc:
+                continue
+            if acc not in account_map:
+                inst = a.institution or self._infer_institution_from_account(acc)
+                account_map[acc] = {
+                    "account_id": acc,
+                    "institution_hint": inst,
+                    "transaction_count": 0,
+                    "first_date": None,
+                    "last_date": None,
+                    "has_cash_asset": True,
+                }
+            else:
+                account_map[acc]["has_cash_asset"] = True
+                if a.institution and a.institution.lower() != "unknown":
+                    account_map[acc]["institution_hint"] = a.institution
+
+        return sorted(account_map.values(), key=lambda x: x["account_id"])
+
+    @staticmethod
+    def _infer_institution_from_account(account_id: str) -> str:
+        clean = account_id.replace(" ", "").upper()
+        if "BUNQ" in clean or clean.startswith("NL") and "BUNQ" in clean:
+            return "bunq"
+        if (
+            clean.startswith("BE")
+            or "KRED" in clean
+            or "XXXX" in clean
+            or clean.startswith("5489")
+            or clean.startswith("5176")
+        ):
+            return "KBC"
+        return "Unknown"
+
     def save_discovered_liabilities(self, liabilities: list[Liability]) -> None:
         """Upserts discovered liabilities.
 

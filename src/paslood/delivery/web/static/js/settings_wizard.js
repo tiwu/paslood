@@ -637,6 +637,7 @@ async function wizardFinish() {
 // ---------------------------------------------------------
 
 let currentKnownAccounts = [];
+let currentDiscoveredAccounts = [];
 
 async function loadKnownAccounts() {
   try {
@@ -645,9 +646,113 @@ async function loadKnownAccounts() {
     const data = await res.json();
     currentKnownAccounts = Array.isArray(data) ? data : (data.accounts || []);
     renderKnownAccounts(currentKnownAccounts);
+    await loadDiscoveredAccounts();
   } catch (err) {
     console.error('Failed to load known accounts:', err);
   }
+}
+
+async function loadDiscoveredAccounts() {
+  try {
+    const res = await fetch('/api/accounts/discovered');
+    if (!res.ok) return;
+    const data = await res.json();
+    currentDiscoveredAccounts = data.discovered_accounts || [];
+    renderDiscoveredAccountsUI(currentDiscoveredAccounts);
+  } catch (err) {
+    console.error('Failed to load discovered accounts:', err);
+  }
+}
+
+function renderDiscoveredAccountsUI(discovered) {
+  // 1. Populate datalist for input field
+  const datalist = document.getElementById('discovered-acc-datalist');
+  if (datalist) {
+    datalist.innerHTML = '';
+    discovered.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.account_id;
+      opt.label = `${d.institution_hint} (${d.transaction_count} txs)`;
+      datalist.appendChild(opt);
+    });
+  }
+
+  // 2. Populate quick-add banner for unmapped accounts
+  const banner = document.getElementById('discovered-accounts-banner');
+  const chipsContainer = document.getElementById('discovered-accounts-chips');
+  if (!banner || !chipsContainer) return;
+
+  const unmapped = discovered.filter(d => !d.is_known);
+  if (unmapped.length === 0) {
+    banner.classList.add('hidden');
+    chipsContainer.innerHTML = '';
+    return;
+  }
+
+  chipsContainer.innerHTML = '';
+  unmapped.forEach(d => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs transition';
+    chip.innerHTML = `
+      <span class="font-mono">${escapeHtml(d.account_id)}</span>
+      <span class="text-[10px] text-slate-400">(${escapeHtml(d.institution_hint)})</span>
+      <span class="text-xs text-blue-400 font-bold">+</span>
+    `;
+    chip.onclick = () => prefillKnownAccountForm(d.account_id, d.institution_hint);
+    chipsContainer.appendChild(chip);
+  });
+  banner.classList.remove('hidden');
+}
+
+function prefillKnownAccountForm(accountId, institution = '') {
+  const form = document.getElementById('add-known-account-form');
+  if (form) form.classList.remove('hidden');
+
+  const accInput = document.getElementById('new-known-acc-num');
+  const labelInput = document.getElementById('new-known-acc-label');
+  const typeSelect = document.getElementById('new-known-acc-type');
+  const instInput = document.getElementById('new-known-acc-inst');
+
+  if (accInput) accInput.value = accountId;
+  onKnownAccNumChanged(accountId, institution);
+  if (labelInput) labelInput.focus();
+}
+
+function onKnownAccNumChanged(val, explicitInst = '') {
+  const raw = String(val || '').trim();
+  const clean = raw.replace(/\s+/g, '').toUpperCase();
+  const labelInput = document.getElementById('new-known-acc-label');
+  const typeSelect = document.getElementById('new-known-acc-type');
+  const instInput = document.getElementById('new-known-acc-inst');
+
+  let inst = explicitInst;
+  let type = 'CHECKING';
+  let defaultLabel = '';
+
+  if (!inst) {
+    if (clean.includes('BUNQ')) {
+      inst = 'bunq';
+      defaultLabel = `Bunq ${raw.slice(-4)}`;
+    } else if (clean.startsWith('BE') || clean.includes('KRED') || clean.includes('XXXX')) {
+      inst = 'KBC';
+      defaultLabel = `KBC ${raw.slice(-4)}`;
+    } else if (clean.includes('SAXO')) {
+      inst = 'Saxo';
+      type = 'INVESTMENT';
+      defaultLabel = 'Saxo Investor';
+    }
+  } else {
+    defaultLabel = `${inst} ${raw.slice(-4)}`;
+  }
+
+  if (clean.toLowerCase().includes('spaar') || clean.toLowerCase().includes('saving')) {
+    type = 'SAVINGS';
+  }
+
+  if (instInput && !instInput.value) instInput.value = inst;
+  if (typeSelect && typeSelect.value === 'CHECKING' && type !== 'CHECKING') typeSelect.value = type;
+  if (labelInput && !labelInput.value && defaultLabel) labelInput.value = defaultLabel;
 }
 
 function renderKnownAccounts(accounts) {

@@ -80,6 +80,33 @@ async def ingest_kbc_file(
 
         total_txs = len(db.get_transactions())
 
+        # Check for unmapped / unknown accounts
+        clean_known_set = {
+            k.account_number.replace(" ", "").upper() for k in known_accounts if k.account_number
+        }
+        all_account_numbers = set()
+        if data.get("account_number"):
+            all_account_numbers.add(data["account_number"])
+        for ca in cash_assets:
+            if ca.account_id:
+                all_account_numbers.add(ca.account_id)
+        for tx in categorized_txs:
+            if tx.account_id:
+                all_account_numbers.add(tx.account_id)
+
+        unregistered = []
+        for acc in sorted(all_account_numbers):
+            clean_acc = acc.replace(" ", "").upper()
+            if clean_acc and clean_acc not in clean_known_set:
+                inst = LocalDbRepository._infer_institution_from_account(acc)
+                unregistered.append(
+                    {
+                        "account_id": acc,
+                        "institution_hint": inst,
+                        "suggested_label": f"{inst} {acc[-4:]}" if len(acc) >= 4 else inst,
+                    }
+                )
+
         return {
             "status": "success",
             "account_number": data["account_number"],
@@ -89,6 +116,7 @@ async def ingest_kbc_file(
             "new_transactions": inserted_txs,
             "total_cumulative_transactions": total_txs,
             "discovered_liabilities_count": len(data["discovered_liabilities"]),
+            "unregistered_accounts": unregistered,
         }
     finally:
         if tmp_path.exists():
@@ -130,6 +158,33 @@ async def ingest_bunq_file(
 
         total_txs = len(db.get_transactions())
 
+        # Check for unmapped / unknown accounts
+        clean_known_set = {
+            k.account_number.replace(" ", "").upper() for k in known_accounts if k.account_number
+        }
+        all_account_numbers = set()
+        if data.get("account_number"):
+            all_account_numbers.add(data["account_number"])
+        for ca in cash_assets:
+            if ca.account_id:
+                all_account_numbers.add(ca.account_id)
+        for tx in categorized_txs:
+            if tx.account_id:
+                all_account_numbers.add(tx.account_id)
+
+        unregistered = []
+        for acc in sorted(all_account_numbers):
+            clean_acc = acc.replace(" ", "").upper()
+            if clean_acc and clean_acc not in clean_known_set:
+                inst = LocalDbRepository._infer_institution_from_account(acc)
+                unregistered.append(
+                    {
+                        "account_id": acc,
+                        "institution_hint": inst,
+                        "suggested_label": f"{inst} {acc[-4:]}" if len(acc) >= 4 else inst,
+                    }
+                )
+
         return {
             "status": "success",
             "account_number": data["account_number"],
@@ -138,6 +193,7 @@ async def ingest_bunq_file(
             "transactions_processed": len(categorized_txs),
             "new_transactions": inserted_txs,
             "total_cumulative_transactions": total_txs,
+            "unregistered_accounts": unregistered,
         }
     finally:
         if tmp_path.exists():
