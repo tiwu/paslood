@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from paslood.domain.balance_sheet import Transaction, TransactionCategory
+
+if TYPE_CHECKING:
+    from paslood.domain.account import KnownAccount
 
 DEFAULT_PATTERNS = [
     (r"WONINGKREDIET|HYPOTHEEK|MORTGAGE", TransactionCategory.MORTGAGE.value),
@@ -22,10 +25,14 @@ DEFAULT_PATTERNS = [
     ),
     (r"SALARY|LOON|WEDDE|PAYROLL|WAGE|EMPLOYER", TransactionCategory.INCOME.value),
     (
-        r"SAXO|DEGIRO|BOLERO|INTERACTIVE BROKERS|TRADE REPUBLIC",
+        r"SAXO|DEGIRO|BOLERO|INTERACTIVE BROKERS|TRADE REPUBLIC|BROKER",
         TransactionCategory.INVESTMENTS.value,
     ),
-    (r"SPAARREKENING|BUNQ|SAVINGS", TransactionCategory.SAVINGS.value),
+    (r"SPAARREKENING|SPAREN|SAVINGS|ÉPARGNE", TransactionCategory.SAVINGS.value),
+    (
+        r"EIGEN REKENING|INTERN|INTERNAL TRANSFER|VIREMENT PROPRE",
+        TransactionCategory.TRANSFER.value,
+    ),
 ]
 
 
@@ -36,9 +43,17 @@ class CategorizeTransactionsUseCase:
         self,
         transactions: Sequence[Transaction],
         rules: Sequence[dict[str, Any]] | None = None,
+        known_accounts: Sequence[KnownAccount] | None = None,
     ) -> list[Transaction]:
         user_rules = rules or []
+        accounts = known_accounts or []
         categorized: list[Transaction] = []
+
+        # Prepare normalized lookup for known accounts
+        cleaned_accounts = []
+        for acc in accounts:
+            clean_num = re.sub(r"[^A-Za-z0-9]", "", acc.account_number).upper()
+            cleaned_accounts.append((clean_num, acc.label.lower(), acc.account_type.upper()))
 
         for tx in transactions:
             matched_category = None
@@ -68,7 +83,33 @@ class CategorizeTransactionsUseCase:
                         matched_category = target_cat
                         break
 
-            # 2. Fall back to default heuristic patterns
+            # 2. Check known accounts cross-referencing (Saxo, savings, checking)
+            if not matched_category and cleaned_accounts:
+                tx_desc_clean = re.sub(r"[^A-Za-z0-9]", "", tx.description or "").upper()
+                tx_iban_clean = re.sub(r"[^A-Za-z0-9]", "", tx.counterparty_iban or "").upper()
+                tx_name_lower = (tx.counterparty_name or "").lower()
+                tx_desc_lower = (tx.description or "").lower()
+
+                for clean_num, label_lower, acc_type in cleaned_accounts:
+                    matched = False
+                    if (
+                        clean_num
+                        and (clean_num in tx_iban_clean or clean_num in tx_desc_clean)
+                        or label_lower
+                        and (label_lower in tx_name_lower or label_lower in tx_desc_lower)
+                    ):
+                        matched = True
+
+                    if matched:
+                        if acc_type == "INVESTMENT":
+                            matched_category = TransactionCategory.INVESTMENTS.value
+                        elif acc_type == "SAVINGS":
+                            matched_category = TransactionCategory.SAVINGS.value
+                        elif acc_type == "CHECKING":
+                            matched_category = TransactionCategory.TRANSFER.value
+                        break
+
+            # 3. Fall back to default heuristic patterns
             if not matched_category:
                 combined_text = f"{tx.description} {tx.counterparty_name}"
                 for regex, cat in DEFAULT_PATTERNS:

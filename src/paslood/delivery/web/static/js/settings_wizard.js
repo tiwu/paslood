@@ -112,6 +112,10 @@ async function loadSettings() {
         I18N.setRegionalFormat(s.regional_format, false);
       }
     }
+
+    // Known Accounts
+    await loadKnownAccounts();
+
     return s;
   } catch (err) {
     console.error('Failed to load settings:', err);
@@ -625,5 +629,139 @@ async function wizardFinish() {
   } catch (err) {
     console.error('Wizard save error:', err);
     showSettingsAlert(`Setup could not be saved: ${err.message}`, true);
+  }
+}
+
+// ---------------------------------------------------------
+// Known Accounts Management
+// ---------------------------------------------------------
+
+let currentKnownAccounts = [];
+
+async function loadKnownAccounts() {
+  try {
+    const res = await fetch('/api/accounts/known');
+    if (!res.ok) return;
+    const data = await res.json();
+    currentKnownAccounts = Array.isArray(data) ? data : (data.accounts || []);
+    renderKnownAccounts(currentKnownAccounts);
+  } catch (err) {
+    console.error('Failed to load known accounts:', err);
+  }
+}
+
+function renderKnownAccounts(accounts) {
+  const tbody = document.getElementById('known-accounts-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  const list = Array.isArray(accounts) ? accounts : [];
+
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="py-4 text-center text-slate-500 italic">No known accounts registered yet. Add your Saxo, savings, or external accounts above.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  list.forEach(acc => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-950/30';
+    
+    let typeBadgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
+    if (acc.account_type === 'INVESTMENT') {
+      typeBadgeClass = 'bg-blue-500/20 text-blue-300 border-blue-500/40';
+    } else if (acc.account_type === 'SAVINGS') {
+      typeBadgeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+    }
+
+    const accId = acc.id || acc.account_id || acc.account_number;
+    const accNum = acc.account_number || acc.account_id || acc.id;
+
+    tr.innerHTML = `
+      <td class="py-2.5 px-3 font-medium text-white">${escapeHtml(acc.label)}</td>
+      <td class="py-2.5 px-3 font-mono text-slate-300 text-[11px]">${escapeHtml(accNum)}</td>
+      <td class="py-2.5 px-3">
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${typeBadgeClass}">
+          ${escapeHtml(acc.account_type)}
+        </span>
+      </td>
+      <td class="py-2.5 px-3 text-slate-400 text-[11px]">${escapeHtml(acc.institution || '—')}</td>
+      <td class="py-2.5 px-3 text-right">
+        <button onclick="deleteKnownAccount('${escapeHtml(accId)}')" class="px-2 py-0.5 rounded border border-red-500/30 hover:bg-red-500/10 text-red-400 text-[11px]">
+          Delete
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function toggleAddKnownAccountForm() {
+  const form = document.getElementById('add-known-account-form');
+  if (!form) return;
+  form.classList.toggle('hidden');
+}
+
+async function submitNewKnownAccount() {
+  const accNum = document.getElementById('new-known-acc-num').value.trim();
+  const label = document.getElementById('new-known-acc-label').value.trim();
+  const type = document.getElementById('new-known-acc-type').value;
+  const inst = document.getElementById('new-known-acc-inst').value.trim();
+
+  if (!accNum || !label) {
+    showSettingsAlert('Please specify both an account number/IBAN and a label.', true);
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/accounts/known', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        account_number: accNum,
+        label: label,
+        account_type: type,
+        institution: inst
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Failed to save account');
+    }
+
+    document.getElementById('new-known-acc-num').value = '';
+    document.getElementById('new-known-acc-label').value = '';
+    document.getElementById('new-known-acc-inst').value = '';
+    toggleAddKnownAccountForm();
+    await loadKnownAccounts();
+    await loadOverview();
+    showSettingsAlert(`Saved known account "${label}" successfully.`);
+  } catch (err) {
+    showSettingsAlert(err.message, true);
+  }
+}
+
+async function deleteKnownAccount(accountId) {
+  if (!confirm(`Remove known account ${accountId}?`)) return;
+
+  try {
+    const res = await fetch(`/api/accounts/known/${encodeURIComponent(accountId)}`, {
+      method: 'DELETE'
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Failed to delete account');
+    }
+
+    await loadKnownAccounts();
+    await loadOverview();
+    showSettingsAlert('Known account removed.');
+  } catch (err) {
+    showSettingsAlert(err.message, true);
   }
 }

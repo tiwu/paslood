@@ -10,10 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
-### Changed
-
-### Fixed
+- **Known Accounts & Inter-Account Flow Categorization (#43)**:
+  - Added `KnownAccount` domain model (`src/paslood/domain/account.py`) supporting user-defined external accounts and custom labels (e.g. Saxo, Bunq, KBC) with account types (`INVESTMENT`, `SAVINGS`, `CHECKING`).
+  - Added repository storage in `portfolio.yaml` for known accounts via `ConfigRepository.load_known_accounts()`, `save_known_account()`, and `delete_known_account()`.
+  - Added REST endpoints `GET /api/accounts/known`, `POST /api/accounts/known`, and `DELETE /api/accounts/known/{account_id}` under `src/paslood/delivery/web/routers/settings.py`.
+  - Added Known Accounts management card and form in Settings UI (`settings_wizard.js` and `index.html`) with interactive registration and deletion.
+  - Enhanced transaction categorization (`CategorizeTransactionsUseCase`) to inspect known accounts: automatically categorizes transfers to/from investment accounts (e.g. Saxo) as `INVESTMENTS`, savings accounts (e.g. Bunq Savings, KBC Spaar) as `SAVINGS`, and internal accounts as `TRANSFER`.
+  - Enhanced `formatAccountBadge` in `assets_cashflow.js` to cross-reference registered known accounts and display custom user labels (e.g. `Saxo Investor ••9012`).
+  - Enhanced `BunqCsvGateway` to calculate net cash balances from transaction statements and register discovered cash assets with true balances, ensuring Bunq accounts are listed and assignable in Holdings & Buckets.
 
 ---
 

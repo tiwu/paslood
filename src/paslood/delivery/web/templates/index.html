@@ -1081,6 +1081,68 @@
         </div>
       </div>
 
+      <!-- Section: Known Accounts & Inter-Account Transfers -->
+      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-white">🏦 Known Accounts &amp; Inter-Account Flows</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Register Saxo, savings, or external accounts with custom labels. Transfers between your accounts will be automatically classified as investments or savings.</p>
+          </div>
+          <button onclick="toggleAddKnownAccountForm()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium">
+            + Add Known Account
+          </button>
+        </div>
+
+        <!-- Add Known Account Form -->
+        <div id="add-known-account-form" class="hidden bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3 text-xs">
+          <div class="font-semibold text-white">Register Known Account</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-slate-400 mb-1">Account Number / IBAN</label>
+              <input type="text" id="new-known-acc-num" placeholder="e.g. BE99 1234 5678 9012" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Account Label</label>
+              <input type="text" id="new-known-acc-label" placeholder="e.g. Saxo Investor" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Account Type</label>
+              <select id="new-known-acc-type" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+                <option value="INVESTMENT">Investment (e.g. Saxo, Bolero)</option>
+                <option value="SAVINGS">Savings (e.g. Bunq Savings, KBC Spaar)</option>
+                <option value="CHECKING">Checking / Spending</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Institution (Optional)</label>
+              <input type="text" id="new-known-acc-inst" placeholder="e.g. Saxo, Bunq" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-1">
+            <button onclick="toggleAddKnownAccountForm()" class="px-3 py-1.5 rounded border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium">Cancel</button>
+            <button onclick="submitNewKnownAccount()" class="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium">Save Account</button>
+          </div>
+        </div>
+
+        <!-- Known Accounts Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-slate-400 border-b border-slate-800 bg-slate-950/40">
+              <tr>
+                <th class="py-2.5 px-3 font-medium">Label</th>
+                <th class="py-2.5 px-3 font-medium">Account / IBAN</th>
+                <th class="py-2.5 px-3 font-medium">Type</th>
+                <th class="py-2.5 px-3 font-medium">Institution</th>
+                <th class="py-2.5 px-3 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="known-accounts-tbody" class="divide-y divide-slate-800/60">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Section: AI Advisor Configuration -->
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
