@@ -52,6 +52,7 @@ nav:
       - "Issue #30 - Security, Decimal Precision & Vault v2": plans/PLAN-30-security-precision-vault.md
       - "Issue #31 - Consolidate Workspaces & Bucket Cards": plans/PLAN-31-consolidate-workspaces-bucket-cards.md
       - "Issue #32 - Toast Notifications & Precompiled Tailwind": plans/PLAN-32-toast-modal-standalone-tailwind.md
+      - "Issue #37 - Multi-Bank & Position CSV Ingestion": plans/PLAN-37-csv-ingestion-kbc-bunq-pension.md
   - Architecture & UX Reviews:
       - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
       - UI/UX Review: reviews/UX-REVIEW.md

@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from paslood import __version__
+from paslood.adapters.ingestion.bunq_csv import BunqCsvGateway
 from paslood.adapters.ingestion.generic_csv import GenericCsvGateway
 from paslood.adapters.ingestion.kbc_csv import KbcCsvGateway
 from paslood.adapters.ingestion.pdt_mcp import PdtMcpGateway
@@ -213,6 +214,7 @@ def create_app(
     repo = config_repo or ConfigRepository()
     db = local_db or LocalDbRepository(db_path=repo.config_path.parent / "paslood.db")
     kbc_gateway = KbcCsvGateway()
+    bunq_gateway = BunqCsvGateway()
     generic_gateway = GenericCsvGateway()
     pdt_gateway = PdtMcpGateway()
     alloc_calc = CalculateBucketAllocationUseCase()
@@ -229,6 +231,7 @@ def create_app(
     app.state.secret_vault = secret_vault
     app.state.templates = templates
     app.state.kbc_gateway = kbc_gateway
+    app.state.bunq_gateway = bunq_gateway
     app.state.generic_gateway = generic_gateway
     app.state.pdt_gateway = pdt_gateway
     app.state.alloc_calc = alloc_calc
