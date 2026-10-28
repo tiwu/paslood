@@ -28,6 +28,7 @@ class RebucketRequest(BaseModel):
     transaction_id: str
     target_category: str
     counterparty_name: str | None = None
+    pattern: str | None = None
     remember_rule: bool = False
 
 
@@ -174,18 +175,27 @@ async def rebucket_transaction(
     repo: ConfigRepository = Depends(get_repo),
     db: LocalDbRepository = Depends(get_db),
 ):
-    db.update_transaction_category(req.transaction_id, req.target_category)
+    updated_historical_count = 1
+    rule_pattern = (req.pattern or req.counterparty_name or "").strip()
 
-    if req.remember_rule and req.counterparty_name:
+    if req.remember_rule and rule_pattern:
         repo.save_transaction_rule(
             {
                 "match_field": "counterparty_name",
-                "pattern": req.counterparty_name,
+                "pattern": rule_pattern,
                 "target_category": req.target_category,
             }
         )
+        # Apply retroactively to historical matching transactions
+        retro_count = db.apply_rule_to_transactions(rule_pattern, req.target_category)
+        updated_historical_count = max(updated_historical_count, retro_count)
+    else:
+        db.update_transaction_category(req.transaction_id, req.target_category)
 
-    return {"status": "success"}
+    return {
+        "status": "success",
+        "updated_historical_count": updated_historical_count,
+    }
 
 
 @router.post("/api/data/reset-cache")

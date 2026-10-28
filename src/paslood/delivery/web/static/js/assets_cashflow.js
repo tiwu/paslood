@@ -63,15 +63,26 @@ function initFileDropzone() {
 }
 
 function handleFileUpload(e) {
-  if (e.target.files.length > 0) uploadFile(e.target.files[0]);
+  if (e.target.files && e.target.files.length > 0) {
+    uploadFiles(Array.from(e.target.files));
+  }
 }
 
 async function detectCsvEndpoint(file) {
   try {
-    const textSlice = await file.slice(0, 1024).text();
-    const firstLine = textSlice.split(/\r?\n/)[0].toLowerCase();
+    const textSlice = await file.slice(0, 2048).text();
+    const lower = textSlice.toLowerCase();
+    const firstLine = lower.split(/\r?\n/)[0];
+
+    if (lower.includes('"date"') && lower.includes('"amount"') && lower.includes('"account"')) {
+      return '/api/ingest/bunq';
+    }
+    if (lower.includes('positie-overzicht') || lower.includes('kbc easy invest') || lower.includes('productklasse')) {
+      return '/api/ingest/generic';
+    }
     if (
       firstLine.includes('rekeningnummer') ||
+      firstLine.includes('kredietkaart') ||
       firstLine.includes('afschriftnummer') ||
       firstLine.includes('rubrieknaam') ||
       firstLine.includes('tegenpartij') ||
@@ -86,29 +97,58 @@ async function detectCsvEndpoint(file) {
 }
 
 async function uploadFile(file) {
+  await uploadFiles([file]);
+}
+
+async function uploadFiles(files) {
   const status = document.getElementById('upload-status');
   status.className = 'text-xs py-2 px-3 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30';
-  status.textContent = `Uploading and parsing ${file.name}...`;
+  status.textContent = `Uploading and parsing ${files.length} statement(s)...`;
   status.classList.remove('hidden');
 
-  const formData = new FormData();
-  formData.append('file', file);
+  let totalNewTxs = 0;
+  let totalProcessedTxs = 0;
+  let totalAssets = 0;
+  let successCount = 0;
+  const errors = [];
 
-  try {
-    const endpoint = await detectCsvEndpoint(file);
-    const res = await fetch(endpoint, { method: 'POST', body: formData });
-    const result = await res.json();
-    if (res.ok) {
-      status.className = 'text-xs py-2 px-3 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-      const totalMsg = result.total_cumulative_transactions ? ` (Cumulative total in SQLite database: ${result.total_cumulative_transactions} transactions)` : '';
-      status.textContent = `Successfully parsed ${file.name}! Loaded ${result.transaction_count || result.asset_count} records.${totalMsg}`;
-      await loadOverview();
-    } else {
-      throw new Error(result.detail || 'Upload failed');
+  for (const file of files) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const endpoint = await detectCsvEndpoint(file);
+      const res = await fetch(endpoint, { method: 'POST', body: formData });
+      const result = await res.json();
+      if (res.ok) {
+        successCount++;
+        totalNewTxs += (result.new_transactions || 0);
+        totalProcessedTxs += (result.transactions_processed || result.transaction_count || 0);
+        totalAssets += (result.asset_count || 0);
+      } else {
+        errors.push(`${file.name}: ${result.detail || 'Upload failed'}`);
+      }
+    } catch (err) {
+      errors.push(`${file.name}: ${err.message}`);
     }
-  } catch (err) {
+  }
+
+  if (successCount > 0) {
+    status.className = 'text-xs py-2 px-3 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+    let summary = `Processed ${successCount} file(s). Added ${totalNewTxs} new transaction(s) (${totalProcessedTxs} scanned).`;
+    if (totalAssets > 0) {
+      summary += ` Discovered/updated ${totalAssets} portfolio asset(s).`;
+    }
+    if (errors.length > 0) {
+      summary += ` (${errors.length} failed: ${errors.join(', ')})`;
+    }
+    status.textContent = summary;
+    showToast(summary, 'success');
+    await loadOverview();
+  } else {
     status.className = 'text-xs py-2 px-3 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30';
-    status.textContent = `Error parsing file: ${err.message}`;
+    status.textContent = `Upload failed: ${errors.join('; ')}`;
+    showToast(`Upload failed: ${errors.join('; ')}`, 'error');
   }
 }
 
@@ -127,6 +167,13 @@ function openRebucketModal(txId, desc, counterparty, currentCat) {
     <div class="text-slate-400 mt-0.5">Counterparty: ${escapeHtml(counterparty || 'N/A')}</div>
   `;
   document.getElementById('modal-category-select').value = currentCat || 'OTHER';
+
+  const defaultPattern = counterparty || desc.split(/[\s-]/)[0] || '';
+  const patternInput = document.getElementById('modal-pattern-input');
+  if (patternInput) {
+    patternInput.value = defaultPattern;
+  }
+
   document.getElementById('rebucket-modal').classList.remove('hidden');
 }
 
@@ -139,22 +186,33 @@ async function commitRebucket() {
   if (!activeRebucketTx) return;
   const targetCat = document.getElementById('modal-category-select').value;
   const remember = document.getElementById('modal-remember-rule').checked;
+  const patternVal = document.getElementById('modal-pattern-input')?.value || activeRebucketTx.counterparty || '';
 
   try {
-    await fetch('/api/transactions/rebucket', {
+    const res = await fetch('/api/transactions/rebucket', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         transaction_id: activeRebucketTx.id,
         target_category: targetCat,
         counterparty_name: activeRebucketTx.counterparty,
+        pattern: patternVal,
         remember_rule: remember
       })
     });
+    const data = await res.json();
     closeRebucketModal();
-    await loadOverview();
+    if (res.ok) {
+      const msg = data.updated_historical_count > 1
+        ? `Re-bucketed transaction and updated ${data.updated_historical_count} matching records to ${targetCat}`
+        : `Transaction re-bucketed to ${targetCat}`;
+      showToast(msg, 'success');
+      await loadOverview();
+    } else {
+      throw new Error(data.detail || 'Re-bucket failed');
+    }
   } catch (err) {
-    showToast('Failed to re-bucket transaction', 'error');
+    showToast(`Failed to re-bucket transaction: ${err.message}`, 'error');
   }
 }
 

@@ -49,10 +49,24 @@ class CategorizeTransactionsUseCase:
                 pattern = rule.get("pattern", "")
                 target_cat = rule.get("target_category", "")
 
-                val_to_check = getattr(tx, field_name, "") or ""
-                if pattern and target_cat and re.search(pattern, str(val_to_check), re.IGNORECASE):
-                    matched_category = target_cat
-                    break
+                val_to_check = str(getattr(tx, field_name, "") or "")
+                # If checking counterparty_name and it is empty, also fall back to description
+                if not val_to_check and field_name == "counterparty_name":
+                    val_to_check = str(tx.description or "")
+
+                if pattern and target_cat:
+                    # Safely match pattern without breaking on special regex characters like '*'
+                    try:
+                        matched = bool(re.search(pattern, val_to_check, re.IGNORECASE))
+                    except re.error:
+                        matched = pattern.lower() in val_to_check.lower()
+
+                    if not matched and pattern.lower() in val_to_check.lower():
+                        matched = True
+
+                    if matched:
+                        matched_category = target_cat
+                        break
 
             # 2. Fall back to default heuristic patterns
             if not matched_category:
