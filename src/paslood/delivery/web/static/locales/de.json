@@ -10,9 +10,11 @@
     "manage": "Verwalten",
     "overview": "📊 Übersicht",
     "buckets": "🪣 Segmente",
+    "portfolio": "🪣 Portfolio & Buckets",
     "guidance": "💡 Leitfaden",
+    "plan": "🧭 Planen & Rebalancieren",
     "ai": "🤖 KI-Berater",
-    "cashflow": "🏦 Daten & Vermögen",
+    "cashflow": "💳 Cashflow & Import",
     "settings": "⚙️ Einstellungen",
     "setup": "🚀 Einrichtung",
     "docs": "📖 Dokumentation",
@@ -150,7 +152,8 @@
     "exemption_left": "€ {amount} Freibetrag verbleibend",
     "exemption_exhausted": "Freibetrag ausgeschöpft",
     "tax_due_status": "⚠️ Steuer Fällig (€ {amount})",
-    "tax_exempt_status": "🟢 100% Steuerfrei"
+    "tax_exempt_status": "🟢 100% Steuerfrei",
+    "no_mapped_tickers": "Keine spezifischen ETF-Ticker zugeordnet — Positionen in Portfolio & Buckets zuweisen"
   },
   "cashflow": {
     "title": "🏦 Datenverwaltung — Vermögenswerte, Verbindlichkeiten & CSV-Import",
@@ -219,7 +222,10 @@
     "question_label": "Spezifische Frage oder Szenario (Optional)",
     "question_placeholder": "Wählen Sie oben einen Prompt oder geben Sie Ihre eigene Strategiefrage ein...",
     "loading_text": "Ihre konsolidierte Bilanz wird analysiert und strategische Empfehlungen werden erstellt...",
-    "initial_output": "Wählen Sie oben einen der Strategie-Prompts oder klicken Sie auf <strong>\"Strategische Analyse Starten\"</strong>, um eine maßgeschneiderte Beratung zu erstellen."
+    "initial_output": "Wählen Sie oben einen der Strategie-Prompts oder klicken Sie auf <strong>\"Strategische Analyse Starten\"</strong>, um eine maßgeschneiderte Beratung zu erstellen.",
+    "transparency_title": "Anonymisierte an die KI gesendete Daten-Nutzlast anzeigen",
+    "transparency_desc": "Exakter System-Prompt-Text und Finanzzahlen zusammengestellt für Ihren KI-Anbieter:",
+    "copy_payload_btn": "Nutzlast kopieren"
   },
   "settings": {
     "pdt_title": "📈 Portfolio Dividend Tracker (PDT) MCP",

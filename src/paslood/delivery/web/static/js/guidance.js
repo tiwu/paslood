@@ -61,17 +61,47 @@ async function recalculateContribution() {
     }
 
     data.orders.forEach(o => {
-      const matchingAlloc = (currentData.allocations || []).find(a => a.id === o.bucket_id);
+      const matchingAlloc = (currentData?.allocations || []).find(a => (a.bucket_id || a.id) === o.bucket_id);
       const color = matchingAlloc ? matchingAlloc.color : '#3b82f6';
+
+      // Find all active assets mapped to this bucket to show ETF tickers (UX-04)
+      const mappedAssets = (currentData?.assets || []).filter(
+        a => a.bucket_id === o.bucket_id && (parseFloat(a.current_value) || 0) > 0
+      );
+      const tickers = mappedAssets
+        .map(a => a.symbol || a.isin || a.name)
+        .filter(Boolean);
+
+      let tickerBadgesHtml = '';
+      if (tickers.length > 0) {
+        const uniqueTickers = [...new Set(tickers)].slice(0, 4);
+        tickerBadgesHtml = `
+          <div class="flex items-center gap-1 flex-wrap mt-1">
+            <span class="text-[10px] text-slate-500 font-medium">Tickers:</span>
+            ${uniqueTickers.map(t => `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700/80">${escapeHtml(t)}</span>`).join('')}
+            ${tickers.length > 4 ? `<span class="text-[10px] text-slate-500 font-mono">+${tickers.length - 4} more</span>` : ''}
+          </div>
+        `;
+      } else {
+        tickerBadgesHtml = `
+          <div class="text-[10px] text-slate-500 italic mt-0.5">
+            ${escapeHtml(I18N.t('guidance.no_mapped_tickers', 'No specific ETF tickers mapped — assign holdings in Portfolio & Buckets'))}
+          </div>
+        `;
+      }
+
       const div = document.createElement('div');
-      div.className = 'flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs';
+      div.className = 'flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-lg bg-slate-950 border border-slate-800 text-xs gap-2';
       div.innerHTML = `
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escapeHtml(color)}"></span>
-          <span class="font-semibold text-white">${escapeHtml(o.bucket_name)}</span>
-          <span class="text-slate-500 font-mono">(${I18N.formatPercent(o.percentage_of_deposit)} of deposit)</span>
+        <div class="space-y-0.5">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(color)}"></span>
+            <span class="font-semibold text-white text-sm">${escapeHtml(o.bucket_name)}</span>
+            <span class="text-slate-400 font-mono">(${I18N.formatPercent(o.percentage_of_deposit)} of deposit)</span>
+          </div>
+          ${tickerBadgesHtml}
         </div>
-        <div class="text-emerald-400 font-bold text-sm font-mono whitespace-nowrap">+${I18N.formatCurrency(o.amount_value || o.amount || o.amount_formatted, 'EUR')}</div>
+        <div class="text-emerald-400 font-bold text-base font-mono whitespace-nowrap self-end sm:self-center">+${I18N.formatCurrency(o.amount_value || o.amount || o.amount_formatted, 'EUR')}</div>
       `;
       ordersContainer.appendChild(div);
     });
@@ -386,6 +416,7 @@ function selectAiPrompt(promptText) {
   if (input) {
     input.value = promptText;
     input.focus();
+    updateAiPromptPreview();
   }
 }
 
@@ -527,6 +558,11 @@ async function runAiReview() {
     }
 
     const data = await res.json();
+    const promptPreviewEl = document.getElementById('ai-prompt-preview');
+    if (promptPreviewEl && data.prompt) {
+      promptPreviewEl.textContent = data.prompt;
+    }
+
     const rawAdvice = data.advice || 'No advice generated.';
     const parsedHtml = typeof marked !== 'undefined' ? marked.parse(rawAdvice) : escapeHtml(rawAdvice);
     let traceHtml = '';
@@ -566,5 +602,31 @@ async function runAiReview() {
     btn.disabled = false;
     loader.classList.add('hidden');
     output.classList.remove('hidden');
+  }
+}
+
+async function updateAiPromptPreview() {
+  const previewEl = document.getElementById('ai-prompt-preview');
+  if (!previewEl) return;
+  const questionEl = document.getElementById('ai-user-question');
+  const question = questionEl ? questionEl.value.trim() : '';
+  try {
+    const qParam = question ? `?question=${encodeURIComponent(question)}` : '';
+    const res = await fetch(`/api/ai/prompt-preview${qParam}`);
+    if (res.ok) {
+      const data = await res.json();
+      previewEl.textContent = data.prompt || 'No snapshot generated yet.';
+    }
+  } catch (e) {
+    console.debug('Prompt preview update deferred:', e);
+  }
+}
+
+function copyAiPromptPayload() {
+  const previewEl = document.getElementById('ai-prompt-preview');
+  if (!previewEl) return;
+  const text = previewEl.textContent || '';
+  if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text);
   }
 }

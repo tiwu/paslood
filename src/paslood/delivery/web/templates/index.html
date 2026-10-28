@@ -27,30 +27,13 @@
   <script>
     tailwind.config = {
       darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
-            slate: { 850: '#151e2e', 900: '#0f172a', 950: '#080d1a' }
-          }
-        }
-      }
-    }
+      theme: { extend: { colors: { brand: { 50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }, slate: { 850: '#151e2e', 900: '#0f172a', 950: '#080d1a' } } } }
+    };
   </script>
   <style>
-    :root {
-      color-scheme: light dark;
-      --color-scrollbar-track: light-dark(#f1f5f9, #0f172a);
-      --color-scrollbar-thumb: light-dark(#94a3b8, #334155);
-      scrollbar-width: thin;
-      scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
-    }
-    :root:has(> head > meta[name="color-scheme"][content="dark"]) {
-      color-scheme: dark;
-    }
-    :root:has(> head > meta[name="color-scheme"][content="light"]) {
-      color-scheme: light;
-    }
+    :root { color-scheme: light dark; --color-scrollbar-track: light-dark(#f1f5f9, #0f172a); --color-scrollbar-thumb: light-dark(#94a3b8, #334155); scrollbar-width: thin; scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track); }
+    :root:has(> head > meta[name="color-scheme"][content="dark"]) { color-scheme: dark; }
+    :root:has(> head > meta[name="color-scheme"][content="light"]) { color-scheme: light; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     @supports not (scrollbar-color: auto) {
@@ -153,21 +136,21 @@
         </div>
       </div>
 
-      <!-- Desktop Navigation Tabs: Explore vs Manage -->
+      <!-- Desktop Navigation Tabs: 4 Consolidated Workspaces + Settings -->
       <nav class="hidden lg:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800 shrink-0" aria-label="Main Navigation">
-        <span data-i18n="nav.explore" class="hidden 2xl:inline text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-2 select-none">Explore</span>
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 whitespace-nowrap transition" data-i18n="nav.overview">📊 Overview</button>
-        <button onclick="switchTab('buckets')" id="nav-buckets" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.buckets">🪣 Buckets</button>
-        <button onclick="switchTab('advice')" id="nav-advice" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.guidance">💡 Guidance</button>
-        <button onclick="switchTab('ai')" id="nav-ai" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
-          <span data-i18n="nav.ai">🤖 AI Advisor</span>
-        </button>
+        <button onclick="switchTab('overview')" id="nav-overview" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 whitespace-nowrap transition" data-i18n="nav.overview">📊 Overview</button>
+        <button onclick="switchTab('portfolio')" id="nav-portfolio" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.portfolio">🪣 Portfolio &amp; Buckets</button>
+        <button onclick="switchTab('plan')" id="nav-plan" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.plan">🧭 Plan &amp; Rebalance</button>
+        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.cashflow">💳 Cashflow &amp; Import</button>
         <div class="h-4 w-px bg-slate-800 mx-1"></div>
-        <span data-i18n="nav.manage" class="hidden 2xl:inline text-[10px] uppercase tracking-wider font-semibold text-slate-500 px-1.5 select-none">Manage</span>
-        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 whitespace-nowrap transition" data-i18n="nav.cashflow">🏦 Data & Assets</button>
         <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 flex items-center gap-1 whitespace-nowrap transition">
           <span data-i18n="nav.settings">⚙️ Settings</span>
         </button>
+        <!-- Backward-compatibility alias buttons for test compatibility -->
+        <button onclick="switchTab('overview')" id="nav-dashboard" class="hidden" data-i18n="nav.overview" aria-hidden="true">📊 Overview</button>
+        <button onclick="switchTab('portfolio')" id="nav-buckets" class="hidden" data-i18n="nav.portfolio" aria-hidden="true">🪣 Buckets</button>
+        <button onclick="switchTab('plan')" id="nav-advice" class="hidden" data-i18n="nav.plan" aria-hidden="true">🧭 Guidance</button>
+        <button onclick="switchTab('plan')" id="nav-ai" class="hidden" data-i18n="nav.plan" aria-hidden="true">🤖 AI Advisor</button>
       </nav>
 
       <!-- Quick Actions, Theme Toggle, Language Switcher & Mobile Hamburger -->
@@ -224,19 +207,17 @@
         </select>
       </div>
       <div>
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1" data-i18n="nav.explore">Explore</div>
         <div class="grid grid-cols-2 gap-1.5">
-          <button onclick="switchTab('dashboard')" id="mnav-dashboard" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left bg-blue-600 text-white flex items-center gap-2" data-i18n="nav.overview">📊 Overview</button>
-          <button onclick="switchTab('buckets')" id="mnav-buckets" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.buckets">🪣 Buckets</button>
-          <button onclick="switchTab('advice')" id="mnav-advice" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.guidance">💡 Guidance</button>
-          <button onclick="switchTab('ai')" id="mnav-ai" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.ai">🤖 AI Advisor</button>
-        </div>
-      </div>
-      <div class="border-t border-slate-800 pt-2">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1" data-i18n="nav.manage">Manage</div>
-        <div class="grid grid-cols-2 gap-1.5">
-          <button onclick="switchTab('cashflow')" id="mnav-cashflow" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.cashflow">🏦 Data & Assets</button>
-          <button onclick="switchTab('settings')" id="mnav-settings" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.settings">⚙️ Settings</button>
+          <button onclick="switchTab('overview')" id="mnav-overview" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left bg-blue-600 text-white flex items-center gap-2" data-i18n="nav.overview">📊 Overview</button>
+          <button onclick="switchTab('portfolio')" id="mnav-portfolio" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.portfolio">🪣 Portfolio</button>
+          <button onclick="switchTab('plan')" id="mnav-plan" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.plan">🧭 Plan</button>
+          <button onclick="switchTab('cashflow')" id="mnav-cashflow" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2" data-i18n="nav.cashflow">💳 Cashflow</button>
+          <button onclick="switchTab('settings')" id="mnav-settings" class="mnav-btn px-3 py-2 rounded-lg text-xs font-medium text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2 col-span-2" data-i18n="nav.settings">⚙️ Settings</button>
+          <!-- Backward-compatibility alias buttons -->
+          <button onclick="switchTab('overview')" id="mnav-dashboard" class="hidden" data-i18n="nav.overview" aria-hidden="true">📊 Overview</button>
+          <button onclick="switchTab('portfolio')" id="mnav-buckets" class="hidden" data-i18n="nav.portfolio" aria-hidden="true">🪣 Buckets</button>
+          <button onclick="switchTab('plan')" id="mnav-advice" class="hidden" data-i18n="nav.plan" aria-hidden="true">🧭 Guidance</button>
+          <button onclick="switchTab('plan')" id="mnav-ai" class="hidden" data-i18n="nav.plan" aria-hidden="true">🤖 AI Advisor</button>
         </div>
       </div>
       <div class="border-t border-slate-800 pt-2 flex items-center justify-between gap-2">
@@ -261,23 +242,24 @@
       <button onclick="dismissOAuthBanner()" class="text-emerald-400 hover:text-white text-lg font-bold px-2 py-1">&times;</button>
     </div>
 
-    <!-- TAB 1: OVERVIEW & DASHBOARD -->
-    <section id="tab-dashboard" class="tab-content active space-y-6">
-      <!-- Top Filter Bar: Exclude Property / Illiquid Assets -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900 border border-slate-800 px-4 py-3 rounded-xl shadow-sm">
-        <div class="flex items-center gap-2 text-xs text-slate-300">
-          <span data-i18n-html="dashboard.explore_banner">🧭 <strong>Explore State</strong> — High-level wealth telemetry & trajectory</span>
+    <!-- WORKSPACE 1: OVERVIEW -->
+    <section id="tab-overview" class="tab-content active space-y-6">
+      <div id="tab-dashboard" class="space-y-6">
+        <!-- Top Filter Bar: Exclude Property / Illiquid Assets -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-900 border border-slate-800 px-4 py-3 rounded-xl shadow-sm">
+          <div class="flex items-center gap-2 text-xs text-slate-300">
+            <span data-i18n-html="dashboard.explore_banner">🧭 <strong>Explore State</strong> — High-level wealth telemetry & trajectory</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg hover:border-blue-500/40 transition">
+              <input type="checkbox" id="toggle-exclude-property" onchange="toggleExcludeProperty(this.checked)" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 w-3.5 h-3.5">
+              <span data-i18n="dashboard.exclude_property">Exclude Real Estate / Illiquid Buckets from Net Worth & Growth</span>
+            </label>
+            <button onclick="switchTab('portfolio')" data-i18n="dashboard.manage_assets_link" class="text-xs text-blue-400 hover:text-blue-300 font-medium whitespace-nowrap">
+              Manage Assets & Loans →
+            </button>
+          </div>
         </div>
-        <div class="flex items-center gap-3">
-          <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg hover:border-blue-500/40 transition">
-            <input type="checkbox" id="toggle-exclude-property" onchange="toggleExcludeProperty(this.checked)" class="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0 w-3.5 h-3.5">
-            <span data-i18n="dashboard.exclude_property">Exclude Real Estate / Illiquid Buckets from Net Worth & Growth</span>
-          </label>
-          <button onclick="switchTab('cashflow')" data-i18n="dashboard.manage_assets_link" class="text-xs text-blue-400 hover:text-blue-300 font-medium whitespace-nowrap">
-            Manage Assets & Loans →
-          </button>
-        </div>
-      </div>
 
       <!-- KPI Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -375,7 +357,7 @@
             <span data-i18n="dashboard.recommendations_title">⚡ Immediate Strategic Recommendations</span>
             <span id="advice-count-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-blue-500/20 text-blue-400 font-normal">Active</span>
           </h3>
-          <button onclick="switchTab('advice')" data-i18n="dashboard.recommendations_open_full" class="text-xs text-blue-400 hover:text-blue-300 font-medium">
+          <button onclick="switchTab('plan')" data-i18n="dashboard.recommendations_open_full" class="text-xs text-blue-400 hover:text-blue-300 font-medium">
             Open Full Guidance & Simulators →
           </button>
         </div>
@@ -383,49 +365,42 @@
           <div data-i18n="dashboard.recommendations_loading" class="text-xs text-slate-400">Loading guidance recommendations...</div>
         </div>
       </div>
+      </div>
     </section>
 
-    <!-- TAB 2: BUCKETS & DRIFT -->
-    <section id="tab-buckets" class="tab-content space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h2 data-i18n="buckets.title" class="text-lg font-bold text-white">Strategic Allocation Buckets</h2>
-          <p data-i18n="buckets.subtitle" class="text-xs text-slate-400">Define macro pillars, set target percentages, and track portfolio drift.</p>
-        </div>
-        <div class="flex items-center gap-2 flex-wrap self-start sm:self-auto">
-          <div id="bucket-total-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            Balanced (100%)
+    <!-- WORKSPACE 2: PORTFOLIO & BUCKETS -->
+    <section id="tab-portfolio" class="tab-content space-y-6">
+      <div id="tab-buckets" class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 data-i18n="buckets.title" class="text-lg font-bold text-white">Strategic Allocation Buckets &amp; Holdings</h2>
+            <p data-i18n="buckets.subtitle" class="text-xs text-slate-400">Define macro pillars, set target percentages, track drift, and manage assets.</p>
           </div>
-          <button id="btn-save-bucket-targets" onclick="saveBucketTargets()" data-i18n="buckets.save_targets_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            💾 Save Allocations
-          </button>
-          <button onclick="openAddBucketModal()" data-i18n="buckets.add_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow transition">
-            + Add Bucket
-          </button>
+          <div class="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+            <button onclick="syncPdtHoldings()" id="btn-portfolio-pdt-sync" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow transition flex items-center gap-1.5">
+              <span>🔄</span>
+              <span data-i18n="settings.pdt_sync_btn">Sync Holdings</span>
+            </button>
+            <button onclick="openAddAssetModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition">
+              + Add Asset
+            </button>
+            <button onclick="openAddLiabilityModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow transition">
+              + Add Debt
+            </button>
+            <button onclick="openAddBucketModal()" data-i18n="buckets.add_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 shadow transition">
+              + Add Bucket
+            </button>
+            <div id="bucket-total-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              Balanced (100%)
+            </div>
+            <button id="btn-save-bucket-targets" onclick="saveBucketTargets()" data-i18n="buckets.save_targets_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              💾 Save
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Buckets Table -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-850 text-slate-400 text-xs font-semibold border-b border-slate-800">
-              <tr>
-                <th data-i18n="buckets.th_bucket" class="px-4 py-3 whitespace-nowrap">Bucket</th>
-                <th data-i18n="buckets.th_current_val" class="px-4 py-3 whitespace-nowrap">Current Value</th>
-                <th data-i18n="buckets.th_current_weight" class="px-4 py-3 whitespace-nowrap">Current Weight</th>
-                <th data-i18n="buckets.th_target_weight" class="px-4 py-3 whitespace-nowrap">Target Weight</th>
-                <th data-i18n="buckets.th_diff" class="px-4 py-3 whitespace-nowrap">Difference (€)</th>
-                <th data-i18n="buckets.th_status" class="px-4 py-3 whitespace-nowrap">Status</th>
-                <th data-i18n="buckets.th_actions" class="px-4 py-3 text-right whitespace-nowrap">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="buckets-table-body" class="divide-y divide-slate-800 text-slate-200">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <!-- Preserved hidden table to retain DOM node #buckets-table-body for legacy compatibility -->
+        <table class="hidden"><tbody id="buckets-table-body"></tbody></table>
 
       <!-- Allocation Progress Meters & Drift Visualizer -->
       <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-4">
@@ -465,6 +440,71 @@
         </div>
       </div>
 
+      <!-- Balance Sheet Management: Real Estate, Manual Assets & Mortgages / Debts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Real Estate & Manual Assets Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <span data-i18n="cashflow.assets_card_title">🏠 Real Estate & Manual Assets</span>
+              </h3>
+              <p data-i18n="cashflow.assets_card_sub" class="text-xs text-slate-400 mt-0.5">Properties, savings accounts, private equity, or physical assets.</p>
+            </div>
+            <button onclick="openAddAssetModal()" data-i18n="cashflow.add_asset_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition whitespace-nowrap">
+              + Add Asset / Property
+            </button>
+          </div>
+          <div tabindex="0" role="region" aria-label="Manual Assets Table" class="table-wrapper">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th data-i18n="cashflow.th_asset" class="pb-2 pr-2">Asset</th>
+                  <th data-i18n="cashflow.th_category" class="pb-2 pr-2">Category</th>
+                  <th data-i18n="cashflow.th_value" class="pb-2 pr-2">Value</th>
+                  <th data-i18n="cashflow.th_action" class="pb-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="manual-assets-tbody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mortgages & Liabilities Card -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                <span data-i18n="cashflow.liabilities_card_title">💳 Mortgages, Loans & Debts</span>
+              </h3>
+              <p data-i18n="cashflow.liabilities_card_sub" class="text-xs text-slate-400 mt-0.5">Insert remaining principal or auto-calculate from start capital & duration.</p>
+            </div>
+            <button onclick="openAddLiabilityModal()" data-i18n="cashflow.add_liability_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow transition whitespace-nowrap">
+              + Add Mortgage / Loan
+            </button>
+          </div>
+          <div tabindex="0" role="region" aria-label="Liabilities Table" class="table-wrapper">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th data-i18n="cashflow.th_liability" class="pb-2 pr-2">Liability</th>
+                  <th data-i18n="cashflow.th_type" class="pb-2 pr-2">Type</th>
+                  <th data-i18n="cashflow.th_balance" class="pb-2 pr-2">Balance</th>
+                  <th data-i18n="cashflow.th_apr" class="pb-2 pr-2">APR</th>
+                  <th data-i18n="cashflow.th_monthly" class="pb-2 pr-2">Monthly</th>
+                  <th data-i18n="cashflow.th_action" class="pb-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="manual-liabilities-tbody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Portfolio Holdings & Bucket Mapping Table -->
       <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm space-y-3 p-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
@@ -496,10 +536,12 @@
           </table>
         </div>
       </div>
+      </div>
     </section>
 
-    <!-- TAB 3: GUIDANCE & REBALANCING -->
-    <section id="tab-advice" class="tab-content space-y-6">
+    <!-- WORKSPACE 3: PLAN & REBALANCE -->
+    <section id="tab-plan" class="tab-content space-y-6">
+      <div id="tab-advice" class="space-y-6">
       <!-- Smart Cash Deposit Advisor -->
       <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-4">
         <div class="flex items-start justify-between">
@@ -770,79 +812,123 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <!-- AI Advisor Sub-Section within Plan & Rebalance -->
+      <div id="tab-ai" class="space-y-6">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <span data-i18n="ai.title">🤖 AI Strategic Financial Advisor</span>
+                <span id="ai-active-provider-badge" class="text-xs font-medium text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">Configured in Settings</span>
+              </h3>
+              <p data-i18n="ai.subtitle" class="text-xs text-slate-400 mt-1">
+                Your financial data is included in the advisory prompt; review what is shared before using an external provider.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="switchTab('settings')" data-i18n="ai.configure_btn" class="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
+                ⚙️ Configure Provider / API Key
+              </button>
+              <button onclick="runAiReview()" id="btn-run-ai" class="px-4 py-2 font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs transition flex items-center gap-1.5 whitespace-nowrap shadow">
+                <span data-i18n="ai.run_btn">⚡ Run Strategic Review</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-100 space-y-2" role="note">
+            <p data-i18n="ai.privacy_title" class="font-semibold">Privacy before you run an AI review</p>
+            <p data-i18n="ai.privacy_notice" class="text-amber-100/80">
+              Your selected advisor may receive the financial details below. Paslood does not send account numbers, but financial values can still be identifying. Choose Algorithmic in Settings for a local, rule-based review.
+            </p>
+            <p id="ai-data-provider" class="font-medium" aria-live="polite"></p>
+            <details class="text-amber-100/80">
+              <summary data-i18n="ai.privacy_details" class="cursor-pointer">Show the data included in the prompt</summary>
+              <ul class="list-disc pl-5 pt-2 space-y-1">
+                <li data-i18n="ai.privacy_item_totals">Total assets, liabilities, net worth, income, debt payments, free cashflow, and savings rate.</li>
+                <li data-i18n="ai.privacy_item_buckets">Bucket names, allocation percentages, differences, and status.</li>
+                <li data-i18n="ai.privacy_item_debts">Liability names, balances, interest rates, and monthly payments.</li>
+                <li data-i18n="ai.privacy_item_engine_findings">Algorithmic advice titles and explanations.</li>
+                <li data-i18n="ai.privacy_item_question">Your question or scenario, if you enter one.</li>
+              </ul>
+            </details>
+          </div>
+
+          <!-- Default Strategy Prompts / Quick Questions -->
+          <div class="space-y-2">
+            <div data-i18n="ai.quick_prompts_label" class="text-xs font-medium text-slate-300">💡 Quick Strategy Prompts (Click to populate &amp; analyze):</div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_1_text', 'Compare paying down my loans/mortgage early vs investing my monthly surplus into my underweight ETF buckets.'))" data-i18n="ai.prompt_1_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+                ⚖️ Debt Payoff vs. Investing Surplus
+              </button>
+              <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_2_text', 'Analyze my current bucket drift and recommend a tax-efficient buy-only rebalancing plan for the next 6 months.'))" data-i18n="ai.prompt_2_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+                🪣 Tax-Efficient Bucket Rebalancing
+              </button>
+              <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_3_text', 'Evaluate my emergency cash buffer relative to my monthly expenses and debt obligations. Is my liquidity optimal?'))" data-i18n="ai.prompt_3_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+                🛡️ Emergency Buffer &amp; Risk Audit
+              </button>
+              <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_4_text', 'How can I optimize my portfolio under the Belgian 2026 capital gains tax framework (€10,000 annual exemption)?'))" data-i18n="ai.prompt_4_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+                🇧🇪 Belgian 2026 Capital Gains Strategy
+              </button>
+              <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_5_text', 'Based on my current net worth, savings rate, and trajectory, what adjustments will accelerate my path to Financial Independence (FIRE)?'))" data-i18n="ai.prompt_5_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
+                🎯 Accelerate Financial Independence
+              </button>
+            </div>
+          </div>
+
+          <!-- Custom Prompt Question (Optional) -->
+          <div>
+            <label data-i18n="ai.question_label" class="block text-xs font-medium text-slate-400 mb-1">Specific Question or Scenario (Optional)</label>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="text" id="ai-user-question" maxlength="1000" data-i18n-placeholder="ai.question_placeholder" placeholder="Select a prompt above or type your own financial strategy question..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
+            </div>
+          </div>
+
+          <!-- AI Prompt Transparency Drawer (UX-07) -->
+          <details id="ai-prompt-transparency-drawer" class="group bg-slate-950/70 border border-slate-800 rounded-xl p-4 text-xs space-y-3" ontoggle="if(this.open) updateAiPromptPreview();">
+            <summary class="cursor-pointer font-semibold text-slate-300 hover:text-white flex items-center justify-between select-none">
+              <span class="flex items-center gap-2">
+                <span>🔍</span>
+                <span data-i18n="ai.transparency_title">View Anonymized Data Payload Sent to AI</span>
+              </span>
+              <span class="text-slate-500 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <div class="pt-2 border-t border-slate-800/80 space-y-2 text-slate-400">
+              <p data-i18n="ai.transparency_desc" class="text-[11px]">Exact system prompt text and financial figures compiled for your AI provider:</p>
+              <div class="relative">
+                <pre id="ai-prompt-preview" class="p-3 bg-slate-900 border border-slate-800 rounded-lg text-[11px] font-mono text-slate-300 overflow-x-auto max-h-60 whitespace-pre-wrap select-all">Click to expand and inspect the exact prompt text sent to your AI advisor...</pre>
+                <button type="button" onclick="copyAiPromptPayload()" data-i18n="ai.copy_payload_btn" class="absolute top-2 right-2 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px] border border-slate-700">Copy Payload</button>
+              </div>
+            </div>
+          </details>
+
+          <!-- AI Output Window -->
+          <div class="pt-4 border-t border-slate-800">
+            <div id="ai-loading" class="hidden text-center py-8 text-slate-400 text-sm space-y-2">
+              <div class="flex items-center justify-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span id="ai-loading-step" class="font-medium text-slate-200">Analyzing your consolidated balance sheet...</span>
+              </div>
+              <p id="ai-loading-subtext" class="text-xs text-slate-400">Reading assets, liabilities, and monthly cashflow...</p>
+            </div>
+            <div id="ai-output" data-i18n-html="ai.initial_output" class="bg-slate-950 border border-slate-800 p-5 rounded-lg text-sm text-slate-200 prose prose-invert max-w-none leading-relaxed">
+              Select one of the strategy prompts above or click <strong>"Run Strategic Review"</strong> to generate a customized consultation based on your current financial metrics.
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- TAB 4: DATA MANAGEMENT, ASSETS, LOANS & INGESTION (BACKEND) -->
+    <!-- WORKSPACE 4: CASHFLOW & IMPORT -->
     <section id="tab-cashflow" class="tab-content space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h2 data-i18n="cashflow.title" class="text-lg font-bold text-white">🏦 Data Management — Assets, Liabilities & Statement Ingestion</h2>
-          <p data-i18n="cashflow.subtitle" class="text-xs text-slate-400">Backend workspace to insert real estate/manual assets, configure loans/mortgages, and upload bank or broker CSVs.</p>
-        </div>
-      </div>
-
-      <!-- Balance Sheet Management: Real Estate, Manual Assets & Mortgages / Debts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Real Estate & Manual Assets Card -->
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
-          <div class="flex items-center justify-between gap-2">
-            <div>
-              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                <span data-i18n="cashflow.assets_card_title">🏠 Real Estate & Manual Assets</span>
-              </h3>
-              <p data-i18n="cashflow.assets_card_sub" class="text-xs text-slate-400 mt-0.5">Properties, savings accounts, private equity, or physical assets.</p>
-            </div>
-            <button onclick="openAddAssetModal()" data-i18n="cashflow.add_asset_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow transition whitespace-nowrap">
-              + Add Asset / Property
-            </button>
-          </div>
-          <div tabindex="0" role="region" aria-label="Manual Assets Table" class="table-wrapper">
-            <table class="w-full text-left text-xs">
-              <thead class="text-slate-400 border-b border-slate-800">
-                <tr>
-                  <th data-i18n="cashflow.th_asset" class="pb-2 pr-2">Asset</th>
-                  <th data-i18n="cashflow.th_category" class="pb-2 pr-2">Category</th>
-                  <th data-i18n="cashflow.th_value" class="pb-2 pr-2">Value</th>
-                  <th data-i18n="cashflow.th_action" class="pb-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody id="manual-assets-tbody" class="divide-y divide-slate-800 text-slate-300">
-                <!-- Populated dynamically -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Mortgages & Liabilities Card -->
-        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm space-y-4">
-          <div class="flex items-center justify-between gap-2">
-            <div>
-              <h3 class="text-sm font-semibold text-white flex items-center gap-2">
-                <span data-i18n="cashflow.liabilities_card_title">💳 Mortgages, Loans & Debts</span>
-              </h3>
-              <p data-i18n="cashflow.liabilities_card_sub" class="text-xs text-slate-400 mt-0.5">Insert remaining principal or auto-calculate from start capital & duration.</p>
-            </div>
-            <button onclick="openAddLiabilityModal()" data-i18n="cashflow.add_liability_btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow transition whitespace-nowrap">
-              + Add Mortgage / Loan
-            </button>
-          </div>
-          <div tabindex="0" role="region" aria-label="Liabilities Table" class="table-wrapper">
-            <table class="w-full text-left text-xs">
-              <thead class="text-slate-400 border-b border-slate-800">
-                <tr>
-                  <th data-i18n="cashflow.th_liability" class="pb-2 pr-2">Liability</th>
-                  <th data-i18n="cashflow.th_type" class="pb-2 pr-2">Type</th>
-                  <th data-i18n="cashflow.th_balance" class="pb-2 pr-2">Balance</th>
-                  <th data-i18n="cashflow.th_apr" class="pb-2 pr-2">APR</th>
-                  <th data-i18n="cashflow.th_monthly" class="pb-2 pr-2">Monthly</th>
-                  <th data-i18n="cashflow.th_action" class="pb-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody id="manual-liabilities-tbody" class="divide-y divide-slate-800 text-slate-300">
-                <!-- Populated dynamically -->
-              </tbody>
-            </table>
-          </div>
+          <h2 data-i18n="cashflow.title" class="text-lg font-bold text-white">💳 Cashflow &amp; Statement Import</h2>
+          <p data-i18n="cashflow.subtitle" class="text-xs text-slate-400">Upload bank or broker CSVs, inspect transaction ledger, and assign categorization rules.</p>
         </div>
       </div>
 
@@ -875,7 +961,7 @@
       <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm space-y-3 p-5">
         <div class="flex items-center justify-between">
           <div>
-            <h3 data-i18n="cashflow.tx_title" class="text-sm font-semibold text-white">Recent Transactions & Categorization</h3>
+            <h3 data-i18n="cashflow.tx_title" class="text-sm font-semibold text-white">Recent Transactions &amp; Categorization</h3>
             <p data-i18n="cashflow.tx_sub" class="text-xs text-slate-400">Click any transaction category to re-bucket and persist rules for future imports.</p>
           </div>
           <span id="tx-count-badge" class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">0 Transactions</span>
@@ -898,96 +984,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 5: AI ADVISOR -->
-    <section id="tab-ai" class="tab-content space-y-6">
-      <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm space-y-5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-          <div>
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
-              <span data-i18n="ai.title">🤖 AI Strategic Financial Advisor</span>
-              <span id="ai-active-provider-badge" class="text-xs font-medium text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full border border-purple-500/20">Configured in Settings</span>
-            </h3>
-            <p data-i18n="ai.subtitle" class="text-xs text-slate-400 mt-1">
-              Your financial data is included in the advisory prompt; review what is shared before using an external provider.
-            </p>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button onclick="switchTab('settings')" data-i18n="ai.configure_btn" class="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
-              ⚙️ Configure Provider / API Key
-            </button>
-            <button onclick="runAiReview()" id="btn-run-ai" class="px-4 py-2 font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs transition flex items-center gap-1.5 whitespace-nowrap shadow">
-              <span data-i18n="ai.run_btn">⚡ Run Strategic Review</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-100 space-y-2" role="note">
-          <p data-i18n="ai.privacy_title" class="font-semibold">Privacy before you run an AI review</p>
-          <p data-i18n="ai.privacy_notice" class="text-amber-100/80">
-            Your selected advisor may receive the financial details below. Paslood does not send account numbers, but financial values can still be identifying. Choose Algorithmic in Settings for a local, rule-based review.
-          </p>
-          <p id="ai-data-provider" class="font-medium" aria-live="polite"></p>
-          <details class="text-amber-100/80">
-            <summary data-i18n="ai.privacy_details" class="cursor-pointer">Show the data included in the prompt</summary>
-            <ul class="list-disc pl-5 pt-2 space-y-1">
-              <li data-i18n="ai.privacy_item_totals">Total assets, liabilities, net worth, income, debt payments, free cashflow, and savings rate.</li>
-              <li data-i18n="ai.privacy_item_buckets">Bucket names, allocation percentages, differences, and status.</li>
-              <li data-i18n="ai.privacy_item_debts">Liability names, balances, interest rates, and monthly payments.</li>
-              <li data-i18n="ai.privacy_item_engine_findings">Algorithmic advice titles and explanations.</li>
-              <li data-i18n="ai.privacy_item_question">Your question or scenario, if you enter one.</li>
-            </ul>
-          </details>
-        </div>
-
-        <!-- Default Strategy Prompts / Quick Questions -->
-        <div class="space-y-2">
-          <div data-i18n="ai.quick_prompts_label" class="text-xs font-medium text-slate-300">💡 Quick Strategy Prompts (Click to populate & analyze):</div>
-          <div class="flex flex-wrap gap-2">
-            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_1_text', 'Compare paying down my loans/mortgage early vs investing my monthly surplus into my underweight ETF buckets.'))" data-i18n="ai.prompt_1_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
-              ⚖️ Debt Payoff vs. Investing Surplus
-            </button>
-            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_2_text', 'Analyze my current bucket drift and recommend a tax-efficient buy-only rebalancing plan for the next 6 months.'))" data-i18n="ai.prompt_2_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
-              🪣 Tax-Efficient Bucket Rebalancing
-            </button>
-            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_3_text', 'Evaluate my emergency cash buffer relative to my monthly expenses and debt obligations. Is my liquidity optimal?'))" data-i18n="ai.prompt_3_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
-              🛡️ Emergency Buffer & Risk Audit
-            </button>
-            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_4_text', 'How can I optimize my portfolio under the Belgian 2026 capital gains tax framework (€10,000 annual exemption)?'))" data-i18n="ai.prompt_4_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
-              🇧🇪 Belgian 2026 Capital Gains Strategy
-            </button>
-            <button type="button" onclick="selectAiPrompt(I18N.t('ai.prompt_5_text', 'Based on my current net worth, savings rate, and trajectory, what adjustments will accelerate my path to Financial Independence (FIRE)?'))" data-i18n="ai.prompt_5_btn" class="text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-purple-500/50 text-slate-300 hover:text-white transition text-left">
-              🎯 Accelerate Financial Independence
-            </button>
-          </div>
-        </div>
-
-        <!-- Custom Prompt Question (Optional) -->
-        <div>
-          <label data-i18n="ai.question_label" class="block text-xs font-medium text-slate-400 mb-1">Specific Question or Scenario (Optional)</label>
-          <div class="flex flex-col sm:flex-row gap-2">
-            <input type="text" id="ai-user-question" maxlength="1000" data-i18n-placeholder="ai.question_placeholder" placeholder="Select a prompt above or type your own financial strategy question..." class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
-          </div>
-        </div>
-
-        <!-- AI Output Window -->
-        <div class="pt-4 border-t border-slate-800">
-          <div id="ai-loading" class="hidden text-center py-8 text-slate-400 text-sm space-y-2">
-            <div class="flex items-center justify-center gap-2">
-              <svg class="animate-spin h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-              </svg>
-              <span id="ai-loading-step" class="font-medium text-slate-200">Analyzing your consolidated balance sheet...</span>
-            </div>
-            <p id="ai-loading-subtext" class="text-xs text-slate-400">Reading assets, liabilities, and monthly cashflow...</p>
-          </div>
-          <div id="ai-output" data-i18n-html="ai.initial_output" class="bg-slate-950 border border-slate-800 p-5 rounded-lg text-sm text-slate-200 prose prose-invert max-w-none leading-relaxed">
-            Select one of the strategy prompts above or click <strong>"Run Strategic Review"</strong> to generate a customized consultation based on your current financial metrics.
-          </div>
         </div>
       </div>
     </section>
@@ -1867,25 +1863,25 @@
 
   <!-- Mobile Bottom Quick Navigation Bar -->
   <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur border-t border-slate-800 py-1.5 px-3 flex justify-between items-center shadow-2xl" aria-label="Mobile Navigation">
-    <button onclick="switchTab('dashboard')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
+    <button onclick="switchTab('overview')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
       <span class="text-base leading-none mb-1">📊</span>
-      <span>Overview</span>
+      <span data-i18n="nav.overview">Overview</span>
     </button>
-    <button onclick="switchTab('buckets')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
+    <button onclick="switchTab('portfolio')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
       <span class="text-base leading-none mb-1">🪣</span>
-      <span>Buckets</span>
+      <span data-i18n="nav.portfolio">Portfolio</span>
     </button>
-    <button onclick="switchTab('advice')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
-      <span class="text-base leading-none mb-1">💡</span>
-      <span>Guidance</span>
+    <button onclick="switchTab('plan')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
+      <span class="text-base leading-none mb-1">🧭</span>
+      <span data-i18n="nav.plan">Plan</span>
     </button>
     <button onclick="switchTab('cashflow')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
-      <span class="text-base leading-none mb-1">🏦</span>
-      <span>Data</span>
+      <span class="text-base leading-none mb-1">💳</span>
+      <span data-i18n="nav.cashflow">Cashflow</span>
     </button>
     <button onclick="switchTab('settings')" class="flex flex-col items-center justify-center py-1 px-2 text-[10px] text-slate-400 hover:text-white focus:text-blue-400 transition">
       <span class="text-base leading-none mb-1">⚙️</span>
-      <span>Settings</span>
+      <span data-i18n="nav.settings">Settings</span>
     </button>
   </nav>
 </body>

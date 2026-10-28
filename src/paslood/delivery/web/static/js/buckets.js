@@ -189,7 +189,10 @@ function deleteCurrentBucket() {
 }
 
 function getActiveBucketInputsSum() {
-  const inputs = document.querySelectorAll('.bucket-target-input');
+  const container = document.getElementById('bucket-meters-container');
+  const inputs = (container && container.querySelectorAll('.bucket-target-input').length > 0)
+    ? container.querySelectorAll('.bucket-target-input')
+    : document.querySelectorAll('.bucket-target-input');
   let total = 0;
   inputs.forEach(input => {
     total += parseFloat(input.value) || 0;
@@ -236,7 +239,10 @@ function onBucketTargetInput() {
 }
 
 async function saveBucketTargets() {
-  const inputs = document.querySelectorAll('.bucket-target-input');
+  const container = document.getElementById('bucket-meters-container');
+  const inputs = (container && container.querySelectorAll('.bucket-target-input').length > 0)
+    ? container.querySelectorAll('.bucket-target-input')
+    : document.querySelectorAll('.bucket-target-input');
   const targets = {};
   let total = 0;
   inputs.forEach(input => {
@@ -314,7 +320,7 @@ function renderBuckets(data) {
           : `<span class="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">${escapeHtml(I18N.t('buckets.status_overweight', 'Overweight'))}</span>`));
     const diffDisplay = isExcluded ? '—' : `${a.diff_value > 0 ? '+' : ''}${I18N.formatCurrency(a.diff_value, 'EUR')}`;
     const weightDisplay = isExcluded ? '—' : I18N.formatPercent(a.current_weight_pct);
-    const targetDisplay = isExcluded ? '—' : `<span class="inline-flex items-center gap-1 whitespace-nowrap"><input type="number" step="0.5" min="0" max="100" value="${a.target_weight_pct}" data-bucket-id="${escapeHtml(a.bucket_id)}" oninput="onBucketTargetInput()" class="bucket-target-input w-16 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono"><span>%</span></span>`;
+    const targetDisplay = isExcluded ? '—' : I18N.formatPercent(a.target_weight_pct);
 
     tr.innerHTML = `
       <td class="px-4 py-3 font-medium flex items-center gap-2">
@@ -408,23 +414,77 @@ function renderBulletMeters(activeAllocs, container) {
     const diffMoney = `${a.diff_value > 0 ? '+' : ''}${I18N.formatCurrency(a.diff_value, 'EUR')}`;
     const diffMoneyClass = a.diff_value < 0 ? 'text-blue-400' : (a.diff_value > 0 ? 'text-amber-400' : 'text-slate-400');
 
+    // Find mapped assets for this bucket (embedded in card as requested by UX-06)
+    const bucketAssets = (currentData?.assets || []).filter(
+      asset => asset.bucket_id === a.bucket_id && (parseFloat(asset.current_value) || 0) > 0
+    );
+    let holdingsListHtml = '';
+    if (bucketAssets.length > 0) {
+      holdingsListHtml = `
+        <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[11px]">
+          <div class="text-slate-400 text-[10px] uppercase tracking-wider font-semibold mb-1.5 flex items-center justify-between">
+            <span>Mapped Holdings (${bucketAssets.length})</span>
+            <span class="font-mono text-slate-300">${I18N.formatCurrency(a.current_value, 'EUR')}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            ${bucketAssets.map(ast => `
+              <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-xs">
+                <div class="flex items-center gap-1.5 truncate mr-2">
+                  <span class="font-medium text-white truncate">${escapeHtml(ast.name)}</span>
+                  ${ast.symbol ? `<span class="px-1 py-0.2 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">${escapeHtml(ast.symbol)}</span>` : ''}
+                </div>
+                <div class="font-mono text-slate-200 font-semibold whitespace-nowrap">${I18N.formatCurrency(ast.current_value, ast.currency || 'EUR')}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      holdingsListHtml = `
+        <div class="mt-2 pt-1.5 border-t border-slate-800/60 text-[11px] text-slate-500 italic">
+          No holdings currently assigned to this bucket. Map assets in the table below.
+        </div>
+      `;
+    }
+
     const card = document.createElement('div');
-    card.className = 'p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2';
+    card.className = 'p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3 shadow-sm hover:border-slate-700 transition';
 
     card.innerHTML = `
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1.5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div class="flex items-center gap-2 min-w-0">
-          <span class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color: ${escapeHtml(a.color)}"></span>
-          <span class="font-bold text-white text-sm truncate">${escapeHtml(a.name)}</span>
-          <span class="text-slate-400 font-mono text-xs whitespace-nowrap">(${I18N.formatCurrency(a.current_value, 'EUR')})</span>
+          <span class="w-3.5 h-3.5 rounded-full shrink-0 shadow" style="background-color: ${escapeHtml(a.color)}"></span>
+          <span class="font-bold text-white text-base truncate">${escapeHtml(a.name)}</span>
+          <button onclick="openEditBucketModalById('${escapeHtml(a.bucket_id)}')" class="text-xs text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800" title="Edit Bucket">✏️</button>
+          <button onclick="deleteBucketById('${escapeHtml(a.bucket_id)}')" class="text-xs text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-rose-500/10" title="Delete Bucket">🗑️</button>
         </div>
-        <div class="flex items-center gap-2 font-mono flex-wrap shrink-0">
-          <span class="text-white font-bold text-xs">${I18N.formatPercent(curr)}</span>
-          <span class="text-slate-500">/</span>
-          <span class="text-slate-400 text-xs">${escapeHtml(I18N.t('buckets.th_target_weight', 'Target'))}: <span class="text-slate-200 font-medium">${I18N.formatPercent(target)}</span></span>
-          <span class="text-slate-500 text-[11px] font-sans">(±${I18N.formatPercent(tol)})</span>
-          <span class="font-mono text-xs ${diffMoneyClass} font-semibold ml-1">[${escapeHtml(diffMoney)}]</span>
+        <div class="flex items-center gap-2 flex-wrap shrink-0">
           ${statusBadge}
+          <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1">
+            <span class="text-slate-400 text-xs">${escapeHtml(I18N.t('buckets.th_target_weight', 'Target'))}:</span>
+            <input type="number" step="0.5" min="0" max="100" value="${a.target_weight_pct}" data-bucket-id="${escapeHtml(a.bucket_id)}" oninput="onBucketTargetInput()" class="bucket-target-input w-14 bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-xs text-white font-mono text-center">
+            <span class="text-slate-400 text-xs">%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metric Strip -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs py-1 px-2.5 rounded-lg bg-slate-900/60 border border-slate-800/80 font-mono">
+        <div>
+          <span class="text-slate-400 text-[10px] block font-sans">${escapeHtml(I18N.t('buckets.th_current_val', 'Value'))}</span>
+          <span class="text-white font-semibold text-xs">${I18N.formatCurrency(a.current_value, 'EUR')}</span>
+        </div>
+        <div>
+          <span class="text-slate-400 text-[10px] block font-sans">${escapeHtml(I18N.t('buckets.th_current_weight', 'Actual Weight'))}</span>
+          <span class="text-white font-bold text-xs">${I18N.formatPercent(curr)}</span>
+        </div>
+        <div>
+          <span class="text-slate-400 text-[10px] block font-sans">${escapeHtml(I18N.t('buckets.th_diff', 'Drift (€)'))}</span>
+          <span class="${diffMoneyClass} font-semibold text-xs">${escapeHtml(diffMoney)}</span>
+        </div>
+        <div>
+          <span class="text-slate-400 text-[10px] block font-sans">Tolerance Corridor</span>
+          <span class="text-emerald-400/90 text-xs">${I18N.formatPercent(lower)} – ${I18N.formatPercent(upper)}</span>
         </div>
       </div>
 
@@ -458,6 +518,9 @@ function renderBulletMeters(activeAllocs, container) {
         </div>
         <div class="text-right sm:text-left text-slate-300 font-medium">${escapeHtml(statusActionText)}</div>
       </div>
+
+      <!-- Embedded Holdings List (UX-06) -->
+      ${holdingsListHtml}
     `;
     container.appendChild(card);
   });

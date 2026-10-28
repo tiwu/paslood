@@ -35,22 +35,17 @@ def test_navigation_tabs_switch_active_views(app_page, live_server):
     app_page.goto(live_server, wait_until="networkidle")
 
     tabs = [
-        ("buckets", "#tab-buckets"),
-        ("advice", "#tab-advice"),
-        ("ai", "#tab-ai"),
+        ("portfolio", "#tab-portfolio"),
+        ("plan", "#tab-plan"),
         ("cashflow", "#tab-cashflow"),
         ("settings", "#tab-settings"),
-        ("dashboard", "#tab-dashboard"),
+        ("overview", "#tab-overview"),
     ]
 
     for tab_name, tab_selector in tabs:
         app_page.locator(f"#nav-{tab_name}").click()
         expect(app_page.locator(tab_selector)).to_be_visible()
-        expect(app_page.locator(tab_selector)).to_have_class(
-            "tab-content space-y-6 active"
-            if tab_name != "dashboard"
-            else "tab-content space-y-6 active"
-        )
+        expect(app_page.locator(tab_selector)).to_have_class("tab-content space-y-6 active")
 
 
 def test_legacy_setup_completion_is_saved_server_side(app_page, live_server):
@@ -66,7 +61,8 @@ def test_buckets_allocation_visualizer_and_modal(app_page, live_server):
     app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
     app_page.goto(live_server, wait_until="networkidle")
 
-    app_page.locator("#nav-buckets").click()
+    app_page.locator("#nav-portfolio").click()
+    expect(app_page.locator("#tab-portfolio")).to_be_visible()
     expect(app_page.locator("#tab-buckets")).to_be_visible()
 
     # Bullet meters container should be visible by default with target-pin and tolerance-zone
@@ -153,7 +149,7 @@ def test_language_switching_and_theme_toggle(app_page, live_server):
 
     # Switch language to Dutch (NL)
     app_page.locator("#header-lang-select").select_option("nl")
-    expect(app_page.locator("#nav-dashboard")).to_contain_text("Overzicht")
+    expect(app_page.locator("#nav-overview")).to_contain_text("Overzicht")
 
     # Toggle light/dark theme
     html_el = app_page.locator("html")
@@ -183,7 +179,8 @@ def test_page_load_with_configured_ai_key_has_no_console_errors(app_page, live_s
     ai_key_val = app_page.locator("#settings-ai-key").input_value()
     assert "•" in ai_key_val
 
-    # Switch to AI tab and verify Key Configured is displayed
-    app_page.locator("#nav-ai").click()
+    # Switch to Plan tab and verify Key Configured is displayed in AI section
+    app_page.locator("#nav-plan").click()
+    expect(app_page.locator("#tab-plan")).to_be_visible()
     expect(app_page.locator("#tab-ai")).to_be_visible()
     expect(app_page.locator("#ai-active-provider-badge")).to_contain_text("Key Configured")

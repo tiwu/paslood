@@ -10,9 +10,11 @@
     "manage": "Gérer",
     "overview": "📊 Aperçu",
     "buckets": "🪣 Portefeuilles",
+    "portfolio": "🪣 Portefeuille & Piliers",
     "guidance": "💡 Conseils",
+    "plan": "🧭 Planifier & Rééquilibrer",
     "ai": "🤖 Conseiller IA",
-    "cashflow": "🏦 Données & Actifs",
+    "cashflow": "💳 Cashflow & Import",
     "settings": "⚙️ Paramètres",
     "setup": "🚀 Configuration",
     "docs": "📖 Documentation",
@@ -150,7 +152,8 @@
     "exemption_left": "€ {amount} d'exonération restante",
     "exemption_exhausted": "Exonération épuisée",
     "tax_due_status": "⚠️ Taxe Due (€ {amount})",
-    "tax_exempt_status": "🟢 100% Exonéré d'Impôt"
+    "tax_exempt_status": "🟢 100% Exonéré d'Impôt",
+    "no_mapped_tickers": "Aucun ticker ETF spécifique associé — assignez les actifs dans Portefeuille & Piliers"
   },
   "cashflow": {
     "title": "🏦 Gestion des Données — Actifs, Dettes & Importation de Relevés",
@@ -219,7 +222,10 @@
     "question_label": "Question ou Scénario Spécifique (Optionnel)",
     "question_placeholder": "Sélectionnez un prompt ci-dessus ou saisissez votre propre question stratégique...",
     "loading_text": "Analyse de votre bilan consolidé et génération des conseils stratégiques...",
-    "initial_output": "Sélectionnez l'un des prompts stratégiques ci-dessus ou cliquez sur <strong>\"Lancer l'Analyse Stratégique\"</strong> pour générer une consultation personnalisée."
+    "initial_output": "Sélectionnez l'un des prompts stratégiques ci-dessus ou cliquez sur <strong>\"Lancer l'Analyse Stratégique\"</strong> pour générer une consultation personnalisée.",
+    "transparency_title": "Afficher la charge utile de données anonymisées envoyée à l'IA",
+    "transparency_desc": "Texte d'invite système exact et chiffres financiers compilés pour votre fournisseur d'IA :",
+    "copy_payload_btn": "Copier la charge utile"
   },
   "settings": {
     "pdt_title": "📈 Portfolio Dividend Tracker (PDT) MCP",

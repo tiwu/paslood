@@ -160,11 +160,16 @@ def test_navigation_tabs_and_containers_match():
     """Ensure every switchTab('<id>') call has a matching #tab-<id> and #nav-<id> in index.html."""
     index_html = (TEMPLATES_DIR / "index.html").read_text(encoding="utf-8")
     tab_targets = set(re.findall(r"switchTab\('([a-zA-Z0-9_-]+)'\)", index_html))
-    assert tab_targets == {"dashboard", "buckets", "advice", "ai", "cashflow", "settings"}
+    assert tab_targets == {"overview", "portfolio", "plan", "cashflow", "settings"}
 
     for tab_id in tab_targets:
         assert f'id="tab-{tab_id}"' in index_html, f"Missing #tab-{tab_id} container"
         assert f'id="nav-{tab_id}"' in index_html, f"Missing #nav-{tab_id} button"
+
+    # Also verify legacy tab aliases exist for backwards compatibility
+    for legacy_id in ["dashboard", "buckets", "advice", "ai"]:
+        assert f'id="tab-{legacy_id}"' in index_html, f"Missing legacy #tab-{legacy_id} container"
+        assert f'id="nav-{legacy_id}"' in index_html, f"Missing legacy #nav-{legacy_id} button"
 
 
 def test_js_rendering_functions_unit_execution_in_node():

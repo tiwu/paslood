@@ -35,9 +35,12 @@ async def test_web_index_and_overview(test_app):
 
         # Header brand must be shrink-0 to prevent overlap with nav items
         assert "flex items-center space-x-2.5 shrink-0" in resp.text
-        # Section labels must be hidden on compact viewports to prevent overflow
-        assert 'data-i18n="nav.explore" class="hidden 2xl:inline' in resp.text
-        assert 'data-i18n="nav.manage" class="hidden 2xl:inline' in resp.text
+        # 4 Workspaces + Settings consolidated navigation
+        assert 'id="nav-overview"' in resp.text
+        assert 'id="nav-portfolio"' in resp.text
+        assert 'id="nav-plan"' in resp.text
+        assert 'id="nav-cashflow"' in resp.text
+        assert 'id="nav-settings"' in resp.text
         # Secondary quick action buttons hidden on < xl to avoid header overflow
         assert 'openSetupWizard()" class="hidden xl:flex' in resp.text
         assert (
