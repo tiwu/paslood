@@ -32,7 +32,7 @@ router = APIRouter(tags=["planning"])
 
 
 class ContributionAdviceRequest(BaseModel):
-    deposit: float
+    deposit: Decimal
 
 
 class MilestonesUpdateRequest(BaseModel):
@@ -41,21 +41,21 @@ class MilestonesUpdateRequest(BaseModel):
 
 class TaxCalculationRequest(BaseModel):
     symbol: str | None = None
-    shares_to_sell: float
-    current_price: float
-    benchmark_price: float | None = None
-    shares_pre_benchmark: float | None = None
-    shares_post_benchmark: float = 0.0
-    actual_purchase_price: float | None = None
-    pre_benchmark_purchase_price: float | None = None
-    available_annual_exemption: float | None = None
-    annual_exemption: float | None = None
-    tax_rate_pct: float | None = None
+    shares_to_sell: Decimal
+    current_price: Decimal
+    benchmark_price: Decimal | None = None
+    shares_pre_benchmark: Decimal | None = None
+    shares_post_benchmark: Decimal = Decimal("0.0")
+    actual_purchase_price: Decimal | None = None
+    pre_benchmark_purchase_price: Decimal | None = None
+    available_annual_exemption: Decimal | None = None
+    annual_exemption: Decimal | None = None
+    tax_rate_pct: Decimal | None = None
     carryover_years: int = 0
     is_joint_filing: bool = False
     tob_tier: str | None = None
     broker_profile: str = "DEGIRO"
-    bond_weight_pct: float = 0.0
+    bond_weight_pct: Decimal = Decimal("0.0")
 
 
 @router.post("/api/advice/contribution")
@@ -75,7 +75,7 @@ async def get_contribution_advice(
     )
     return {
         "status": "success",
-        "deposit": req.deposit,
+        "deposit": float(req.deposit),
         "orders": [
             {
                 "bucket_id": o.bucket_id,

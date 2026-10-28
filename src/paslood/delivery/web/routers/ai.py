@@ -39,7 +39,6 @@ class AiAdviseRequest(BaseModel):
 async def get_ai_models(
     request: Request,
     provider: str = "gemini",
-    api_key: str | None = None,
     base_url: str | None = None,
     repo: ConfigRepository = Depends(get_repo),
     secret_vault: SecretVault = Depends(get_secret_vault),
@@ -49,7 +48,7 @@ async def get_ai_models(
     if auth_header.startswith("Bearer "):
         header_key = header_key or auth_header.removeprefix("Bearer ").strip()
 
-    effective_key = header_key or api_key
+    effective_key = header_key
     s = repo.load_settings()
     if not effective_key or _is_masked_secret(effective_key):
         raw_key = s.get("ai", {}).get("api_key")
