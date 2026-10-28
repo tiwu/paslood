@@ -10,6 +10,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Multi-Bank Statement & Position Overview Ingestion (#37)**:
+  - Added `BunqCsvGateway` (`src/paslood/adapters/ingestion/bunq_csv.py`) supporting Bunq checking and savings CSV exports with European decimal amounts, occurrence-based transaction deduplication, and internal interest/payday recognition.
+  - Enhanced `KbcCsvGateway` (`src/paslood/adapters/ingestion/kbc_csv.py`) to parse KBC Credit Card statement CSVs with foreign currency (`MGA`) conversion to EUR, exclusion of internal debt settlement repayments, and support for classic Mac `\r` line endings.
+  - Enhanced `GenericCsvGateway` (`src/paslood/adapters/ingestion/generic_csv.py`) to parse KBC Easy Invest / Pension Savings position overviews (`Positie-overzicht`), classifying pension funds to `AssetClass.FIXED_INCOME` and savings accounts to `AssetClass.CASH` with shared IBAN asset identifiers (`kbc-checking-<IBAN>`) to eliminate double-counting.
+  - Added `POST /api/ingest/bunq` and content-based auto-detection across ingestion endpoints.
+- **Retroactive Categorization Rules & Multi-File Upload Feedback (#38)**:
+  - Implemented `LocalDbRepository.apply_rule_to_transactions()` to retroactively update all matching historical transactions in SQLite when re-bucketing an expense with "Remember this rule" checked.
+  - Added customizable rule pattern input field to `#rebucket-modal` and supported regex-safe matching for merchants containing `*` characters (`GOOGLE*GOOGLE PLAY`, `NYX*VendingWork`).
+  - Added multi-file upload support (`multiple` attribute on `#file-input`) with client-side header peeking in `detectCsvEndpoint()` and rich summary feedback via `showToast()` and the `#upload-status` banner.
+- **Cashflow Table Pagination, Multi-Account Badges & Semantic Categories (#39)**:
+  - Added full client-side table pagination controls (page size selector: 25 / 50 / 100 / All, First / Prev / Page Indicator / Next / Last buttons, and "Showing X–Y of Z transactions" counter).
+  - Added instant search box (`#tx-search-input`) and category filter dropdown (`#tx-category-filter`).
+  - Added **Account** column displaying human-friendly badges (`KBC ••2832`, `KBC Card ••9128`, `bunq ••9982`) and dynamic multi-account filter dropdown (`#tx-account-filter`).
+  - Serialized `account_id` in `GET /api/overview` and expanded SQLite transaction fetch limit to 10,000 records.
+  - Color-coded transaction categories with distinct semantic palettes across all categories and rebuilt precompiled Tailwind stylesheet `styles.css`.
+- **Precompiled Tailwind CSS & Toast Confirmation Modals (#32)**:
+  - Replaced runtime Tailwind CDN with precompiled static stylesheet `styles.css` built via `npm run build:css`.
+  - Implemented non-blocking toast notifications and promise-based confirmation modals.
+- **Workspaces Consolidation & Buy Order Tickers (#31)**:
+  - Reorganized dashboard tabs into 4 task-focused workspaces (`Overview`, `Strategy`, `Cashflow & Import`, `Settings`).
+  - Added responsive bucket cards and automated buy order ticker cards with rebalancing suggestions.
+- **Security Hardening, Vault v2 & Decimal Precision (#30)**:
+  - Upgraded backup vault to AES-256-GCM v2 with backward-compatible v1 restore.
+  - Enforced strict Decimal precision across portfolio and planning domain models and SQLite storage.
+- **Clean Architecture Router Modularization (#29)**:
+  - Modularized `app.py` into dedicated APIRouters under `src/paslood/delivery/web/routers/`.
 
 ### Changed
 

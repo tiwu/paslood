@@ -113,11 +113,12 @@ async def get_overview(
         exclude_property=exclude_property,
     )
 
-    txs = db.get_transactions(limit=1000)
+    txs = db.get_transactions(limit=10000)
     data["transactions"] = [
         {
             "id": t.id,
             "date": t.date,
+            "account_id": t.account_id,
             "description": t.description,
             "counterparty_name": t.counterparty_name,
             "amount_value": float(t.amount.amount),
