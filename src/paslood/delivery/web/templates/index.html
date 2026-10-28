@@ -869,7 +869,7 @@
 
       <!-- Transactions & Interactive Re-Bucketing -->
       <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm space-y-3 p-5">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 data-i18n="cashflow.tx_title" class="text-sm font-semibold text-white">Recent Transactions &amp; Categorization</h3>
             <p data-i18n="cashflow.tx_sub" class="text-xs text-slate-400">Click any transaction category to re-bucket and persist rules for future imports.</p>
@@ -877,11 +877,39 @@
           <span id="tx-count-badge" class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">0 Transactions</span>
         </div>
 
+        <!-- Controls: Search, Category Filter, Account Filter -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 pb-1">
+          <div>
+            <input type="text" id="tx-search-input" oninput="onTxSearchInput(event)" placeholder="Search merchant, description, amount..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <select id="tx-category-filter" onchange="onTxCategoryFilterChange(event)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <option value="ALL">All Categories / Buckets</option>
+              <option value="GROCERIES">Groceries / Supermarket</option>
+              <option value="LIVING_EXPENSES">Living Expenses</option>
+              <option value="MORTGAGE">Mortgage Servicing</option>
+              <option value="DEBT_REPAYMENT">Debt Repayment</option>
+              <option value="INSURANCE">Insurance</option>
+              <option value="SUBSCRIPTION">Subscriptions</option>
+              <option value="INVESTMENTS">Investments</option>
+              <option value="SAVINGS">Savings</option>
+              <option value="INCOME">Income / Salary</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div>
+            <select id="tx-account-filter" onchange="onTxAccountFilterChange(event)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              <option value="ALL">All Accounts (KBC &amp; Bunq)</option>
+            </select>
+          </div>
+        </div>
+
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-850 text-slate-400 font-semibold border-b border-slate-800">
               <tr>
                 <th data-i18n="cashflow.th_date" class="px-3 py-2.5">Date</th>
+                <th class="px-3 py-2.5">Account</th>
                 <th data-i18n="cashflow.th_desc" class="px-3 py-2.5">Description</th>
                 <th data-i18n="cashflow.th_counterparty" class="px-3 py-2.5">Counterparty</th>
                 <th data-i18n="cashflow.th_amount" class="px-3 py-2.5 text-right">Amount</th>
@@ -890,10 +918,35 @@
             </thead>
             <tbody id="tx-table-body" class="divide-y divide-slate-800 text-slate-300">
               <tr>
-                <td colspan="5" data-i18n="cashflow.empty_tx" class="px-3 py-6 text-center text-slate-500">No transactions loaded yet. Upload your KBC CSV above.</td>
+                <td colspan="6" data-i18n="cashflow.empty_tx" class="px-3 py-6 text-center text-slate-500">No transactions loaded yet. Upload your KBC CSV above.</td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div id="tx-pagination-bar" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-800 text-xs text-slate-400">
+          <div class="flex items-center gap-2">
+            <span id="tx-pagination-info">Showing 0 of 0 transactions</span>
+            <span class="text-slate-600">|</span>
+            <label class="flex items-center gap-1.5">
+              <span>Show</span>
+              <select id="tx-page-size-select" onchange="onTxPageSizeChange(event)" class="bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-white text-xs">
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="all">All</option>
+              </select>
+              <span>per page</span>
+            </label>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="goToTxPage('first')" id="tx-btn-first" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white">«</button>
+            <button onclick="goToTxPage('prev')" id="tx-btn-prev" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white">‹ Prev</button>
+            <span id="tx-page-indicator" class="px-2.5 py-1 font-mono text-slate-300">1 / 1</span>
+            <button onclick="goToTxPage('next')" id="tx-btn-next" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white">Next ›</button>
+            <button onclick="goToTxPage('last')" id="tx-btn-last" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white">»</button>
+          </div>
         </div>
       </div>
     </section>

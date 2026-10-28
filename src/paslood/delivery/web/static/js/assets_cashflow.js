@@ -2,47 +2,231 @@
  * Paslood — Manual Assets & Liabilities, CSV Statement Ingestion & Transaction Rebucketing
  */
 
+let txCurrentPage = 1;
+let txPageSize = 25; // number or 'all'
+let txSearchQuery = '';
+let txCategoryFilter = 'ALL';
+let txAccountFilter = 'ALL';
+
+function formatAccountBadge(accountId) {
+  if (!accountId) return { label: 'Account', full: '-' };
+  const raw = String(accountId).trim();
+
+  // KBC Credit Card
+  if (raw.includes('XXXX') || raw.toLowerCase().includes('kredietkaart') || raw.startsWith('5489') || raw.startsWith('5176')) {
+    const last4 = raw.slice(-4);
+    return { label: `KBC Card ••${last4}`, full: raw, cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' };
+  }
+  // Bunq IBAN
+  if (raw.toUpperCase().includes('BUNQ')) {
+    const last4 = raw.slice(-4);
+    return { label: `bunq ••${last4}`, full: raw, cls: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30' };
+  }
+  // KBC IBAN
+  if (raw.toUpperCase().startsWith('BE')) {
+    const last4 = raw.slice(-4);
+    return { label: `KBC ••${last4}`, full: raw, cls: 'bg-blue-500/15 text-blue-300 border-blue-500/30' };
+  }
+  // Generic fallback
+  const last4 = raw.length > 4 ? raw.slice(-4) : raw;
+  return { label: `Acc ••${last4}`, full: raw, cls: 'bg-slate-800 text-slate-300 border-slate-700' };
+}
+
+function getCategoryBadgeClasses(cat) {
+  const c = String(cat || '').toUpperCase();
+  switch (c) {
+    case 'INCOME':
+    case 'SALARY':
+      return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25';
+    case 'GROCERIES':
+      return 'bg-lime-500/15 text-lime-300 border-lime-500/30 hover:bg-lime-500/25';
+    case 'HOUSING':
+    case 'MORTGAGE':
+      return 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25';
+    case 'DEBT_REPAYMENT':
+      return 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/25';
+    case 'INSURANCE':
+      return 'bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25';
+    case 'SUBSCRIPTION':
+      return 'bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30 hover:bg-fuchsia-500/25';
+    case 'INVESTMENTS':
+      return 'bg-teal-500/15 text-teal-300 border-teal-500/30 hover:bg-teal-500/25';
+    case 'SAVINGS':
+      return 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/25';
+    case 'LIVING_EXPENSES':
+      return 'bg-orange-500/15 text-orange-300 border-orange-500/30 hover:bg-orange-500/25';
+    case 'TRANSFER':
+      return 'bg-slate-700/50 text-slate-300 border-slate-600 hover:bg-slate-700';
+    default:
+      return 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700';
+  }
+}
+
+function onTxSearchInput(e) {
+  txSearchQuery = (e.target.value || '').trim().toLowerCase();
+  txCurrentPage = 1;
+  renderTransactions(currentData);
+}
+
+function onTxCategoryFilterChange(e) {
+  txCategoryFilter = e.target.value || 'ALL';
+  txCurrentPage = 1;
+  renderTransactions(currentData);
+}
+
+function onTxAccountFilterChange(e) {
+  txAccountFilter = e.target.value || 'ALL';
+  txCurrentPage = 1;
+  renderTransactions(currentData);
+}
+
+function onTxPageSizeChange(e) {
+  const val = e.target.value;
+  txPageSize = val === 'all' ? 'all' : parseInt(val, 10) || 25;
+  txCurrentPage = 1;
+  renderTransactions(currentData);
+}
+
+function goToTxPage(action) {
+  const allFiltered = getFilteredTransactions(currentData?.transactions || []);
+  const totalPages = txPageSize === 'all' ? 1 : Math.max(1, Math.ceil(allFiltered.length / txPageSize));
+
+  if (action === 'first') txCurrentPage = 1;
+  else if (action === 'prev') txCurrentPage = Math.max(1, txCurrentPage - 1);
+  else if (action === 'next') txCurrentPage = Math.min(totalPages, txCurrentPage + 1);
+  else if (action === 'last') txCurrentPage = totalPages;
+
+  renderTransactions(currentData);
+}
+
+function getFilteredTransactions(allTxs) {
+  return allTxs.filter(tx => {
+    if (txCategoryFilter !== 'ALL' && String(tx.category || '').toUpperCase() !== txCategoryFilter) {
+      return false;
+    }
+    if (txAccountFilter !== 'ALL' && String(tx.account_id || '') !== txAccountFilter) {
+      return false;
+    }
+    if (txSearchQuery) {
+      const matchText = `${tx.description || ''} ${tx.counterparty_name || ''} ${tx.account_id || ''} ${tx.amount_formatted || ''}`.toLowerCase();
+      if (!matchText.includes(txSearchQuery)) return false;
+    }
+    return true;
+  });
+}
+
+function populateAccountFilter(txs) {
+  const select = document.getElementById('tx-account-filter');
+  if (!select) return;
+
+  const currentVal = txAccountFilter;
+  const accounts = Array.from(new Set(txs.map(t => (t.account_id || '').trim()).filter(Boolean))).sort();
+
+  select.innerHTML = '<option value="ALL">All Accounts (KBC &amp; Bunq)</option>';
+  accounts.forEach(acc => {
+    const badge = formatAccountBadge(acc);
+    const opt = document.createElement('option');
+    opt.value = acc;
+    opt.textContent = `${badge.label} (${acc})`;
+    if (acc === currentVal) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
 function renderTransactions(data) {
   const tbody = document.getElementById('tx-table-body');
   if (!tbody) return;
   tbody.innerHTML = '';
-  const txs = data.transactions || [];
+  const txs = data?.transactions || [];
+
+  // Populate dynamic account filter options
+  populateAccountFilter(txs);
+
   const badge = document.getElementById('tx-count-badge');
   if (badge) {
     badge.textContent = I18N.t('cashflow.tx_count_badge', { count: txs.length, _fallback: `${txs.length} Transactions` });
   }
 
-  if (txs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">${escapeHtml(I18N.t('cashflow.empty_tx', 'No transactions loaded yet. Upload your KBC CSV above.'))}</td></tr>`;
+  const filtered = getFilteredTransactions(txs);
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="px-3 py-6 text-center text-slate-500">${escapeHtml(I18N.t('cashflow.empty_tx', 'No transactions found matching your filters.'))}</td></tr>`;
+    updatePaginationControls(0, 0, 0);
     return;
   }
 
-  txs.slice(0, 100).forEach(tx => {
+  const effectivePageSize = txPageSize === 'all' ? filtered.length : txPageSize;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / effectivePageSize));
+  if (txCurrentPage > totalPages) txCurrentPage = totalPages;
+
+  const startIdx = (txCurrentPage - 1) * effectivePageSize;
+  const endIdx = txPageSize === 'all' ? filtered.length : Math.min(startIdx + effectivePageSize, filtered.length);
+  const pagedTxs = filtered.slice(startIdx, endIdx);
+
+  pagedTxs.forEach(tx => {
     const tr = document.createElement('tr');
     const isPositive = tx.amount_value > 0;
-    const safeDesc = escapeHtml(tx.description);
+    const safeDesc = escapeHtml(tx.description || '-');
     const safeCounterparty = escapeHtml(tx.counterparty_name || '-');
     const safeDate = escapeHtml(I18N.formatDate(tx.date));
     const numAmt = tx.amount_value !== undefined ? Math.abs(tx.amount_value) : tx.amount_formatted;
     const safeAmount = escapeHtml(I18N.formatCurrency(numAmt, 'EUR'));
     const safeCat = escapeHtml(tx.category);
     const safeId = escapeHtml(tx.id);
+    const accBadge = formatAccountBadge(tx.account_id);
+    const catClasses = getCategoryBadgeClasses(tx.category);
 
     tr.innerHTML = `
       <td class="px-3 py-2 text-slate-400 whitespace-nowrap">${safeDate}</td>
+      <td class="px-3 py-2 whitespace-nowrap">
+        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-mono border ${accBadge.cls}" title="${escapeHtml(accBadge.full)}">
+          ${escapeHtml(badgeLabel(accBadge.label))}
+        </span>
+      </td>
       <td class="px-3 py-2 font-medium text-white max-w-xs truncate" title="${safeDesc}">${safeDesc}</td>
       <td class="px-3 py-2 text-slate-400 truncate max-w-[140px]">${safeCounterparty}</td>
       <td class="px-3 py-2 text-right font-mono font-semibold whitespace-nowrap ${isPositive ? 'text-emerald-400' : 'text-slate-200'}">
         ${isPositive ? '+' : ''}${safeAmount}
       </td>
-      <td class="px-3 py-2">
-        <button onclick="openRebucketModalById('${safeId}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-blue-400 text-xs border border-slate-700">
+      <td class="px-3 py-2 whitespace-nowrap">
+        <button onclick="openRebucketModalById('${safeId}')" class="px-2 py-0.5 rounded text-xs border font-medium transition ${catClasses}">
           ${safeCat} ▾
         </button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+
+  updatePaginationControls(startIdx + 1, endIdx, filtered.length);
+}
+
+function badgeLabel(label) {
+  return label;
+}
+
+function updatePaginationControls(start, end, total) {
+  const info = document.getElementById('tx-pagination-info');
+  const indicator = document.getElementById('tx-page-indicator');
+  const btnFirst = document.getElementById('tx-btn-first');
+  const btnPrev = document.getElementById('tx-btn-prev');
+  const btnNext = document.getElementById('tx-btn-next');
+  const btnLast = document.getElementById('tx-btn-last');
+
+  if (info) {
+    info.textContent = total > 0 ? `Showing ${start}–${end} of ${total} transactions` : 'Showing 0 of 0 transactions';
+  }
+
+  const effectivePageSize = txPageSize === 'all' ? (total || 1) : txPageSize;
+  const totalPages = Math.max(1, Math.ceil((total || 1) / effectivePageSize));
+
+  if (indicator) {
+    indicator.textContent = `${txCurrentPage} / ${totalPages}`;
+  }
+
+  if (btnFirst) btnFirst.disabled = (txCurrentPage <= 1);
+  if (btnPrev) btnPrev.disabled = (txCurrentPage <= 1);
+  if (btnNext) btnNext.disabled = (txCurrentPage >= totalPages);
+  if (btnLast) btnLast.disabled = (txCurrentPage >= totalPages);
 }
 
 function initFileDropzone() {

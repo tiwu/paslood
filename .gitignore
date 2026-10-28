@@ -42,6 +42,8 @@ docs_dist/
 # Tooling
 .mypy_cache/
 .ruff_cache/
+node_modules/
+package-lock.json
 
 # User Data & Secrets
 .env
