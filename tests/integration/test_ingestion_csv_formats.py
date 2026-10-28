@@ -141,6 +141,18 @@ def test_bunq_csv_gateway_parsing(tmp_path: Path) -> None:
     txs_again = res_again["transactions"]
     assert [t.id for t in txs] == [t.id for t in txs_again]
 
+    # Cash asset has calculated positive net balance (1000 - 3.50 - 3.50 - 2.99 = 990.01)
+    cash_asset = res["cash_asset"]
+    assert cash_asset.current_value == Money(Decimal("990.01"), "EUR")
+    assert cash_asset.institution == "bunq"
+    assert cash_asset.account_id == "NL31BUNQ2093809982"
+    assert cash_asset.asset_class == AssetClass.CASH
+
+    discovered = res["discovered_cash_assets"]
+    assert len(discovered) == 2
+    sav_asset = next(a for a in discovered if a.account_id == "NL28BUNQ2120824827")
+    assert sav_asset.current_value == Money(Decimal("0.29"), "EUR")
+
 
 @pytest.mark.asyncio
 async def test_ingest_endpoints_auto_detect_and_persist(tmp_path: Path) -> None:

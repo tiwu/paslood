@@ -55,6 +55,7 @@ nav:
       - "Issue #37 - Multi-Bank & Position CSV Ingestion": plans/PLAN-37-csv-ingestion-kbc-bunq-pension.md
       - "Issue #38 - Retroactive Categorization Rules & Upload Feedback": plans/PLAN-38-cashflow-table-rules-upload-ux.md
       - "Issue #39 - Cashflow Table Pagination & Semantic Badges": plans/PLAN-39-cashflow-table-pagination-accounts-badges.md
+      - "Issue #43 - Known Accounts, Flow Rules & Bunq Holdings": plans/PLAN-43-known-accounts-flows-bunq-holdings.md
   - Architecture & UX Reviews:
       - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
       - UI/UX Review: reviews/UX-REVIEW.md

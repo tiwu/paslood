@@ -17,6 +17,7 @@ from typing import Any
 import yaml
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
+from paslood.domain.account import KnownAccount
 from paslood.domain.asset import Asset, AssetClass
 from paslood.domain.bucket import AllocationRule, Bucket
 from paslood.domain.liability import Liability, LoanType
@@ -365,6 +366,68 @@ class ConfigRepository:
         with open(self.config_path, "w", encoding="utf-8") as f:
             yaml.dump(data, f, sort_keys=False, indent=2)
         return True
+
+    def load_known_accounts(self) -> list[KnownAccount]:
+        """Loads user-configured known accounts and destination labels."""
+        if not self.config_path.exists():
+            return []
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        raw_accounts = data.get("known_accounts", [])
+        accounts: list[KnownAccount] = []
+        for acc in raw_accounts:
+            accounts.append(
+                KnownAccount(
+                    id=str(acc.get("id", "")),
+                    account_number=str(acc.get("account_number", "")),
+                    label=str(acc.get("label", "")),
+                    account_type=str(acc.get("account_type", "CHECKING")),
+                    institution=str(acc.get("institution", "")),
+                )
+            )
+        return accounts
+
+    def save_known_account(self, account: KnownAccount) -> None:
+        """Upserts a known account in portfolio.yaml."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        raw_accounts = data.get("known_accounts", [])
+        updated = False
+        new_list = []
+        acc_dict = {
+            "id": account.id,
+            "account_number": account.account_number,
+            "label": account.label,
+            "account_type": account.account_type,
+            "institution": account.institution,
+        }
+
+        for existing in raw_accounts:
+            if existing.get("id") == account.id:
+                new_list.append(acc_dict)
+                updated = True
+            else:
+                new_list.append(existing)
+
+        if not updated:
+            new_list.append(acc_dict)
+
+        data["known_accounts"] = new_list
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
+
+    def delete_known_account(self, account_id: str) -> None:
+        """Removes a known account by id from portfolio.yaml."""
+        with open(self.config_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+
+        raw_accounts = data.get("known_accounts", [])
+        data["known_accounts"] = [acc for acc in raw_accounts if acc.get("id") != account_id]
+
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, sort_keys=False, indent=2)
 
     def load_manual_assets(self) -> list[Asset]:
         """Loads manually configured assets (e.g. Bunq savings, private real estate)."""

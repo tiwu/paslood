@@ -108,18 +108,49 @@ class BunqCsvGateway(BaseIngestionGateway):
 
         transactions = self.categorizer.execute(transactions)
 
+        # Calculate statement balance per discovered account
+        account_balances: dict[str, Decimal] = defaultdict(lambda: Decimal("0.00"))
+        for tx in transactions:
+            acc = tx.account_id or "bunq"
+            account_balances[acc] += tx.amount.amount
+
+        discovered_cash_assets: list[Asset] = []
+        for acc_id, bal in account_balances.items():
+            discovered_cash_assets.append(
+                Asset(
+                    id=f"bunq-cash-{acc_id}",
+                    name=f"bunq ({acc_id})",
+                    symbol="CASH",
+                    asset_class=AssetClass.CASH,
+                    current_value=Money(bal, "EUR"),
+                    institution="bunq",
+                    account_id=acc_id,
+                    currency="EUR",
+                )
+            )
+
         primary_account = next(iter(discovered_accounts.keys()), "bunq")
-        account_name = f"bunq ({primary_account})" if primary_account != "bunq" else "bunq Account"
+        primary_balance = account_balances.get(primary_account, Decimal("0.00"))
+        primary_asset = next(
+            (a for a in discovered_cash_assets if a.account_id == primary_account),
+            Asset(
+                id=f"bunq-cash-{primary_account}",
+                name=f"bunq ({primary_account})",
+                symbol="CASH",
+                asset_class=AssetClass.CASH,
+                current_value=Money(primary_balance, "EUR"),
+                institution="bunq",
+                account_id=primary_account,
+                currency="EUR",
+            ),
+        )
 
         return {
             "account_number": primary_account,
             "account_holder": "",
-            "latest_balance": Money(Decimal("0.00")),
-            "cash_asset": Asset(
-                id=f"bunq-cash-{primary_account}",
-                name=account_name,
-                asset_class=AssetClass.CASH,
-            ),
+            "latest_balance": Money(primary_balance, "EUR"),
+            "cash_asset": primary_asset,
+            "discovered_cash_assets": discovered_cash_assets,
             "transactions": transactions,
             "discovered_liabilities": [],
             "cashflow": MonthlyCashflow(),

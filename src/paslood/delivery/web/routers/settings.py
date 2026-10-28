@@ -47,6 +47,7 @@ from paslood.delivery.web.i18n import (
     TRANSLATIONS,
     get_translations_for_locale,
 )
+from paslood.domain.account import KnownAccount
 
 router = APIRouter(tags=["settings"])
 
@@ -655,3 +656,63 @@ async def sync_encrypted_vault_with_cloud_folder(
             }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+class KnownAccountRequest(BaseModel):
+    id: str | None = None
+    account_number: str
+    label: str
+    account_type: str = "CHECKING"
+    institution: str = ""
+
+
+@router.get("/api/accounts/known")
+async def list_known_accounts(repo: ConfigRepository = Depends(get_repo)):
+    accounts = repo.load_known_accounts()
+    return {
+        "accounts": [
+            {
+                "id": a.id,
+                "account_number": a.account_number,
+                "label": a.label,
+                "account_type": a.account_type,
+                "institution": a.institution,
+            }
+            for a in accounts
+        ]
+    }
+
+
+@router.post("/api/accounts/known")
+async def create_or_update_known_account(
+    req: KnownAccountRequest,
+    repo: ConfigRepository = Depends(get_repo),
+):
+    acc_id = req.id or f"acc-{uuid.uuid4().hex[:8]}"
+    account = KnownAccount(
+        id=acc_id,
+        account_number=req.account_number.strip(),
+        label=req.label.strip(),
+        account_type=req.account_type.upper().strip(),
+        institution=req.institution.strip(),
+    )
+    repo.save_known_account(account)
+    return {
+        "status": "success",
+        "account": {
+            "id": account.id,
+            "account_number": account.account_number,
+            "label": account.label,
+            "account_type": account.account_type,
+            "institution": account.institution,
+        },
+    }
+
+
+@router.delete("/api/accounts/known/{account_id}")
+async def delete_known_account_endpoint(
+    account_id: str,
+    repo: ConfigRepository = Depends(get_repo),
+):
+    repo.delete_known_account(account_id)
+    return {"status": "success"}

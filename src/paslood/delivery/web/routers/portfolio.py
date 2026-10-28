@@ -128,6 +128,18 @@ async def get_overview(
         for t in txs
     ]
 
+    known_accounts = repo.load_known_accounts()
+    data["known_accounts"] = [
+        {
+            "id": a.id,
+            "account_number": a.account_number,
+            "label": a.label,
+            "account_type": a.account_type,
+            "institution": a.institution,
+        }
+        for a in known_accounts
+    ]
+
     tenant = getattr(request.state, "tenant", None)
     data["current_user"] = {
         "email": tenant.email if tenant else "local@paslood",

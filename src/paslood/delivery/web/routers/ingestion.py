@@ -50,6 +50,7 @@ async def ingest_kbc_file(
 
     try:
         rules = repo.load_transaction_rules()
+        known_accounts = repo.load_known_accounts()
         kbc_gateway.categorizer = CategorizeTransactionsUseCase()
 
         # Content-based auto-detection fallback
@@ -58,14 +59,22 @@ async def ingest_kbc_file(
             from paslood.adapters.ingestion.bunq_csv import BunqCsvGateway
 
             data = BunqCsvGateway(kbc_gateway.categorizer).parse_file(tmp_path)
+            cash_assets = data.get("discovered_cash_assets") or (
+                [data["cash_asset"]] if data.get("cash_asset") else []
+            )
+            source = "bunq_csv"
         else:
             data = kbc_gateway.parse_file(tmp_path)
+            cash_assets = [data["cash_asset"]] if data.get("cash_asset") else []
+            source = "kbc_csv"
 
-        categorized_txs = kbc_gateway.categorizer.execute(data["transactions"], rules)
+        categorized_txs = kbc_gateway.categorizer.execute(
+            data["transactions"], rules, known_accounts=known_accounts
+        )
 
-        inserted_txs = db.save_transactions(categorized_txs, source="kbc_csv")
-        if data.get("cash_asset"):
-            db.save_discovered_assets([data["cash_asset"]], source="kbc_csv")
+        inserted_txs = db.save_transactions(categorized_txs, source=source)
+        if cash_assets:
+            db.save_discovered_assets(cash_assets, source=source)
         if data.get("discovered_liabilities"):
             db.save_discovered_liabilities(data["discovered_liabilities"])
 
@@ -104,14 +113,20 @@ async def ingest_bunq_file(
 
     try:
         rules = repo.load_transaction_rules()
+        known_accounts = repo.load_known_accounts()
         bunq_gateway.categorizer = CategorizeTransactionsUseCase()
         data = bunq_gateway.parse_file(tmp_path)
 
-        categorized_txs = bunq_gateway.categorizer.execute(data["transactions"], rules)
+        categorized_txs = bunq_gateway.categorizer.execute(
+            data["transactions"], rules, known_accounts=known_accounts
+        )
 
         inserted_txs = db.save_transactions(categorized_txs, source="bunq_csv")
-        if data.get("cash_asset"):
-            db.save_discovered_assets([data["cash_asset"]], source="bunq_csv")
+        cash_assets = data.get("discovered_cash_assets") or (
+            [data["cash_asset"]] if data.get("cash_asset") else []
+        )
+        if cash_assets:
+            db.save_discovered_assets(cash_assets, source="bunq_csv")
 
         total_txs = len(db.get_transactions())
 

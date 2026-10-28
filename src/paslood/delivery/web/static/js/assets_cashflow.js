@@ -12,6 +12,21 @@ function formatAccountBadge(accountId) {
   if (!accountId) return { label: 'Account', full: '-' };
   const raw = String(accountId).trim();
 
+  // Check known accounts first
+  const cleanRaw = raw.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const known = (currentData?.known_accounts || []).find(k => {
+    const cleanK = (k.account_number || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    return cleanK && (cleanK === cleanRaw || cleanRaw.includes(cleanK) || cleanK.includes(cleanRaw));
+  });
+  if (known) {
+    const cls = known.account_type === 'INVESTMENT'
+      ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+      : (known.account_type === 'SAVINGS'
+        ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+        : 'bg-blue-500/15 text-blue-300 border-blue-500/30');
+    return { label: known.label, full: `${known.label} (${raw})`, cls: cls };
+  }
+
   // KBC Credit Card
   if (raw.includes('XXXX') || raw.toLowerCase().includes('kredietkaart') || raw.startsWith('5489') || raw.startsWith('5176')) {
     const last4 = raw.slice(-4);
