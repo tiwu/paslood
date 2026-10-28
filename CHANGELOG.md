@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.11.0] - 2026-10-28
+
+### Added
 - **Known Accounts & Inter-Account Flow Categorization (#43)**:
   - Added `KnownAccount` domain model (`src/paslood/domain/account.py`) supporting user-defined external accounts and custom labels (e.g. Saxo, Bunq, KBC) with account types (`INVESTMENT`, `SAVINGS`, `CHECKING`).
   - Added repository storage in `portfolio.yaml` for known accounts via `ConfigRepository.load_known_accounts()`, `save_known_account()`, and `delete_known_account()`.
@@ -283,7 +293,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/tiwu/paslood/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/tiwu/paslood/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/tiwu/paslood/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/tiwu/paslood/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/tiwu/paslood/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/tiwu/paslood/compare/v0.7.0...v0.8.0
