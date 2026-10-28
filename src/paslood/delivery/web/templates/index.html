@@ -1093,13 +1093,28 @@
           </button>
         </div>
 
+        <!-- Discovered Accounts Quick-Add Banner -->
+        <div id="discovered-accounts-banner" class="hidden bg-slate-950 p-3.5 rounded-lg border border-blue-500/30 text-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-medium text-blue-300 flex items-center gap-1.5">
+              <span>💡</span>
+              <span>Discovered Accounts in Uploaded Statements</span>
+            </span>
+            <span class="text-[11px] text-slate-400">Click an account to prefill &amp; register</span>
+          </div>
+          <div id="discovered-accounts-chips" class="flex flex-wrap gap-2 pt-1">
+            <!-- Dynamically populated chips -->
+          </div>
+        </div>
+
         <!-- Add Known Account Form -->
         <div id="add-known-account-form" class="hidden bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3 text-xs">
           <div class="font-semibold text-white">Register Known Account</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
               <label class="block text-slate-400 mb-1">Account Number / IBAN</label>
-              <input type="text" id="new-known-acc-num" placeholder="e.g. BE99 1234 5678 9012" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+              <input type="text" id="new-known-acc-num" list="discovered-acc-datalist" placeholder="e.g. BE99 1234 5678 9012" oninput="onKnownAccNumChanged(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs">
+              <datalist id="discovered-acc-datalist"></datalist>
             </div>
             <div>
               <label class="block text-slate-400 mb-1">Account Label</label>

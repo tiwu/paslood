@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
-### Changed
-
-### Fixed
+- **Statement Account Prefill & Unmapped Account Upload Prompts (#45)**:
+  - Added `LocalDbRepository.get_discovered_account_summaries()` and `GET /api/accounts/discovered` summarizing statement account numbers, transaction counts, and inferred institutions.
+  - Added unmapped account quick-add banner and chips in Settings Known Accounts card, allowing one-click prefilling of account number, institution hint, and suggested label.
+  - Added HTML `<datalist id="discovered-acc-datalist">` and `onKnownAccNumChanged()` auto-inference in Known Account registration form.
+  - Added unmapped account detection during CSV statement ingestion (`/api/ingest/kbc`, `/api/ingest/bunq`), returning `unregistered_accounts` list in response.
+  - Added interactive toast prompt on statement upload offering immediate one-click navigation to register newly discovered accounts.
 
 ---
 

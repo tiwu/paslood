@@ -716,3 +716,31 @@ async def delete_known_account_endpoint(
 ):
     repo.delete_known_account(account_id)
     return {"status": "success"}
+
+
+@router.get("/api/accounts/discovered")
+async def list_discovered_accounts(
+    db: LocalDbRepository = Depends(get_db),
+    repo: ConfigRepository = Depends(get_repo),
+):
+    discovered = db.get_discovered_account_summaries()
+    known = repo.load_known_accounts()
+    clean_known = {k.account_number.replace(" ", "").upper(): k for k in known if k.account_number}
+
+    results = []
+    for d in discovered:
+        clean_acc = d["account_id"].replace(" ", "").upper()
+        match = clean_known.get(clean_acc)
+        results.append(
+            {
+                "account_id": d["account_id"],
+                "institution_hint": d["institution_hint"],
+                "transaction_count": d["transaction_count"],
+                "has_cash_asset": d["has_cash_asset"],
+                "is_known": match is not None,
+                "known_label": match.label if match else None,
+                "known_type": match.account_type if match else None,
+            }
+        )
+
+    return {"discovered_accounts": results}
