@@ -857,11 +857,11 @@
         </div>
 
         <div id="dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-xl p-8 text-center bg-slate-950/50 cursor-pointer transition">
-          <input type="file" id="file-input" class="hidden" accept=".csv" onchange="handleFileUpload(event)">
+          <input type="file" id="file-input" class="hidden" accept=".csv" multiple onchange="handleFileUpload(event)">
           <div class="space-y-2">
             <div class="text-3xl">📄</div>
-            <div data-i18n="cashflow.dropzone_title" class="text-sm font-medium text-white">Click to select or drag and drop your CSV file</div>
-            <div data-i18n="cashflow.dropzone_sub" class="text-xs text-slate-500">Supports KBC exports (semicolon delimited) and generic CSV format</div>
+            <div data-i18n="cashflow.dropzone_title" class="text-sm font-medium text-white">Click to select or drag and drop your CSV files</div>
+            <div data-i18n="cashflow.dropzone_sub" class="text-xs text-slate-500">Supports KBC checking, savings, credit card, position overviews &amp; Bunq CSV exports</div>
           </div>
         </div>
         <div id="upload-status" class="hidden text-xs py-2 px-3 rounded-lg"></div>
@@ -1258,6 +1258,12 @@
           <option value="INCOME" data-i18n="modals.cat_income">Income / Salary</option>
           <option value="OTHER" data-i18n="modals.cat_other">Other</option>
         </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Match Keyword or Merchant</label>
+        <input type="text" id="modal-pattern-input" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono" placeholder="Merchant or keyword to match">
+        <p class="text-[11px] text-slate-500 mt-1">Rule will apply to past and future transactions containing this text.</p>
       </div>
 
       <div class="flex items-center gap-2 pt-1">

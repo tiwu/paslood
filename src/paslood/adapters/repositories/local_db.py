@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sqlite3
 from decimal import Decimal
@@ -82,10 +83,13 @@ class LocalDbRepository:
                     is_inflow INTEGER,
                     source TEXT,
                     raw_json TEXT,
+                    user_override INTEGER DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """
             )
+            with contextlib.suppress(sqlite3.OperationalError):
+                conn.execute("ALTER TABLE transactions ADD COLUMN user_override INTEGER DEFAULT 0")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_tx_date ON transactions(date DESC)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_tx_account ON transactions(account_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_tx_category ON transactions(category)")
@@ -230,11 +234,39 @@ class LocalDbRepository:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "UPDATE transactions SET category = ? WHERE id = ?",
+                "UPDATE transactions SET category = ?, user_override = 1 WHERE id = ?",
                 (new_category, transaction_id),
             )
             conn.commit()
             return cursor.rowcount > 0
+
+    def apply_rule_to_transactions(
+        self,
+        pattern: str,
+        category: str,
+        exclude_overrides: bool = True,
+    ) -> int:
+        """Applies a categorization rule retroactively to all matching transactions."""
+        clean_pattern = pattern.strip()
+        if not clean_pattern:
+            return 0
+
+        like_query = f"%{clean_pattern}%"
+        sql = """
+            UPDATE transactions
+            SET category = ?
+            WHERE (counterparty_name LIKE ? OR description LIKE ?)
+        """
+        params: list[Any] = [category, like_query, like_query]
+
+        if exclude_overrides:
+            sql += " AND (user_override IS NULL OR user_override = 0)"
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql, params)
+            conn.commit()
+            return cursor.rowcount
 
     def save_discovered_assets(self, assets: list[Asset], source: str = "kbc_csv") -> None:
         """Upserts discovered assets into the database."""
