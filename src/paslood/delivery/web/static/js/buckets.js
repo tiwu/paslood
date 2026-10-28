@@ -122,14 +122,19 @@ async function saveBucketFromModal() {
   const includeInNetWorth = netWorthCheck ? netWorthCheck.checked : true;
 
   if (!name) {
-    alert('Please enter a bucket name.');
+    showToast('Please enter a bucket name.', 'warning');
     return;
   }
 
   if (includeInRebalancing && (currentData?.allocations?.length || 0) > 0) {
     const projectedTotal = Math.round(getModalProjectedTotal() * 10) / 10;
     if (Math.abs(projectedTotal - 100) >= 0.05) {
-      if (!confirm(`Warning: Active bucket weights will sum to ${projectedTotal}% (not 100%). Proceed anyway and adjust weights on the Buckets page?`)) {
+      const proceed = await confirmDialog({
+        title: 'Unbalanced Target Weights',
+        message: `Warning: Active bucket weights will sum to ${projectedTotal}% (not 100%). Proceed anyway and adjust weights on the Buckets page?`,
+        confirmVariant: 'primary',
+      });
+      if (!proceed) {
         return;
       }
     }
@@ -163,7 +168,12 @@ async function saveBucketFromModal() {
 }
 
 async function deleteBucket(bucketId, name) {
-  if (!confirm(`Are you sure you want to delete the bucket "${name}"? Holdings mapped to this bucket will become unassigned.`)) return;
+  const confirmed = await confirmDialog({
+    title: 'Delete Bucket',
+    message: `Are you sure you want to delete the bucket "${name}"? Holdings mapped to this bucket will become unassigned.`,
+    confirmVariant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     const res = await fetch(`/api/buckets/${bucketId}`, { method: 'DELETE' });
     if (res.ok) {
@@ -256,7 +266,7 @@ async function saveBucketTargets() {
 
   total = Math.round(total * 10) / 10;
   if (Math.abs(total - 100) >= 0.05) {
-    alert(I18N.t('buckets.targets_unbalanced_error', 'Target weights must sum to exactly 100% across active buckets.'));
+    showToast(I18N.t('buckets.targets_unbalanced_error', 'Target weights must sum to exactly 100% across active buckets.'), 'warning');
     return;
   }
 
@@ -271,7 +281,7 @@ async function saveBucketTargets() {
       showToast(I18N.t('buckets.targets_saved', 'Bucket target weights saved successfully!'));
     } else {
       const err = await res.json();
-      alert(err.detail || 'Failed to save targets');
+      showToast(err.detail || 'Failed to save targets', 'error');
     }
   } catch (err) {
     console.error('Failed to save bucket targets:', err);
@@ -291,7 +301,7 @@ async function updateTarget(bucketId, val) {
       await loadOverview();
     } else {
       const err = await res.json();
-      alert(err.detail || 'Failed to update target');
+      showToast(err.detail || 'Failed to update target', 'error');
       await loadOverview();
     }
   } catch (err) {

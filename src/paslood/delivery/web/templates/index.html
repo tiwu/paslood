@@ -20,105 +20,15 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
   <link rel="manifest" href="/static/manifest.json">
   <script src="/static/i18n.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: { extend: { colors: { brand: { 50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' }, slate: { 850: '#151e2e', 900: '#0f172a', 950: '#080d1a' } } } }
-    };
-  </script>
-  <style>
-    :root { color-scheme: light dark; --color-scrollbar-track: light-dark(#f1f5f9, #0f172a); --color-scrollbar-thumb: light-dark(#94a3b8, #334155); scrollbar-width: thin; scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track); }
-    :root:has(> head > meta[name="color-scheme"][content="dark"]) { color-scheme: dark; }
-    :root:has(> head > meta[name="color-scheme"][content="light"]) { color-scheme: light; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    @supports not (scrollbar-color: auto) {
-      ::-webkit-scrollbar { width: 6px; height: 6px; }
-      ::-webkit-scrollbar-track { background: var(--color-scrollbar-track); }
-      ::-webkit-scrollbar-thumb { background: var(--color-scrollbar-thumb); border-radius: 3px; }
-    }
-    /* Responsive table container */
-    .table-wrapper {
-      overflow-x: auto;
-      max-inline-size: 100%;
-      container-type: inline-size;
-      -webkit-overflow-scrolling: touch;
-    }
-    td.font-mono, th.font-mono, .whitespace-nowrap-numbers {
-      white-space: nowrap !important;
-    }
-    /* Light Theme Overrides */
-    html.light-theme body {
-      background-color: #f8fafc !important;
-      color: #0f172a !important;
-    }
-    html.light-theme header {
-      background-color: rgba(255, 255, 255, 0.92) !important;
-      border-color: #e2e8f0 !important;
-    }
-    html.light-theme .bg-slate-900 {
-      background-color: #ffffff !important;
-      border-color: #e2e8f0 !important;
-      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06) !important;
-    }
-    html.light-theme .bg-slate-950,
-    html.light-theme .bg-slate-950\/50,
-    html.light-theme .bg-slate-950\/60,
-    html.light-theme .bg-slate-950\/70,
-    html.light-theme .bg-slate-950\/40 {
-      background-color: #f1f5f9 !important;
-      border-color: #cbd5e1 !important;
-    }
-    html.light-theme .bg-slate-850,
-    html.light-theme .bg-slate-800,
-    html.light-theme .bg-slate-800\/60,
-    html.light-theme .bg-slate-800\/80 {
-      background-color: #e2e8f0 !important;
-      border-color: #cbd5e1 !important;
-      color: #1e293b !important;
-    }
-    html.light-theme .text-white {
-      color: #0f172a !important;
-    }
-    html.light-theme .bg-blue-600.text-white,
-    html.light-theme .bg-emerald-600.text-white,
-    html.light-theme .bg-rose-600.text-white,
-    html.light-theme .bg-purple-600.text-white,
-    html.light-theme .bg-indigo-600.text-white,
-    html.light-theme .nav-btn.bg-blue-600 {
-      color: #ffffff !important;
-    }
-    html.light-theme .text-slate-100,
-    html.light-theme .text-slate-200,
-    html.light-theme .text-slate-300 {
-      color: #334155 !important;
-    }
-    html.light-theme .text-slate-400,
-    html.light-theme .text-slate-500 {
-      color: #64748b !important;
-    }
-    html.light-theme .border-slate-800,
-    html.light-theme .border-slate-700,
-    html.light-theme .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
-      border-color: #e2e8f0 !important;
-    }
-    html.light-theme input,
-    html.light-theme select,
-    html.light-theme textarea {
-      background-color: #ffffff !important;
-      color: #0f172a !important;
-      border-color: #cbd5e1 !important;
-    }
-    html.light-theme .prose-invert {
-      color: #1e293b !important;
-    }
-  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-[100dvh] flex flex-col font-sans antialiased overflow-x-hidden">
+
+  <!-- Stackable Toast Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none" aria-live="polite"></div>
 
   <!-- Header -->
   <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40 w-full">
@@ -1644,6 +1554,27 @@
       </div>
     </div>
   </div>
+
+  <!-- Accessible Native Confirmation Dialog -->
+  <dialog id="confirmation-dialog" class="rounded-2xl bg-slate-900 border border-slate-800 text-slate-100 p-6 shadow-2xl max-w-md w-full backdrop:bg-black/75 backdrop:backdrop-blur-sm fixed inset-0 m-auto" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message">
+    <div class="flex items-start gap-4">
+      <div id="confirm-dialog-icon-container" class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-rose-500/10 text-rose-400 border border-rose-500/30 text-lg">
+        ⚠️
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 id="confirm-dialog-title" class="text-base font-semibold text-white">Confirm Action</h3>
+        <p id="confirm-dialog-message" class="text-sm text-slate-400 mt-2 leading-relaxed">Are you sure you want to proceed?</p>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
+      <button type="button" id="confirm-dialog-cancel-btn" class="px-4 py-2 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+        Cancel
+      </button>
+      <button type="button" id="confirm-dialog-ok-btn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow-lg transition">
+        Confirm
+      </button>
+    </div>
+  </dialog>
 
   <!-- Interactive First-Time Setup Wizard Modal -->
   <div id="setup-wizard-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">

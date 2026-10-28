@@ -168,15 +168,196 @@ function dismissOAuthBanner() {
   if (banner) banner.classList.add('hidden');
 }
 
-function showToast(msg) {
+function showToast(message, type = 'info', duration = 4000) {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none';
+    container.setAttribute('aria-live', 'polite');
+    if (document.body) {
+      document.body.appendChild(container);
+    }
+  }
+
+  // Sync legacy settings notification if present in DOM
   const note = document.getElementById('settings-notification');
-  if (note) {
-    document.getElementById('settings-notification-text').textContent = msg;
+  const noteText = document.getElementById('settings-notification-text');
+  if (note && noteText) {
+    noteText.textContent = message;
     note.className = 'p-3 rounded-xl border text-xs flex items-center justify-between bg-emerald-500/10 border-emerald-500/30 text-emerald-300 fixed bottom-5 right-5 z-50 shadow-lg';
     note.classList.remove('hidden');
-    setTimeout(() => note.classList.add('hidden'), 4000);
+    setTimeout(() => note.classList.add('hidden'), duration || 4000);
   }
+
+  const toast = document.createElement('div');
+  toast.setAttribute('role', 'status');
+
+  const themeClasses = {
+    success: 'bg-slate-900 border-emerald-500/50 text-emerald-300 shadow-emerald-950/40',
+    error: 'bg-slate-900 border-rose-500/50 text-rose-300 shadow-rose-950/40',
+    warning: 'bg-slate-900 border-amber-500/50 text-amber-300 shadow-amber-950/40',
+    info: 'bg-slate-900 border-blue-500/50 text-blue-300 shadow-blue-950/40',
+  };
+  const iconMap = {
+    success: '✓',
+    error: '✕',
+    warning: '⚠️',
+    info: 'ℹ️',
+  };
+
+  const selectedTheme = themeClasses[type] || themeClasses.info;
+  const selectedIcon = iconMap[type] || iconMap.info;
+
+  toast.className = `pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl border shadow-xl text-xs transition-all duration-300 transform translate-y-0 opacity-100 ${selectedTheme}`;
+
+  const iconEl = document.createElement('div');
+  iconEl.className = 'shrink-0 text-base leading-none mt-0.5 select-none';
+  iconEl.textContent = selectedIcon;
+
+  const msgEl = document.createElement('div');
+  msgEl.className = 'flex-1 min-w-0 break-words leading-relaxed text-slate-200';
+  msgEl.textContent = message;
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.setAttribute('aria-label', 'Close notification');
+  closeBtn.className = 'text-slate-400 hover:text-white shrink-0 ml-1 leading-none text-base cursor-pointer';
+  closeBtn.innerHTML = '&times;';
+
+  function dismiss() {
+    toast.classList.add('opacity-0', '-translate-y-2');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }
+
+  closeBtn.addEventListener('click', dismiss);
+  toast.appendChild(iconEl);
+  toast.appendChild(msgEl);
+  toast.appendChild(closeBtn);
+
+  if (container) {
+    container.appendChild(toast);
+  }
+
+  if (duration > 0) {
+    setTimeout(dismiss, duration);
+  }
+
+  return toast;
 }
+
+function confirmDialog(optionsOrMessage) {
+  let title = 'Confirm Action';
+  let message = '';
+  let confirmText = 'Confirm';
+  let cancelText = 'Cancel';
+  let confirmVariant = 'danger';
+
+  if (typeof optionsOrMessage === 'string') {
+    message = optionsOrMessage;
+  } else if (optionsOrMessage && typeof optionsOrMessage === 'object') {
+    message = optionsOrMessage.message || '';
+    if (optionsOrMessage.title) title = optionsOrMessage.title;
+    if (optionsOrMessage.confirmText) confirmText = optionsOrMessage.confirmText;
+    if (optionsOrMessage.cancelText) cancelText = optionsOrMessage.cancelText;
+    if (optionsOrMessage.confirmVariant) confirmVariant = optionsOrMessage.confirmVariant;
+  }
+
+  if (typeof I18N !== 'undefined' && typeof I18N.t === 'function') {
+    if (!optionsOrMessage?.title) title = I18N.t('common.confirm_title', title);
+    if (!optionsOrMessage?.confirmText) confirmText = I18N.t('common.confirm', confirmText);
+    if (!optionsOrMessage?.cancelText) cancelText = I18N.t('common.cancel', cancelText);
+  }
+
+  const dialog = document.getElementById('confirmation-dialog');
+  if (!dialog || typeof dialog.showModal !== 'function') {
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      return Promise.resolve(window.confirm(message));
+    }
+    return Promise.resolve(false);
+  }
+
+  const titleEl = document.getElementById('confirm-dialog-title');
+  const msgEl = document.getElementById('confirm-dialog-message');
+  const okBtn = document.getElementById('confirm-dialog-ok-btn');
+  const cancelBtn = document.getElementById('confirm-dialog-cancel-btn');
+  const iconContainer = document.getElementById('confirm-dialog-icon-container');
+
+  if (titleEl) titleEl.textContent = title;
+  if (msgEl) msgEl.textContent = message;
+  if (okBtn) {
+    okBtn.textContent = confirmText;
+    if (confirmVariant === 'danger') {
+      okBtn.className = 'px-4 py-2 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow-lg transition cursor-pointer';
+      if (iconContainer) {
+        iconContainer.className = 'shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-rose-500/10 text-rose-400 border border-rose-500/30 text-lg';
+        iconContainer.textContent = '⚠️';
+      }
+    } else {
+      okBtn.className = 'px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-lg transition cursor-pointer';
+      if (iconContainer) {
+        iconContainer.className = 'shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-blue-500/10 text-blue-400 border border-blue-500/30 text-lg';
+        iconContainer.textContent = 'ℹ️';
+      }
+    }
+  }
+  if (cancelBtn) cancelBtn.textContent = cancelText;
+
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    function cleanup(result) {
+      if (resolved) return;
+      resolved = true;
+      okBtn?.removeEventListener('click', onOk);
+      cancelBtn?.removeEventListener('click', onCancel);
+      dialog.removeEventListener('cancel', onCancelEvent);
+      dialog.removeEventListener('click', onBackdrop);
+      if (dialog.open) {
+        dialog.close();
+      }
+      resolve(result);
+    }
+
+    function onOk(e) {
+      if (e) e.preventDefault();
+      cleanup(true);
+    }
+
+    function onCancel(e) {
+      if (e) e.preventDefault();
+      cleanup(false);
+    }
+
+    function onCancelEvent(e) {
+      if (e) e.preventDefault();
+      cleanup(false);
+    }
+
+    function onBackdrop(e) {
+      if (e.target === dialog) {
+        cleanup(false);
+      }
+    }
+
+    okBtn?.addEventListener('click', onOk);
+    cancelBtn?.addEventListener('click', onCancel);
+    dialog.addEventListener('cancel', onCancelEvent);
+    dialog.addEventListener('click', onBackdrop);
+
+    dialog.showModal();
+    if (cancelBtn && typeof cancelBtn.focus === 'function') {
+      cancelBtn.focus();
+    }
+  });
+}
+
+window.showToast = showToast;
+window.confirmDialog = confirmDialog;
 
 // Exclude Real Estate / Property Toggle
 async function toggleExcludeProperty(checked) {

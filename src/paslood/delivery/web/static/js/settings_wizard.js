@@ -169,7 +169,12 @@ async function syncPdtHoldings() {
 }
 
 async function disconnectPdt() {
-  if (!confirm('Are you sure you want to disconnect Portfolio Dividend Tracker?')) return;
+  const confirmed = await confirmDialog({
+    title: 'Disconnect PDT',
+    message: 'Are you sure you want to disconnect Portfolio Dividend Tracker?',
+    confirmVariant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await fetch('/api/auth/pdt/disconnect', { method: 'POST' });
     showSettingsAlert('PDT disconnected.');
@@ -184,7 +189,7 @@ async function saveManualPdtToken() {
   const token = document.getElementById('pdt-manual-token-input').value.trim();
   const url = document.getElementById('pdt-manual-url-input').value.trim();
   if (!token) {
-    alert('Please enter a PDT Bearer Token');
+    showToast('Please enter a PDT Bearer Token', 'warning');
     return;
   }
   try {
@@ -214,7 +219,7 @@ async function submitNewMcpServer() {
   const token = document.getElementById('new-mcp-token').value.trim();
 
   if (!name || !url) {
-    alert('Please provide server name and URL');
+    showToast('Please provide server name and URL', 'warning');
     return;
   }
 
@@ -235,7 +240,12 @@ async function submitNewMcpServer() {
 }
 
 async function deleteMcpServer(id) {
-  if (!confirm('Remove this MCP server?')) return;
+  const confirmed = await confirmDialog({
+    title: 'Remove MCP Server',
+    message: 'Remove this MCP server?',
+    confirmVariant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await fetch(`/api/settings/mcp/servers/${id}`, { method: 'DELETE' });
     showSettingsAlert('MCP server removed.');
@@ -326,7 +336,7 @@ async function saveTaxSettings() {
 async function downloadEncryptedBackup() {
   const passphrase = (document.getElementById('vault-passphrase')?.value || '').trim();
   if (passphrase.length < 4) {
-    alert('Please enter an encryption passphrase (at least 4 characters) to protect your backup.');
+    showToast('Please enter an encryption passphrase (at least 4 characters) to protect your backup.', 'warning');
     return;
   }
   try {
@@ -357,7 +367,7 @@ async function uploadEncryptedBackup(event) {
   if (!file) return;
   const passphrase = (document.getElementById('vault-passphrase')?.value || '').trim();
   if (passphrase.length < 4) {
-    alert('Please enter your vault passphrase first before selecting the backup file.');
+    showToast('Please enter your vault passphrase first before selecting the backup file.', 'warning');
     event.target.value = '';
     return;
   }
@@ -385,11 +395,11 @@ async function syncCloudDriveVault(action) {
   const passphrase = (document.getElementById('vault-passphrase')?.value || '').trim();
   const syncDir = (document.getElementById('vault-cloud-dir')?.value || '').trim();
   if (passphrase.length < 4) {
-    alert('Please enter your vault encryption passphrase.');
+    showToast('Please enter your vault encryption passphrase.', 'warning');
     return;
   }
   if (!syncDir) {
-    alert('Please enter your local Cloud Drive folder path (e.g. ~/Proton Drive/WealthPilot).');
+    showToast('Please enter your local Cloud Drive folder path (e.g. ~/Proton Drive/WealthPilot).', 'warning');
     return;
   }
   try {
@@ -501,7 +511,7 @@ function wizardStepNext() {
   if (currentWizardStep === 2) {
     const total = getWizardBucketTotal();
     if (total !== 100) {
-      alert(`Target bucket percentages must total 100% (currently ${total}%). Please adjust the allocations.`);
+      showToast(`Target bucket percentages must total 100% (currently ${total}%). Please adjust the allocations.`, 'warning');
       return;
     }
   }

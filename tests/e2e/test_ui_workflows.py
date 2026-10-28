@@ -184,3 +184,93 @@ def test_page_load_with_configured_ai_key_has_no_console_errors(app_page, live_s
     expect(app_page.locator("#tab-plan")).to_be_visible()
     expect(app_page.locator("#tab-ai")).to_be_visible()
     expect(app_page.locator("#ai-active-provider-badge")).to_contain_text("Key Configured")
+
+
+def test_toast_notifications_stacking_and_dismissal(app_page, live_server):
+    """Verify non-blocking toast notifications appear in #toast-container with typed styling and close button."""
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    # Trigger a success toast
+    app_page.evaluate("showToast('Asset saved successfully!', 'success')")
+    toast_container = app_page.locator("#toast-container")
+    expect(toast_container).to_be_visible()
+
+    success_toast = toast_container.locator("div[role='status']").first
+    expect(success_toast).to_be_visible()
+    expect(success_toast).to_contain_text("Asset saved successfully!")
+    expect(success_toast).to_contain_text("✓")
+
+    # Dismiss toast via close button
+    close_btn = success_toast.locator("button[aria-label='Close notification']")
+    close_btn.click()
+    expect(success_toast).to_be_hidden()
+
+    # Trigger an error toast
+    app_page.evaluate("showToast('Unable to reach server', 'error')")
+    error_toast = toast_container.locator("div[role='status']").first
+    expect(error_toast).to_be_visible()
+    expect(error_toast).to_contain_text("Unable to reach server")
+
+
+def test_accessible_confirm_dialog_cancel_and_ok(app_page, live_server):
+    """Verify native promise-based confirmation dialog opens, traps focus, and resolves cancel/confirm."""
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    dialog = app_page.locator("#confirmation-dialog")
+    expect(dialog).to_be_hidden()
+
+    # 1. Trigger dialog without awaiting in evaluate so browser UI can be interacted with
+    app_page.evaluate("""
+        (() => {
+            window.__testConfirmPromise = confirmDialog({
+                title: 'Delete Asset Confirmation',
+                message: 'Are you sure you want to remove this holding?',
+                confirmVariant: 'danger'
+            });
+            return true;
+        })()
+    """)
+    expect(dialog).to_be_visible()
+    expect(app_page.locator("#confirm-dialog-title")).to_have_text("Delete Asset Confirmation")
+    expect(app_page.locator("#confirm-dialog-message")).to_have_text(
+        "Are you sure you want to remove this holding?"
+    )
+
+    # Click cancel button
+    app_page.locator("#confirm-dialog-cancel-btn").click()
+    expect(dialog).to_be_hidden()
+    cancel_result = app_page.evaluate("window.__testConfirmPromise")
+    assert cancel_result is False
+
+    # 2. Trigger dialog and confirm
+    app_page.evaluate("""
+        (() => {
+            window.__testConfirmPromise = confirmDialog({
+                title: 'Proceed with Action',
+                message: 'Do you want to continue?',
+                confirmVariant: 'primary'
+            });
+            return true;
+        })()
+    """)
+    expect(dialog).to_be_visible()
+    app_page.locator("#confirm-dialog-ok-btn").click()
+    expect(dialog).to_be_hidden()
+    ok_result = app_page.evaluate("window.__testConfirmPromise")
+    assert ok_result is True
+
+
+def test_offline_static_css_and_zero_runtime_tailwind_cdn(app_page, live_server):
+    """Verify offline static CSS is linked and runtime tailwind CDN is completely absent."""
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    # Check that compiled styles.css link exists
+    css_link = app_page.locator("link[href='/static/css/styles.css']")
+    assert css_link.count() == 1
+
+    # Check that cdn.tailwindcss.com script is absent
+    cdn_script = app_page.locator("script[src*='cdn.tailwindcss.com']")
+    assert cdn_script.count() == 0

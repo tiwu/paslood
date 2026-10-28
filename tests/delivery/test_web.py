@@ -47,9 +47,12 @@ async def test_web_index_and_overview(test_app):
             'href="/guide/index.html" target="_blank" rel="noopener" class="hidden xl:flex'
             in resp.text
         )
-        # Ensure numerical values and currency fields in tables never wrap onto multiple lines
-        assert "td.font-mono, th.font-mono" in resp.text
-        assert "white-space: nowrap !important;" in resp.text
+        # Ensure numerical values and currency fields in tables never wrap onto multiple lines via compiled stylesheet
+        assert 'href="/static/css/styles.css"' in resp.text
+        css_resp = await client.get("/static/css/styles.css")
+        assert css_resp.status_code == 200
+        assert "font-mono" in css_resp.text
+        assert "white-space:nowrap!important" in css_resp.text
 
         # Check overview API
         overview_resp = await client.get("/api/overview")
