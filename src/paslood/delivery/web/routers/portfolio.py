@@ -31,9 +31,9 @@ router = APIRouter(tags=["portfolio"])
 class BucketCreateOrUpdateRequest(BaseModel):
     id: str | None = None
     name: str
-    target_weight_pct: float
+    target_weight_pct: Decimal
     color: str | None = None
-    drift_tolerance_pct: float | None = 3.0
+    drift_tolerance_pct: Decimal | None = Decimal("3.0")
     description: str | None = None
     include_in_rebalancing: bool | None = True
     include_in_net_worth: bool | None = True
@@ -42,11 +42,11 @@ class BucketCreateOrUpdateRequest(BaseModel):
 class TargetWeightRequest(BaseModel):
     bucket_id: str
     name: str = ""
-    target_weight_pct: float
+    target_weight_pct: Decimal
 
 
 class BatchTargetWeightsRequest(BaseModel):
-    targets: dict[str, float]
+    targets: dict[str, Decimal]
 
 
 class AssignAssetRequest(BaseModel):
@@ -63,7 +63,7 @@ class ManualAssetRequest(BaseModel):
     symbol: str | None = ""
     isin: str | None = None
     asset_class: str = "REAL_ESTATE"
-    current_value: float
+    current_value: Decimal
     institution: str | None = "Manual"
     currency: str = "EUR"
 
@@ -72,11 +72,11 @@ class ManualLiabilityRequest(BaseModel):
     id: str | None = None
     name: str
     loan_type: str = "MORTGAGE"
-    principal_balance: float = 0.0
-    interest_rate_pct: float = 0.0
-    monthly_payment: float = 0.0
-    monthly_payment_pct: float | None = None
-    start_capital: float | None = None
+    principal_balance: Decimal = Decimal("0.00")
+    interest_rate_pct: Decimal = Decimal("0.00")
+    monthly_payment: Decimal = Decimal("0.00")
+    monthly_payment_pct: Decimal | None = None
+    start_capital: Decimal | None = None
     start_date: str | None = None
     end_date: str | None = None
     duration_months: int | None = None

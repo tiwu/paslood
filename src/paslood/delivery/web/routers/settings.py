@@ -7,6 +7,7 @@ import copy
 import ipaddress
 import json
 import secrets
+import tempfile
 import time
 import urllib.parse
 import uuid
@@ -536,6 +537,61 @@ async def import_encrypted_backup(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
+def _is_safe_cloud_sync_path(target_path: Path | str, data_dir: Path | None = None) -> bool:
+    raw = str(target_path).strip()
+    if not raw or raw == "/" or raw == "~":
+        return False
+
+    # Disallow relative paths that do not start with ~ or / (prevent resolving relative to CWD)
+    if not (raw.startswith("~") or Path(raw).is_absolute()):
+        return False
+
+    try:
+        resolved = Path(raw).expanduser().resolve()
+    except Exception:
+        return False
+
+    if resolved == Path("/") or resolved == Path(resolved.anchor):
+        return False
+
+    temp_dir = Path(tempfile.gettempdir()).resolve()
+    home_dir = Path.home().resolve()
+
+    # Reject bare root of user home or tempdir
+    if resolved in (home_dir, temp_dir):
+        return False
+
+    allowed_roots = [home_dir, temp_dir]
+    if data_dir:
+        allowed_roots.append(Path(data_dir).resolve())
+
+    inside_allowed = any(root in resolved.parents for root in allowed_roots)
+    if not inside_allowed:
+        return False
+
+    forbidden_prefixes = [
+        Path("/etc"),
+        Path("/usr"),
+        Path("/bin"),
+        Path("/sbin"),
+        Path("/System"),
+        Path("/dev"),
+        Path("/proc"),
+        Path("/sys"),
+        Path("C:\\Windows"),
+        Path("C:\\Program Files"),
+        Path("C:\\Program Files (x86)"),
+    ]
+    for forbidden in forbidden_prefixes:
+        try:
+            if resolved == forbidden or forbidden in resolved.parents:
+                return False
+        except Exception:
+            pass
+
+    return True
+
+
 @router.post("/api/backup/cloud-sync")
 async def sync_encrypted_vault_with_cloud_folder(
     req: CloudSyncRequest,
@@ -548,9 +604,13 @@ async def sync_encrypted_vault_with_cloud_folder(
             status_code=403,
             detail="Cloud folder sync with server filesystem paths is disabled in remote/container mode. Please use encrypted export/import in Settings.",
         )
-    if not req.sync_dir or not req.sync_dir.strip():
-        raise HTTPException(status_code=400, detail="Please specify a Cloud Drive folder path.")
-    sync_path = Path(req.sync_dir.strip()).expanduser().resolve()
+    raw_dir = req.sync_dir.strip()
+    if not _is_safe_cloud_sync_path(raw_dir, getattr(settings, "data_dir", None)):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid cloud sync directory: path must be within user home or application data directory.",
+        )
+    sync_path = Path(raw_dir).expanduser().resolve()
     vault_file = sync_path / "paslood_vault.wpbackup"
 
     try:

@@ -15,11 +15,20 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from paslood.domain.asset import Asset, AssetClass
 from paslood.domain.bucket import AllocationRule, Bucket
 from paslood.domain.liability import Liability, LoanType
 from paslood.domain.money import Money
+
+
+def _decimal_representer(dumper: Any, data: Decimal) -> Any:
+    return dumper.represent_scalar("tag:yaml.org,2002:float", str(data))
+
+
+yaml.add_representer(Decimal, _decimal_representer)
+yaml.add_representer(Decimal, _decimal_representer, Dumper=yaml.SafeDumper)
 
 
 def _is_masked_secret(val: Any) -> bool:
@@ -31,41 +40,30 @@ def _is_masked_secret(val: Any) -> bool:
 
 
 def encrypt_vault_payload(payload_dict: dict[str, Any], passphrase: str) -> dict[str, Any]:
-    """Encrypts a dictionary payload using PBKDF2-HMAC-SHA256 + CTR-XOR stream + HMAC-SHA256."""
+    """Encrypts a dictionary payload using PBKDF2-HMAC-SHA256 + standard AES-256-GCM authenticated encryption."""
     if not passphrase or len(passphrase.strip()) < 4:
         raise ValueError("Passphrase must be at least 4 characters long.")
 
     salt = secrets.token_bytes(16)
-    nonce = secrets.token_bytes(16)
-    derived = hashlib.pbkdf2_hmac("sha256", passphrase.encode("utf-8"), salt, 200_000, dklen=64)
-    enc_key = derived[:32]
-    mac_key = derived[32:]
+    nonce = secrets.token_bytes(12)  # Standard 96-bit AES-GCM nonce
+    key = hashlib.pbkdf2_hmac("sha256", passphrase.encode("utf-8"), salt, 200_000, dklen=32)
 
     plaintext = json.dumps(payload_dict, ensure_ascii=False).encode("utf-8")
-
-    # Generate keystream via HMAC-SHA256 counter mode
-    keystream = bytearray()
-    block_count = (len(plaintext) + 31) // 32
-    for counter in range(block_count):
-        counter_bytes = nonce + counter.to_bytes(8, "big")
-        keystream.extend(hmac.new(enc_key, counter_bytes, hashlib.sha256).digest())
-
-    ciphertext = bytes(p ^ k for p, k in zip(plaintext, keystream[: len(plaintext)], strict=False))
-    tag = hmac.new(mac_key, salt + nonce + ciphertext, hashlib.sha256).hexdigest()
+    aesgcm = AESGCM(key)
+    ciphertext = aesgcm.encrypt(nonce, plaintext, None)
 
     return {
-        "format": "paslood-encrypted-vault-v1",
+        "format": "paslood-encrypted-vault-v2",
         "encrypted": True,
         "kdf": "PBKDF2-HMAC-SHA256-200000",
         "salt": base64.b64encode(salt).decode("ascii"),
         "nonce": base64.b64encode(nonce).decode("ascii"),
         "ciphertext": base64.b64encode(ciphertext).decode("ascii"),
-        "mac": tag,
     }
 
 
 def decrypt_vault_payload(bundle: dict[str, Any], passphrase: str) -> dict[str, Any]:
-    """Verifies HMAC and decrypts an encrypted vault bundle."""
+    """Decrypts a vault bundle with AES-256-GCM v2, with fallback for legacy v1 CTR-XOR bundles."""
     if not bundle.get("encrypted"):
         raise ValueError("Invalid vault bundle: not marked as encrypted.")
 
@@ -73,10 +71,23 @@ def decrypt_vault_payload(bundle: dict[str, Any], passphrase: str) -> dict[str, 
         salt = base64.b64decode(bundle["salt"])
         nonce = base64.b64decode(bundle["nonce"])
         ciphertext = base64.b64decode(bundle["ciphertext"])
-        expected_mac = str(bundle["mac"])
     except Exception as e:
         raise ValueError("Malformed vault bundle fields.") from e
 
+    fmt = bundle.get("format", "paslood-encrypted-vault-v1")
+    if fmt == "paslood-encrypted-vault-v2":
+        key = hashlib.pbkdf2_hmac("sha256", passphrase.encode("utf-8"), salt, 200_000, dklen=32)
+        try:
+            aesgcm = AESGCM(key)
+            plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+            return json.loads(plaintext.decode("utf-8"))
+        except Exception as e:
+            raise ValueError(
+                "Decryption failed: invalid passphrase or tampered backup file."
+            ) from e
+
+    # Legacy v1 CTR-XOR backward compatibility
+    expected_mac = str(bundle.get("mac", ""))
     derived = hashlib.pbkdf2_hmac("sha256", passphrase.encode("utf-8"), salt, 200_000, dklen=64)
     enc_key = derived[:32]
     mac_key = derived[32:]

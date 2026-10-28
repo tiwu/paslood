@@ -72,13 +72,13 @@ class LocalDbRepository:
                     id TEXT PRIMARY KEY,
                     account_id TEXT,
                     date TEXT,
-                    amount REAL,
+                    amount NUMERIC(18,2),
                     currency TEXT DEFAULT 'EUR',
                     description TEXT,
                     counterparty_name TEXT,
                     counterparty_iban TEXT,
                     category TEXT,
-                    balance_after REAL,
+                    balance_after NUMERIC(18,2),
                     is_inflow INTEGER,
                     source TEXT,
                     raw_json TEXT,
@@ -98,7 +98,7 @@ class LocalDbRepository:
                     symbol TEXT,
                     isin TEXT,
                     asset_class TEXT,
-                    current_value REAL,
+                    current_value NUMERIC(18,2),
                     currency TEXT DEFAULT 'EUR',
                     institution TEXT,
                     account_id TEXT,
@@ -114,9 +114,9 @@ class LocalDbRepository:
                     id TEXT PRIMARY KEY,
                     name TEXT,
                     loan_type TEXT,
-                    principal_balance REAL,
-                    interest_rate_pct REAL,
-                    monthly_payment REAL,
+                    principal_balance NUMERIC(18,2),
+                    interest_rate_pct NUMERIC(8,4),
+                    monthly_payment NUMERIC(18,2),
                     currency TEXT DEFAULT 'EUR',
                     institution TEXT,
                     account_reference TEXT,
@@ -140,7 +140,7 @@ class LocalDbRepository:
             cursor = conn.cursor()
             for tx in transactions:
                 raw_str = json.dumps(tx.raw_data or {}) if tx.raw_data else None
-                balance_val = float(tx.balance_after.amount) if tx.balance_after else None
+                balance_val = str(tx.balance_after.amount) if tx.balance_after else None
                 cursor.execute(
                     """
                     INSERT OR IGNORE INTO transactions (
@@ -153,7 +153,7 @@ class LocalDbRepository:
                         tx.id,
                         tx.account_id,
                         tx.date,
-                        float(tx.amount.amount),
+                        str(tx.amount.amount),
                         tx.amount.currency,
                         tx.description,
                         tx.counterparty_name,
@@ -262,7 +262,7 @@ class LocalDbRepository:
                         a.symbol,
                         a.isin,
                         ac_str,
-                        float(a.current_value.amount),
+                        str(a.current_value.amount),
                         a.currency,
                         a.institution,
                         a.account_id,
@@ -339,7 +339,7 @@ class LocalDbRepository:
                             updated_at = CURRENT_TIMESTAMP
                         WHERE id = ?
                         """,
-                        (float(liab.monthly_payment.amount), liab.id),
+                        (str(liab.monthly_payment.amount), liab.id),
                     )
                 else:
                     cursor.execute(
@@ -358,9 +358,9 @@ class LocalDbRepository:
                             liab.id,
                             liab.name,
                             lt_str,
-                            float(liab.principal_balance.amount),
-                            float(liab.interest_rate_pct),
-                            float(liab.monthly_payment.amount),
+                            str(liab.principal_balance.amount),
+                            str(liab.interest_rate_pct),
+                            str(liab.monthly_payment.amount),
                             liab.monthly_payment.currency,
                             liab.institution,
                             liab.account_reference,
@@ -381,13 +381,13 @@ class LocalDbRepository:
             values.append(updates["loan_type"])
         if "principal_balance" in updates:
             fields.append("principal_balance = ?")
-            values.append(float(updates["principal_balance"]))
+            values.append(str(updates["principal_balance"]))
         if "interest_rate_pct" in updates:
             fields.append("interest_rate_pct = ?")
-            values.append(float(updates["interest_rate_pct"]))
+            values.append(str(updates["interest_rate_pct"]))
         if "monthly_payment" in updates:
             fields.append("monthly_payment = ?")
-            values.append(float(updates["monthly_payment"]))
+            values.append(str(updates["monthly_payment"]))
         if "institution" in updates:
             fields.append("institution = ?")
             values.append(updates["institution"])
