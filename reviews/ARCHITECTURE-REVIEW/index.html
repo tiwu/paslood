@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://tiwu.github.io/paslood/reviews/ARCHITECTURE-REVIEW/">
       
       
-        <link rel="prev" href="../../plans/PLAN-29-modularize-routers-ports/">
+        <link rel="prev" href="../../plans/PLAN-30-security-precision-vault/">
       
       
         <link rel="next" href="../UX-REVIEW/">
@@ -1304,6 +1304,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-30-security-precision-vault/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #30 - Security, Decimal Precision & Vault v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1942,7 +1970,7 @@
 <td style="text-align: left;">app.py</td>
 <td style="text-align: left;"><code>/api/backup/cloud-sync</code> takes arbitrary <code>sync_dir</code> path from client request and reads/writes files on the server host.</td>
 <td style="text-align: left;">Disable host-filesystem path sync in container/SaaS mode; use browser download/upload (<code>/api/backup/export</code> &amp; <code>import</code>) or server-configured backup storage volume only.</td>
-<td style="text-align: left;"><strong>Partially Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (blocked in remote/container mode; tracked in <a href="https://github.com/tiwu/paslood/issues/30">#30</a>)</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/issues/30">#30</a></strong> (blocked in remote/container mode; local mode sandboxed to user home and data directory)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-02</strong></td>
@@ -2005,7 +2033,7 @@
 <td style="text-align: left;">app.py, local_db.py</td>
 <td style="text-align: left;">Request Pydantic models use <code>float</code> for money/weights; SQLite schema uses <code>REAL</code>.</td>
 <td style="text-align: left;">Use <code>Decimal</code> in Pydantic models and <code>NUMERIC(18,2)</code> / integer cents or text in SQLite/Postgres.</td>
-<td style="text-align: left;"><strong>In Progress — Tracked in <a href="https://github.com/tiwu/paslood/issues/30">#30</a></strong></td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/issues/30">#30</a></strong> (Pydantic models upgraded to Decimal, SQLite NUMERIC precision schema, exact string serialization)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-09</strong></td>
@@ -2014,7 +2042,7 @@
 <td style="text-align: left;">config_repo.py</td>
 <td style="text-align: left;">Custom home-rolled stream cipher (<code>PBKDF2</code> + HMAC-SHA256 CTR-XOR) for vault encryption; AI keys &amp; PDT tokens stored in plaintext in <code>portfolio.yaml</code>.</td>
 <td style="text-align: left;">Keep v1 decryptor for backward-compatible restore, but use standard <code>cryptography.fernet</code> / <code>AESGCM</code> for v2 vault and for per-tenant envelope encryption of stored API keys/tokens.</td>
-<td style="text-align: left;"><strong>Partially Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (<code>SecretVault</code> for keys/tokens; AES-256-GCM v2 backup vault tracked in <a href="https://github.com/tiwu/paslood/issues/30">#30</a>)</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/issues/30">#30</a></strong> (<code>SecretVault</code> for keys/tokens in #11; AES-256-GCM v2 backup vault with v1 backward compatibility in #30)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>ARCH-10</strong></td>
@@ -2032,7 +2060,7 @@
 <td style="text-align: left;">app.py</td>
 <td style="text-align: left;"><code>connect-src</code> in CSP whitelists <code>generativelanguage.googleapis.com</code>, <code>api.openai.com</code>, <code>api.anthropic.com</code> even though AI calls are already executed via <code>/api/ai/advise</code> and <code>/api/ai/models</code>.</td>
 <td style="text-align: left;">Remove external LLM domains from browser <code>connect-src</code>; stop accepting raw <code>api_key</code> in <code>GET /api/ai/models</code> query params which leaks keys in access logs.</td>
-<td style="text-align: left;"><strong>Partially Resolved in <a href="https://github.com/tiwu/paslood/pull/11">#11</a></strong> (CSP tightened; query param cleanup tracked in <a href="https://github.com/tiwu/paslood/issues/30">#30</a>)</td>
+<td style="text-align: left;"><strong>Resolved in <a href="https://github.com/tiwu/paslood/issues/30">#30</a></strong> (CSP tightened in #11; <code>api_key</code> URL query param removed in #30)</td>
 </tr>
 </tbody>
 </table>
