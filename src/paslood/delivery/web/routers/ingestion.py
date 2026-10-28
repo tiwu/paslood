@@ -13,6 +13,7 @@ from paslood.adapters.ingestion.base import BaseIngestionGateway
 from paslood.adapters.repositories.config_repo import ConfigRepository
 from paslood.adapters.repositories.local_db import LocalDbRepository
 from paslood.delivery.web.dependencies import (
+    get_bunq_gateway,
     get_db,
     get_generic_gateway,
     get_kbc_gateway,
@@ -49,7 +50,15 @@ async def ingest_kbc_file(
     try:
         rules = repo.load_transaction_rules()
         kbc_gateway.categorizer = CategorizeTransactionsUseCase()
-        data = kbc_gateway.parse_file(tmp_path)
+
+        # Content-based auto-detection fallback
+        sample = content[:2048].decode("utf-8", errors="replace").lower()
+        if '"date"' in sample and '"amount"' in sample and '"account"' in sample:
+            from paslood.adapters.ingestion.bunq_csv import BunqCsvGateway
+
+            data = BunqCsvGateway(kbc_gateway.categorizer).parse_file(tmp_path)
+        else:
+            data = kbc_gateway.parse_file(tmp_path)
 
         categorized_txs = kbc_gateway.categorizer.execute(data["transactions"], rules)
 
@@ -66,9 +75,53 @@ async def ingest_kbc_file(
             "account_number": data["account_number"],
             "latest_balance": data["latest_balance"].format(),
             "transaction_count": len(categorized_txs),
+            "transactions_processed": len(categorized_txs),
             "new_transactions": inserted_txs,
             "total_cumulative_transactions": total_txs,
             "discovered_liabilities_count": len(data["discovered_liabilities"]),
+        }
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink()
+
+
+@router.post("/api/ingest/bunq")
+async def ingest_bunq_file(
+    file: UploadFile,
+    repo: ConfigRepository = Depends(get_repo),
+    db: LocalDbRepository = Depends(get_db),
+    bunq_gateway: BaseIngestionGateway = Depends(get_bunq_gateway),
+):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded")
+
+    suffix = Path(file.filename).suffix
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        content = await file.read()
+        tmp.write(content)
+        tmp_path = Path(tmp.name)
+
+    try:
+        rules = repo.load_transaction_rules()
+        bunq_gateway.categorizer = CategorizeTransactionsUseCase()
+        data = bunq_gateway.parse_file(tmp_path)
+
+        categorized_txs = bunq_gateway.categorizer.execute(data["transactions"], rules)
+
+        inserted_txs = db.save_transactions(categorized_txs, source="bunq_csv")
+        if data.get("cash_asset"):
+            db.save_discovered_assets([data["cash_asset"]], source="bunq_csv")
+
+        total_txs = len(db.get_transactions())
+
+        return {
+            "status": "success",
+            "account_number": data["account_number"],
+            "latest_balance": data["latest_balance"].format(),
+            "transaction_count": len(categorized_txs),
+            "transactions_processed": len(categorized_txs),
+            "new_transactions": inserted_txs,
+            "total_cumulative_transactions": total_txs,
         }
     finally:
         if tmp_path.exists():

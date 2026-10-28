@@ -34,7 +34,29 @@ class KbcCsvGateway(BaseIngestionGateway):
         except UnicodeDecodeError:
             content = path.read_text(encoding="utf-8", errors="replace")
 
-        reader = csv.DictReader(content.splitlines(), delimiter=";")
+        # Normalize line endings
+        normalized = content.replace("\r\n", "\n").replace("\r", "\n")
+        lines = [line for line in normalized.splitlines() if line.strip()]
+
+        if not lines:
+            return {
+                "account_number": "",
+                "account_holder": "",
+                "latest_balance": Money(Decimal("0.00")),
+                "cash_asset": Asset(
+                    id="kbc-cash", name="KBC Checking", asset_class=AssetClass.CASH
+                ),
+                "transactions": [],
+                "discovered_liabilities": [],
+                "cashflow": MonthlyCashflow(),
+            }
+
+        # Check if this is a KBC Credit Card export
+        header_line = lines[0].lower()
+        if "kredietkaart" in header_line and "bedrag in eur" in header_line:
+            return self._parse_credit_card(lines)
+
+        reader = csv.DictReader(lines, delimiter=";")
         rows = list(reader)
 
         if not rows:
@@ -200,6 +222,94 @@ class KbcCsvGateway(BaseIngestionGateway):
             "transactions": transactions,
             "discovered_liabilities": discovered_liabilities,
             "cashflow": cashflow,
+        }
+
+    def _parse_credit_card(self, lines: list[str]) -> dict[str, Any]:
+        """Parses KBC Credit Card statement CSV exports."""
+        reader = csv.DictReader(lines, delimiter=";")
+        rows = list(reader)
+
+        raw_txs: list[Transaction] = []
+        card_numbers: set[str] = set()
+        account_holder = ""
+        row_counts: dict[tuple[str, str, str, str], int] = {}
+
+        for row in rows:
+            card_num = str(row.get("kredietkaart", "")).strip()
+            holder = str(row.get("kaarthouder", "")).strip()
+            if card_num:
+                card_numbers.add(card_num)
+            if holder and not account_holder:
+                account_holder = holder
+
+            merchant = str(row.get("Handelaar", "")).strip()
+            location = str(row.get("locatie", "")).strip()
+            country = str(row.get("land", "")).strip()
+            toelichting = str(row.get("toelichting", "")).strip()
+
+            # Skip direct debit card settlement rows (repayment from checking account)
+            # to avoid double-counting transactions against checking account debits
+            if "TERUGBETALING VIA JE KBC FLEX BUDGET" in merchant.upper():
+                continue
+
+            date_raw = (
+                str(row.get("datum verrichting", "")).strip()
+                or str(row.get("Datum verrekening", "")).strip()
+            )
+            formatted_date = self._format_date(date_raw)
+
+            # Amount in EUR is authoritative
+            eur_str = str(row.get("bedrag in EUR", "")).strip()
+            if not eur_str:
+                eur_str = str(row.get("bedrag", "0")).strip()
+            amount = self._parse_euro_amount(eur_str, "EUR")
+
+            full_desc_parts = [merchant]
+            if location:
+                full_desc_parts.append(location)
+            if country:
+                full_desc_parts.append(country)
+            if toelichting:
+                full_desc_parts.append(toelichting)
+            full_desc = " - ".join(p for p in full_desc_parts if p)
+
+            # Unique deterministic ID preserving identical same-day transactions
+            key = (formatted_date, card_num, str(amount.amount), merchant)
+            row_counts[key] = row_counts.get(key, 0) + 1
+            occurrence = row_counts[key]
+
+            hash_input = f"{card_num}|{formatted_date}|{amount.amount}|{merchant}|{occurrence}"
+            tx_hash = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()[:16]
+
+            raw_txs.append(
+                Transaction(
+                    id=f"kbc-cc-{tx_hash}",
+                    date=formatted_date,
+                    amount=amount,
+                    account_id=card_num,
+                    description=full_desc,
+                    counterparty_name=merchant,
+                    raw_data=dict(row),
+                )
+            )
+
+        transactions = self.categorizer.execute(raw_txs)
+        primary_card = next(iter(card_numbers), "KBC Credit Card")
+
+        return {
+            "account_number": primary_card,
+            "account_holder": account_holder,
+            "latest_balance": Money(Decimal("0.00"), "EUR"),
+            "cash_asset": Asset(
+                id=f"kbc-cc-{primary_card.replace(' ', '')}",
+                name=f"KBC Credit Card ({primary_card})",
+                asset_class=AssetClass.CASH,
+                institution="KBC",
+                account_id=primary_card,
+            ),
+            "transactions": transactions,
+            "discovered_liabilities": [],
+            "cashflow": MonthlyCashflow(),
         }
 
     def _parse_euro_amount(self, raw_str: str, currency: str = "EUR") -> Money:

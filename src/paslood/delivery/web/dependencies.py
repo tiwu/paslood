@@ -74,5 +74,9 @@ def get_generic_gateway(request: Request) -> BaseIngestionGateway:
     return request.app.state.generic_gateway
 
 
+def get_bunq_gateway(request: Request) -> BaseIngestionGateway:
+    return request.app.state.bunq_gateway
+
+
 def get_pdt_gateway(request: Request) -> PdtMcpGateway:
     return request.app.state.pdt_gateway
