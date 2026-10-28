@@ -114,8 +114,17 @@ function toggleMobileMenu(forceClose = false) {
   }
 }
 
+const TAB_ALIASES = {
+  'dashboard': 'overview',
+  'buckets': 'portfolio',
+  'advice': 'plan',
+  'ai': 'plan',
+};
+
 // Navigation Tab Switching
-function switchTab(tabId) {
+function switchTab(rawTabId) {
+  const tabId = TAB_ALIASES[rawTabId] || rawTabId;
+
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el => {
     el.classList.remove('bg-blue-600', 'text-white');
@@ -126,19 +135,21 @@ function switchTab(tabId) {
     el.classList.add('text-slate-300', 'hover:bg-slate-800');
   });
 
-  const targetTab = document.getElementById('tab-' + tabId);
-  if (targetTab) targetTab.classList.add('active');
+  [tabId, rawTabId].forEach(id => {
+    const targetTab = document.getElementById('tab-' + id);
+    if (targetTab) targetTab.classList.add('active');
 
-  const activeBtn = document.getElementById('nav-' + tabId);
-  if (activeBtn) {
-    activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
-    activeBtn.classList.add('bg-blue-600', 'text-white');
-  }
-  const activeMobileBtn = document.getElementById('mnav-' + tabId);
-  if (activeMobileBtn) {
-    activeMobileBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
-    activeMobileBtn.classList.add('bg-blue-600', 'text-white', 'font-medium');
-  }
+    const activeBtn = document.getElementById('nav-' + id);
+    if (activeBtn) {
+      activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+      activeBtn.classList.add('bg-blue-600', 'text-white');
+    }
+    const activeMobileBtn = document.getElementById('mnav-' + id);
+    if (activeMobileBtn) {
+      activeMobileBtn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+      activeMobileBtn.classList.add('bg-blue-600', 'text-white', 'font-medium');
+    }
+  });
   toggleMobileMenu(true);
 }
 
@@ -292,13 +303,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   if (hash.includes('settings')) {
     switchTab('settings');
-  } else if (hash.includes('buckets')) {
-    switchTab('buckets');
-  } else if (hash.includes('ai')) {
-    switchTab('ai');
+  } else if (hash.includes('portfolio') || hash.includes('buckets')) {
+    switchTab('portfolio');
+  } else if (hash.includes('plan') || hash.includes('advice') || hash.includes('guidance') || hash.includes('ai')) {
+    switchTab('plan');
   } else if (hash.includes('cashflow') || hash.includes('data')) {
     switchTab('cashflow');
-  } else if (hash.includes('advice') || hash.includes('guidance')) {
-    switchTab('advice');
+  } else if (hash.includes('overview') || hash.includes('dashboard')) {
+    switchTab('overview');
   }
 });

@@ -10,9 +10,11 @@
     "manage": "Beheren",
     "overview": "📊 Overzicht",
     "buckets": "🪣 Buckets",
+    "portfolio": "🪣 Portefeuille & Buckets",
     "guidance": "💡 Advies",
+    "plan": "🧭 Plannen & Herbalanceren",
     "ai": "🤖 AI Adviseur",
-    "cashflow": "🏦 Gegevens & Activa",
+    "cashflow": "💳 Cashflow & Import",
     "settings": "⚙️ Instellingen",
     "setup": "🚀 Installatie",
     "docs": "📖 Documentatie",
@@ -150,7 +152,8 @@
     "exemption_left": "€ {amount} vrijstelling resterend",
     "exemption_exhausted": "Vrijstelling volledig benut",
     "tax_due_status": "⚠️ Belasting Verschuldigd (€ {amount})",
-    "tax_exempt_status": "🟢 100% Belastingvrij"
+    "tax_exempt_status": "🟢 100% Belastingvrij",
+    "no_mapped_tickers": "Geen specifieke ETF-tickers gekoppeld — wijs posities toe in Portefeuille & Buckets"
   },
   "cashflow": {
     "title": "🏦 Gegevensbeheer — Activa, Schulden & Afschriften Importeren",
@@ -219,7 +222,10 @@
     "question_label": "Specifieke Vraag of Scenario (Optioneel)",
     "question_placeholder": "Selecteer hierboven een prompt of typ uw eigen financiële strategievraag...",
     "loading_text": "Uw geconsolideerde balans wordt geanalyseerd en strategisch advies wordt gegenereerd...",
-    "initial_output": "Selecteer een van de strategieprompts hierboven of klik op <strong>\"Start Strategische Analyse\"</strong> om een advies op maat te genereren op basis van uw huidige cijfers."
+    "initial_output": "Selecteer een van de strategieprompts hierboven of klik op <strong>\"Start Strategische Analyse\"</strong> om een advies op maat te genereren op basis van uw huidige cijfers.",
+    "transparency_title": "Bekijk geanonimiseerde gegevenspayload die naar de AI is verzonden",
+    "transparency_desc": "Exacte systeemprompttekst en financiële cijfers samengesteld voor uw AI-aanbieder:",
+    "copy_payload_btn": "Kopieer Payload"
   },
   "settings": {
     "pdt_title": "📈 Portfolio Dividend Tracker (PDT) MCP",

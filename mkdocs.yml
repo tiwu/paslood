@@ -50,6 +50,7 @@ nav:
       - "Issue #25 - Bucket Weights Sum Validation": plans/PLAN-25-buckets-sum-can-be-100.md
       - "Issue #29 - Modularize APIRouters & Ports": plans/PLAN-29-modularize-routers-ports.md
       - "Issue #30 - Security, Decimal Precision & Vault v2": plans/PLAN-30-security-precision-vault.md
+      - "Issue #31 - Consolidate Workspaces & Bucket Cards": plans/PLAN-31-consolidate-workspaces-bucket-cards.md
   - Architecture & UX Reviews:
       - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
       - UI/UX Review: reviews/UX-REVIEW.md

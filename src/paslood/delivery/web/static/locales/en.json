@@ -10,9 +10,11 @@
     "manage": "Manage",
     "overview": "📊 Overview",
     "buckets": "🪣 Buckets",
+    "portfolio": "🪣 Portfolio & Buckets",
     "guidance": "💡 Guidance",
+    "plan": "🧭 Plan & Rebalance",
     "ai": "🤖 AI Advisor",
-    "cashflow": "🏦 Data & Assets",
+    "cashflow": "💳 Cashflow & Import",
     "settings": "⚙️ Settings",
     "setup": "🚀 Setup",
     "docs": "📖 Docs",
@@ -150,7 +152,8 @@
     "exemption_left": "€ {amount} exemption left",
     "exemption_exhausted": "Exemption exhausted",
     "tax_due_status": "⚠️ Tax Due (€ {amount})",
-    "tax_exempt_status": "🟢 100% Tax-Exempt"
+    "tax_exempt_status": "🟢 100% Tax-Exempt",
+    "no_mapped_tickers": "No specific ETF tickers mapped — assign holdings in Portfolio & Buckets"
   },
   "cashflow": {
     "title": "🏦 Data Management — Assets, Liabilities & Statement Ingestion",
@@ -219,7 +222,10 @@
     "question_label": "Specific Question or Scenario (Optional)",
     "question_placeholder": "Select a prompt above or type your own financial strategy question...",
     "loading_text": "Analyzing your consolidated balance sheet and generating strategic guidance...",
-    "initial_output": "Select one of the strategy prompts above or click <strong>\"Run Strategic Review\"</strong> to generate a customized consultation based on your current financial metrics."
+    "initial_output": "Select one of the strategy prompts above or click <strong>\"Run Strategic Review\"</strong> to generate a customized consultation based on your current financial metrics.",
+    "transparency_title": "View Anonymized Data Payload Sent to AI",
+    "transparency_desc": "Exact system prompt text and financial figures compiled for your AI provider:",
+    "copy_payload_btn": "Copy Payload"
   },
   "settings": {
     "pdt_title": "📈 Portfolio Dividend Tracker (PDT) MCP",

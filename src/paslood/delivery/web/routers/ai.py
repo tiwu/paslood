@@ -20,7 +20,7 @@ from paslood.delivery.web.dependencies import (
     get_secret_vault,
 )
 from paslood.delivery.web.helpers import get_consolidated_balance_sheet
-from paslood.use_cases.advise_ai import AdviseAiUseCase
+from paslood.use_cases.advise_ai import SYSTEM_PROMPT, AdviseAiUseCase
 from paslood.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
 from paslood.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
 
@@ -103,12 +103,14 @@ async def run_ai_consultation(
     ai_use_case = AdviseAiUseCase(ai_client=ai_client)
     t0 = time.perf_counter()
     try:
-        advice_text = await ai_use_case.execute(
-            balance_sheet=bs,
+        validated_question = ai_use_case._validate_question(req.question)
+        prompt = ai_use_case._build_prompt(
+            bs=bs,
             allocations=allocations,
-            deterministic_advices=advices,
-            user_question=req.question,
+            advices=advices,
+            question=validated_question,
         )
+        advice_text = await ai_client.generate_advice(prompt=prompt, system_prompt=SYSTEM_PROMPT)
         elapsed = time.perf_counter() - t0
         trace = getattr(ai_client, "last_trace", None) or {
             "provider": req.provider,
@@ -117,8 +119,36 @@ async def run_ai_consultation(
             "attempts": 1,
             "status": "success",
         }
-        return {"advice": advice_text, "trace": trace}
+        return {"advice": advice_text, "prompt": prompt, "trace": trace}
     except Exception as e:
         elapsed = time.perf_counter() - t0
         logger.error("AI consultation failed after %.2fs: %s", elapsed, e)
         raise HTTPException(status_code=400, detail=str(e)) from e
+
+
+@router.get("/api/ai/prompt-preview")
+async def get_ai_prompt_preview(
+    question: str | None = None,
+    repo: ConfigRepository = Depends(get_repo),
+    db: LocalDbRepository = Depends(get_db),
+    alloc_calc: CalculateBucketAllocationUseCase = Depends(get_alloc_calc),
+    debt_advisor: AdviseDebtPayoffUseCase = Depends(get_debt_advisor),
+):
+    bs = get_consolidated_balance_sheet(repo, db)
+    buckets = repo.load_buckets()
+    allocations = alloc_calc.execute(assets=bs.assets, buckets=buckets)
+    advices = debt_advisor.execute(
+        liabilities=bs.liabilities, monthly_surplus=bs.free_monthly_cashflow
+    )
+    ai_use_case = AdviseAiUseCase(ai_client=None)  # type: ignore[arg-type]
+    try:
+        validated_question = ai_use_case._validate_question(question)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    prompt = ai_use_case._build_prompt(
+        bs=bs,
+        allocations=allocations,
+        advices=advices,
+        question=validated_question,
+    )
+    return {"prompt": prompt}
