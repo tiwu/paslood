@@ -1,0 +1,13 @@
+{
+  "name": "paslood",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Whole-life personal balance sheet and strategic asset allocation platform",
+  "scripts": {
+    "build:css": "tailwindcss -i src/paslood/delivery/web/static/css/input.css -o src/paslood/delivery/web/static/css/styles.css --minify",
+    "watch:css": "tailwindcss -i src/paslood/delivery/web/static/css/input.css -o src/paslood/delivery/web/static/css/styles.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

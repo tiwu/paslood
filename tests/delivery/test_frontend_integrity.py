@@ -51,6 +51,16 @@ def test_modular_js_files_exist_and_index_is_clean():
     for mod in EXPECTED_JS_MODULES:
         assert f'/static/js/{mod}"' in index_html, f"index.html missing script tag for {mod}"
 
+    # Verify runtime Tailwind CDN removed in favor of standalone compiled static stylesheet
+    assert "cdn.tailwindcss.com" not in index_html, (
+        "Found runtime cdn.tailwindcss.com in index.html"
+    )
+    assert '/static/css/styles.css"' in index_html, "Missing compiled styles.css link in index.html"
+
+    # Verify native confirmation dialog and toast container are present
+    assert 'id="toast-container"' in index_html, "Missing #toast-container in index.html"
+    assert 'id="confirmation-dialog"' in index_html, "Missing #confirmation-dialog in index.html"
+
 
 def test_ai_privacy_disclosure_covers_prompt_data_and_provider():
     index_html = (TEMPLATES_DIR / "index.html").read_text(encoding="utf-8")
@@ -110,8 +120,8 @@ def test_all_static_js_and_inline_scripts_valid_syntax():
 
 
 @pytest.mark.asyncio
-async def test_static_js_files_served_by_fastapi(test_app):
-    """Verify every <script src='/static/...'> in index.html is served with HTTP 200."""
+async def test_static_js_and_css_files_served_by_fastapi(test_app):
+    """Verify every <script src='/static/...'> and compiled stylesheet in index.html is served with HTTP 200."""
     transport = ASGITransport(app=test_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/")
@@ -123,6 +133,12 @@ async def test_static_js_files_served_by_fastapi(test_app):
             assert js_resp.status_code == 200, f"Failed to load static script {src}"
             assert "javascript" in js_resp.headers.get("content-type", "").lower()
             assert len(js_resp.text) > 100
+
+        # Verify compiled Tailwind static CSS
+        css_resp = await client.get("/static/css/styles.css")
+        assert css_resp.status_code == 200, "Failed to serve /static/css/styles.css"
+        assert "css" in css_resp.headers.get("content-type", "").lower()
+        assert len(css_resp.text) > 5000, "styles.css is unexpectedly empty"
 
 
 def test_inline_event_handlers_reference_defined_functions():
@@ -182,6 +198,7 @@ function makeEl(id = '') {{
   let _html = '';
   return {{
     id,
+    open: false,
     get innerHTML() {{ return _html; }},
     set innerHTML(val) {{
       _html = val;
@@ -195,6 +212,7 @@ function makeEl(id = '') {{
     dataset: {{}},
     className: '',
     children: [],
+    parentNode: null,
     classList: {{
       _set: new Set(['hidden']),
       add(...cls) {{ cls.forEach(c => this._set.add(c)); }},
@@ -202,11 +220,38 @@ function makeEl(id = '') {{
       contains(c) {{ return this._set.has(c); }},
       toggle(c) {{ if (this._set.has(c)) this._set.delete(c); else this._set.add(c); }}
     }},
-    appendChild(child) {{ this.children.push(child); }},
+    appendChild(child) {{
+      child.parentNode = this;
+      this.children.push(child);
+    }},
+    removeChild(child) {{
+      const idx = this.children.indexOf(child);
+      if (idx !== -1) this.children.splice(idx, 1);
+    }},
     setAttribute() {{}},
     querySelector() {{ return makeEl(); }},
     querySelectorAll() {{ return []; }},
-    addEventListener() {{}},
+    _listeners: {{}},
+    addEventListener(evt, fn) {{
+      if (!this._listeners[evt]) this._listeners[evt] = [];
+      this._listeners[evt].push(fn);
+    }},
+    removeEventListener(evt, fn) {{
+      if (this._listeners[evt]) {{
+        this._listeners[evt] = this._listeners[evt].filter(f => f !== fn);
+      }}
+    }},
+    dispatchEvent(evt) {{
+      const type = typeof evt === 'string' ? evt : (evt.type || '');
+      const fns = this._listeners[type] || [];
+      fns.forEach(fn => fn(evt));
+    }},
+    showModal() {{ this.open = true; }},
+    close() {{
+      this.open = false;
+      this.dispatchEvent({{ type: 'close' }});
+    }},
+    focus() {{}},
     getContext() {{ return {{}}; }}
   }};
 }}
@@ -361,6 +406,41 @@ if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expect
   sandbox.toggleAiKeyVisibility();
   if (!getEl('wiz-ai-key-container').classList.contains('hidden')) {{
     throw new Error('wiz-ai-key-container should be hidden for algorithmic');
+  }}
+
+  // 7. Test showToast notification
+  const toast = sandbox.showToast('Test Toast Notification', 'success');
+  if (!toast || !toast.className.includes('border-emerald')) {{
+    throw new Error('showToast did not apply success styling: ' + (toast && toast.className));
+  }}
+  if (!getEl('toast-container').children.includes(toast)) {{
+    throw new Error('showToast did not append toast to #toast-container');
+  }}
+
+  // 8. Test confirmDialog modal dialog resolution
+  const confirmPromise = sandbox.confirmDialog({{
+    title: 'Delete Asset',
+    message: 'Are you sure you want to remove this?',
+    confirmVariant: 'danger'
+  }});
+  if (typeof confirmPromise.then !== 'function') {{
+    throw new Error('confirmDialog must return a Promise');
+  }}
+  if (getEl('confirm-dialog-title').textContent !== 'Delete Asset') {{
+    throw new Error('confirmDialog did not set title');
+  }}
+  if (getEl('confirm-dialog-message').textContent !== 'Are you sure you want to remove this?') {{
+    throw new Error('confirmDialog did not set message');
+  }}
+  if (!getEl('confirmation-dialog').open) {{
+    throw new Error('confirmDialog did not open confirmation dialog');
+  }}
+
+  // Simulate OK button click
+  getEl('confirm-dialog-ok-btn').dispatchEvent({{ type: 'click', preventDefault: () => {{}} }});
+  const result = await confirmPromise;
+  if (result !== true) {{
+    throw new Error('confirmDialog expected true upon confirm click, got: ' + result);
   }}
 
   console.log('NODE_UNIT_OK');

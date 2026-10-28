@@ -154,7 +154,7 @@ async function commitRebucket() {
     closeRebucketModal();
     await loadOverview();
   } catch (err) {
-    alert('Failed to re-bucket transaction');
+    showToast('Failed to re-bucket transaction', 'error');
   }
 }
 
@@ -294,7 +294,7 @@ async function saveManualAsset() {
   const sym = document.getElementById('manual-asset-sym').value.trim();
 
   if (!name || val <= 0) {
-    alert('Please provide an asset name and valid estimated value.');
+    showToast('Please provide an asset name and valid estimated value.', 'warning');
     return;
   }
 
@@ -327,7 +327,12 @@ async function saveManualAsset() {
 }
 
 async function deleteManualAsset(assetId) {
-  if (!confirm('Are you sure you want to remove this asset?')) return;
+  const confirmed = await confirmDialog({
+    title: 'Delete Asset',
+    message: 'Are you sure you want to remove this asset?',
+    confirmVariant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     const res = await fetch(`/api/assets/manual/${assetId}`, { method: 'DELETE' });
     if (res.ok) {
@@ -454,7 +459,7 @@ async function saveManualLiability() {
   const ref = document.getElementById('manual-liab-ref').value.trim();
 
   if (!name) {
-    alert('Please provide a name for this loan or debt.');
+    showToast('Please provide a name for this loan or debt.', 'warning');
     return;
   }
 
@@ -490,7 +495,12 @@ async function saveManualLiability() {
 }
 
 async function deleteManualLiability(liabId) {
-  if (!confirm('Are you sure you want to remove this liability?')) return;
+  const confirmed = await confirmDialog({
+    title: 'Delete Liability',
+    message: 'Are you sure you want to remove this liability?',
+    confirmVariant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     const res = await fetch(`/api/liabilities/manual/${liabId}`, { method: 'DELETE' });
     if (res.ok) {

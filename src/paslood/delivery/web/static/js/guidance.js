@@ -153,7 +153,7 @@ async function lookupTaxPrice() {
   const btn = document.getElementById('btn-lookup-tax-price');
   const feedback = document.getElementById('tax-lookup-feedback');
   if (!symbol) {
-    alert('Please enter a ticker symbol');
+    showToast('Please enter a ticker symbol', 'warning');
     return;
   }
   btn.disabled = true;
