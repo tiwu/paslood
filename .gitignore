@@ -42,6 +42,7 @@ docs_dist/
 # Tooling
 .mypy_cache/
 .ruff_cache/
+.kilo/
 node_modules/
 package-lock.json
 
