@@ -103,6 +103,7 @@ class LocalDbRepository:
                     isin TEXT,
                     asset_class TEXT,
                     current_value NUMERIC(18,2),
+                    quantity NUMERIC(18,6) DEFAULT 1.0,
                     currency TEXT DEFAULT 'EUR',
                     institution TEXT,
                     account_id TEXT,
@@ -111,6 +112,10 @@ class LocalDbRepository:
                 )
                 """
             )
+            with contextlib.suppress(sqlite3.OperationalError):
+                conn.execute(
+                    "ALTER TABLE discovered_assets ADD COLUMN quantity NUMERIC(18,6) DEFAULT 1.0"
+                )
 
             conn.execute(
                 """
@@ -359,11 +364,12 @@ class LocalDbRepository:
                     """
                     INSERT INTO discovered_assets (
                         id, name, symbol, isin, asset_class, current_value,
-                        currency, institution, account_id, source, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                        quantity, currency, institution, account_id, source, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                     ON CONFLICT(id) DO UPDATE SET
                         name=excluded.name,
                         current_value=excluded.current_value,
+                        quantity=excluded.quantity,
                         updated_at=CURRENT_TIMESTAMP
                     """,
                     (
@@ -373,6 +379,7 @@ class LocalDbRepository:
                         a.isin,
                         ac_str,
                         str(a.current_value.amount),
+                        str(a.quantity),
                         a.currency,
                         a.institution,
                         a.account_id,
@@ -402,6 +409,7 @@ class LocalDbRepository:
             except ValueError:
                 ac = AssetClass.CASH
             cur = r["currency"] or "EUR"
+            qty_raw = r["quantity"] if r["quantity"] is not None else 1.0
             assets.append(
                 Asset(
                     id=r["id"],
@@ -410,6 +418,7 @@ class LocalDbRepository:
                     isin=r["isin"],
                     asset_class=ac,
                     current_value=Money(Decimal(str(r["current_value"])), cur),
+                    quantity=Decimal(str(qty_raw)),
                     institution=r["institution"] or "Unknown",
                     account_id=r["account_id"] or "",
                     currency=cur,

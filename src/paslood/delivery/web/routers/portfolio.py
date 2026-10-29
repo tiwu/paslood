@@ -65,6 +65,7 @@ class ManualAssetRequest(BaseModel):
     isin: str | None = None
     asset_class: str = "REAL_ESTATE"
     current_value: Decimal
+    shares: Decimal | None = None
     institution: str | None = "Manual"
     currency: str = "EUR"
     cost_basis: Decimal | None = None

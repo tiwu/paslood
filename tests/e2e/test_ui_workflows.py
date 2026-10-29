@@ -389,3 +389,27 @@ def test_architectural_theme_tokens_and_light_dark_visual_integrity(app_page, li
     sankey_svg_html = app_page.locator("#cashflow-sankey-container").inner_html()
     assert "#f8fafc" not in sankey_svg_html
     assert "#1C1917" in sankey_svg_html
+
+
+def test_tax_settings_simplified_and_holding_lookup_workflow(app_page, live_server):
+    """Verify Issue #57 simplified Settings tax card and dynamic holding benchmark price lookup."""
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    # 1. Navigate to Settings and verify Benchmark Date and Default Benchmark Basis inputs are gone
+    app_page.locator("#nav-settings").click()
+    expect(app_page.locator("#settings-tax-exemption")).to_be_visible()
+    expect(app_page.locator("#settings-tax-rate")).to_be_visible()
+    expect(app_page.locator("#settings-tax-date")).to_have_count(0)
+    expect(app_page.locator("#settings-tax-price")).to_have_count(0)
+
+    # 2. Navigate to Plan & Rebalance and verify no hardcoded ASML/921.40 is pre-filled
+    app_page.locator("#nav-plan").click()
+    expect(app_page.locator("#sim-tax-symbol")).to_have_value("")
+    expect(app_page.locator("#sim-tax-bench-price")).to_have_value("")
+
+    # 3. Look up NVIDIA (company name alias -> NVDA) and verify Dec 31, 2025 price populates
+    app_page.locator("#sim-tax-symbol").fill("NVIDIA")
+    app_page.locator("#btn-lookup-tax-price").click()
+    expect(app_page.locator("#sim-tax-bench-price")).to_have_value("134.50")
+    expect(app_page.locator("#tax-lookup-feedback")).to_contain_text("134.50")

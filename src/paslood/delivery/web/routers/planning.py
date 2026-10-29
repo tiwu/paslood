@@ -95,39 +95,67 @@ async def lookup_historical_tax_price(
     date: str = "2025-12-31",
     quote_id: str | None = None,
     repo: ConfigRepository = Depends(get_repo),
+    db: LocalDbRepository = Depends(get_db),
 ):
+    from paslood.adapters.ingestion.pdt_mcp import resolve_ticker_symbol
+
+    raw_sym = symbol.strip()
+    resolved_sym = resolve_ticker_symbol(raw_sym)
+
     s = repo.load_settings()
     pdt_cfg = s.get("pdt", {})
     gateway = PdtMcpGateway(
         mcp_url=pdt_cfg.get("mcp_url", "https://mcp.portfoliodividendtracker.com"),
         auth_token=pdt_cfg.get("auth_token"),
     )
-    price = await gateway.lookup_historical_price(symbol=symbol, date=date, quote_id=quote_id)
-    if price:
+    lookup_res = await gateway.lookup_historical_price_with_source(
+        symbol=raw_sym, date=date, quote_id=quote_id
+    )
+    if lookup_res:
+        price, source, resolved_sym = lookup_res
         return {
-            "status": "success",
-            "symbol": symbol,
+            "status": "found",
+            "symbol": raw_sym,
+            "resolved_symbol": resolved_sym,
             "date": date,
             "price": float(price.amount),
             "price_formatted": price.format(),
-            "source": "PDT MCP",
+            "source": source,
         }
-    if symbol.strip().upper().startswith("ASML") and date == "2025-12-31":
-        asml_bench = Money(Decimal("921.40"), "EUR")
-        return {
-            "status": "success",
-            "symbol": symbol,
-            "date": date,
-            "price": float(asml_bench.amount),
-            "price_formatted": asml_bench.format(),
-            "source": "Euronext Amsterdam Official Fotomoment (31 Dec 2025)",
-        }
+
+    # Check consolidated portfolio holdings for matching asset with pre-benchmark cost basis or unit price
+    bs = get_consolidated_balance_sheet(repo, db)
+    from paslood.adapters.ingestion.pdt_mcp import match_asset_by_symbol_or_name
+
+    matching_asset = match_asset_by_symbol_or_name(list(bs.assets), symbol)
+    if matching_asset:
+        qty = (
+            matching_asset.quantity if matching_asset.quantity > Decimal("0.0") else Decimal("1.0")
+        )
+        if (
+            matching_asset.cost_basis is not None
+            and matching_asset.cost_basis.amount > Decimal("0.0")
+            and (not matching_asset.acquisition_date or matching_asset.acquisition_date <= date)
+        ):
+            unit_basis = (matching_asset.cost_basis.amount / qty).quantize(Decimal("0.01"))
+            basis_money = Money(unit_basis, matching_asset.currency)
+            return {
+                "status": "found",
+                "symbol": raw_sym,
+                "resolved_symbol": matching_asset.symbol or resolved_sym,
+                "date": date,
+                "price": float(basis_money.amount),
+                "price_formatted": basis_money.format(),
+                "source": "Portfolio Cost Basis (Pre-2026 Lot)",
+            }
+
     return {
         "status": "not_found",
-        "symbol": symbol,
+        "symbol": raw_sym,
+        "resolved_symbol": resolved_sym,
         "date": date,
         "price": None,
-        "message": f"Historical price for {symbol} on {date} not found via PDT. You can set the base price manually.",
+        "message": f"Historical price for {raw_sym} on {date} not found via PDT. You can set the base price manually.",
     }
 
 
@@ -139,7 +167,7 @@ async def calculate_tax(
 ):
     s = repo.load_settings()
     tax_cfg = s.get("tax", {})
-    default_bench = Decimal(str(tax_cfg.get("benchmark_price", 921.40)))
+    default_bench = Decimal(str(tax_cfg.get("benchmark_price", 0.0)))
     default_exemption = Decimal(str(tax_cfg.get("annual_exemption", 10000.0)))
     default_rate = Decimal(
         str(req.tax_rate_pct if req.tax_rate_pct is not None else tax_cfg.get("tax_rate_pct", 10.0))

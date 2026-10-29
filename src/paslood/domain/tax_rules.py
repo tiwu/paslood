@@ -21,9 +21,6 @@ from enum import StrEnum
 
 from paslood.domain.money import Money
 
-# Official Euronext Amsterdam closing price of ASML Holding N.V. (NL0010273215) on Dec 31, 2025
-ASML_2025_12_31_BENCHMARK_EUR = Decimal("921.40")
-
 
 class TobTier(StrEnum):
     """Belgian Stock Exchange Tax (Taks op de beursverrichtingen - WDRT Art. 120) tiers."""
@@ -80,7 +77,7 @@ BELGIAN_TAX_CITATIONS: tuple[BelgianTaxCitation, ...] = (
         title="Taks op de beursverrichtingen (TOB)",
         statutory_article="Art. 120-126/2 WDRT (Wetboek diverse rechten en taksen)",
         summary=(
-            "0.12% (cap €1,300), 0.35% (cap €1,600 for equities like ASML), or 1.32% (cap €4,000). "
+            "0.12% (cap €1,300), 0.35% (cap €1,600 for individual equities), or 1.32% (cap €4,000). "
             "For foreign custodians not withholding Belgian TOB (e.g. Equatex AG Zurich), the investor "
             "must file and pay TOB by the last working day of the second month following the trade."
         ),

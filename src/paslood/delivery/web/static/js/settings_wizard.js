@@ -73,10 +73,10 @@ async function loadSettings() {
 
     // Tax Settings
     const tax = s.tax || {};
-    document.getElementById('settings-tax-exemption').value = tax.annual_exemption || 10000;
-    document.getElementById('settings-tax-date').value = tax.benchmark_date || '2025-12-31';
-    document.getElementById('settings-tax-price').value = tax.benchmark_price || 900;
-    document.getElementById('settings-tax-rate').value = tax.tax_rate_pct || 10.0;
+    const exEl = document.getElementById('settings-tax-exemption');
+    const rateEl = document.getElementById('settings-tax-rate');
+    if (exEl) exEl.value = tax.annual_exemption || 10000;
+    if (rateEl) rateEl.value = tax.tax_rate_pct || 10.0;
 
     // Cloud Sync / Vault Info
     const cloud = s.cloud_sync || {};
@@ -311,8 +311,6 @@ async function saveAiSettings() {
 
 async function saveTaxSettings() {
   const exemption = parseFloat(document.getElementById('settings-tax-exemption').value);
-  const date = document.getElementById('settings-tax-date').value;
-  const price = parseFloat(document.getElementById('settings-tax-price').value);
   const rate = parseFloat(document.getElementById('settings-tax-rate').value);
 
   try {
@@ -322,8 +320,6 @@ async function saveTaxSettings() {
       body: JSON.stringify({
         tax: {
           annual_exemption: exemption,
-          benchmark_date: date,
-          benchmark_price: price,
           tax_rate_pct: rate
         }
       })
