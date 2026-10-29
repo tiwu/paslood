@@ -9,9 +9,11 @@ from paslood.domain.advice import AdviceItem, AdviceType, Priority
 from paslood.domain.asset import Asset
 from paslood.domain.balance_sheet import BalanceSheet
 from paslood.domain.bucket import Bucket
+from paslood.domain.liability import Liability
 from paslood.domain.money import Money
 from paslood.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
 from paslood.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
+from paslood.use_cases.ports import PortfolioRepository, TransactionRepository
 from paslood.use_cases.project_net_worth import ProjectNetWorthUseCase
 
 
@@ -28,6 +30,41 @@ class BuildPortfolioOverviewUseCase:
         self.debt_advisor = debt_advisor or AdviseDebtPayoffUseCase()
         self.net_worth_projector = net_worth_projector or ProjectNetWorthUseCase()
 
+    @staticmethod
+    def consolidate_balance_sheet(
+        repo: PortfolioRepository, db: TransactionRepository
+    ) -> BalanceSheet:
+        """Builds the consolidated BalanceSheet from manual config and discovered items in SQLite."""
+        assets: list[Asset] = []
+        manual_assets = repo.load_manual_assets()
+        assets.extend(manual_assets)
+        existing_asset_ids = {a.id for a in manual_assets}
+
+        for a in db.get_discovered_assets():
+            if a.id not in existing_asset_ids:
+                assets.append(a)
+                existing_asset_ids.add(a.id)
+
+        liabilities: list[Liability] = []
+        manual_liabs = repo.load_manual_liabilities()
+        liabilities.extend(manual_liabs)
+        existing_liab_ids = {liab.id for liab in manual_liabs}
+        existing_liab_refs = {
+            liab.account_reference for liab in manual_liabs if liab.account_reference
+        }
+
+        for liab in db.get_discovered_liabilities():
+            if liab.id not in existing_liab_ids and (
+                not liab.account_reference or liab.account_reference not in existing_liab_refs
+            ):
+                liabilities.append(liab)
+                existing_liab_ids.add(liab.id)
+                if liab.account_reference:
+                    existing_liab_refs.add(liab.account_reference)
+
+        cashflow = db.get_monthly_cashflow()
+        return BalanceSheet(assets=assets, liabilities=liabilities, cashflow=cashflow)
+
     def execute(
         self,
         balance_sheet: BalanceSheet,
@@ -37,23 +74,10 @@ class BuildPortfolioOverviewUseCase:
         cagr_pct: Decimal = Decimal("7.0"),
         projection_years: int = 30,
     ) -> dict[str, Any]:
-        effective_assets: list[Asset] = []
-        for a in balance_sheet.assets:
-            ac_val = a.asset_class.value if hasattr(a.asset_class, "value") else str(a.asset_class)
-            matched_b = next((b for b in buckets if b.matches(a)), None)
-            if exclude_property and (
-                ac_val == "REAL_ESTATE"
-                or (matched_b and not getattr(matched_b, "include_in_net_worth", True))
-            ):
-                continue
-            effective_assets.append(a)
-
-        allocations = self.alloc_calc.execute(assets=effective_assets, buckets=buckets)
-        effective_bs = BalanceSheet(
-            assets=effective_assets,
-            liabilities=balance_sheet.liabilities,
-            cashflow=balance_sheet.cashflow,
+        effective_bs = balance_sheet.with_effective_assets(
+            buckets=buckets, exclude_property=exclude_property
         )
+        allocations = self.alloc_calc.execute(assets=effective_bs.assets, buckets=buckets)
 
         advices: list[AdviceItem] = []
         advices.extend(

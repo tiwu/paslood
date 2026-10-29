@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import StrEnum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from paslood.domain.asset import Asset
 from paslood.domain.liability import Liability
 from paslood.domain.money import Money
+
+if TYPE_CHECKING:
+    from paslood.domain.bucket import Bucket
 
 
 class TransactionCategory(StrEnum):
@@ -116,3 +120,32 @@ class BalanceSheet:
     @property
     def free_monthly_cashflow(self) -> Money:
         return self.cashflow.free_monthly_cashflow
+
+    def with_effective_assets(
+        self, buckets: Sequence[Bucket], exclude_property: bool = False
+    ) -> BalanceSheet:
+        """Returns a BalanceSheet with illiquid property / excluded net-worth buckets filtered out when requested."""
+        if not exclude_property:
+            return BalanceSheet(
+                assets=list(self.assets),
+                liabilities=list(self.liabilities),
+                cashflow=self.cashflow,
+                as_of_date=self.as_of_date,
+            )
+
+        effective_assets: list[Asset] = []
+        for a in self.assets:
+            ac_val = a.asset_class.value if hasattr(a.asset_class, "value") else str(a.asset_class)
+            matched_b = next((b for b in buckets if b.matches(a)), None)
+            if ac_val == "REAL_ESTATE" or (
+                matched_b and not getattr(matched_b, "include_in_net_worth", True)
+            ):
+                continue
+            effective_assets.append(a)
+
+        return BalanceSheet(
+            assets=effective_assets,
+            liabilities=list(self.liabilities),
+            cashflow=self.cashflow,
+            as_of_date=self.as_of_date,
+        )

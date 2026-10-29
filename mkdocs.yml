@@ -57,6 +57,7 @@ nav:
       - "Issue #39 - Cashflow Table Pagination & Semantic Badges": plans/PLAN-39-cashflow-table-pagination-accounts-badges.md
       - "Issue #43 - Known Accounts, Flow Rules & Bunq Holdings": plans/PLAN-43-known-accounts-flows-bunq-holdings.md
       - "Issue #45 - Statement Account Prefill & Upload Prompts": plans/PLAN-45-prefill-known-accounts-statements.md
+      - "Issue #47 - Clean Architecture Boundary & Port Alignment": plans/PLAN-47-align-clean-architecture-ports-use-cases.md
   - Architecture & UX Reviews:
       - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
       - UI/UX Review: reviews/UX-REVIEW.md

@@ -211,7 +211,9 @@ def create_app(
     templates = Jinja2Templates(directory=str(templates_dir))
 
     # Core Services & State
-    repo = config_repo or ConfigRepository()
+    repo = config_repo or ConfigRepository(secret_vault=secret_vault)
+    if repo.secret_vault is None:
+        repo.secret_vault = secret_vault
     db = local_db or LocalDbRepository(db_path=repo.config_path.parent / "paslood.db")
     kbc_gateway = KbcCsvGateway()
     bunq_gateway = BunqCsvGateway()

@@ -20,8 +20,6 @@ from paslood.delivery.web.dependencies import (
     get_tax_optimizer,
 )
 from paslood.delivery.web.helpers import get_consolidated_balance_sheet
-from paslood.domain.asset import Asset
-from paslood.domain.balance_sheet import BalanceSheet
 from paslood.domain.money import Money
 from paslood.use_cases.advise_contribution import AdviseContributionUseCase
 from paslood.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
@@ -265,19 +263,7 @@ async def get_projection(
 ):
     bs = get_consolidated_balance_sheet(repo, db)
     buckets = repo.load_buckets()
-    effective_assets: list[Asset] = []
-    for a in bs.assets:
-        ac_val = a.asset_class.value if hasattr(a.asset_class, "value") else str(a.asset_class)
-        matched_b = next((b for b in buckets if b.matches(a)), None)
-        if exclude_property and (
-            ac_val == "REAL_ESTATE"
-            or (matched_b and not getattr(matched_b, "include_in_net_worth", True))
-        ):
-            continue
-        effective_assets.append(a)
-    effective_bs = BalanceSheet(
-        assets=effective_assets, liabilities=bs.liabilities, cashflow=bs.cashflow
-    )
+    effective_bs = bs.with_effective_assets(buckets=buckets, exclude_property=exclude_property)
     savings_money = (
         Money.from_val(annual_savings / 12.0)
         if annual_savings is not None

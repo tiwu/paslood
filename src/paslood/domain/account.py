@@ -23,3 +23,19 @@ class KnownAccount:
     label: str
     account_type: str = AccountType.CHECKING.value
     institution: str = ""
+
+
+def infer_institution_from_account(account_id: str) -> str:
+    """Infers banking institution name from an IBAN or masked card/account reference."""
+    clean = account_id.replace(" ", "").upper()
+    if "BUNQ" in clean or (clean.startswith("NL") and "BUNQ" in clean):
+        return "bunq"
+    if (
+        clean.startswith("BE")
+        or "KRED" in clean
+        or "XXXX" in clean
+        or clean.startswith("5489")
+        or clean.startswith("5176")
+    ):
+        return "KBC"
+    return "Unknown"

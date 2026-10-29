@@ -9,6 +9,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from paslood.domain.account import infer_institution_from_account
 from paslood.domain.asset import Asset, AssetClass
 from paslood.domain.balance_sheet import MonthlyCashflow, Transaction
 from paslood.domain.liability import Liability, LoanType
@@ -60,9 +61,8 @@ class LocalDbRepository:
         conn = sqlite3.connect(str(self.db_path))
         conn.row_factory = sqlite3.Row
         if str(self.db_path) != ":memory:":
-            with sqlite3.connect(str(self.db_path)) as raw_conn:
-                raw_conn.execute("PRAGMA journal_mode=WAL")
-                raw_conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
         return conn
 
     def _init_schema(self) -> None:
@@ -390,18 +390,7 @@ class LocalDbRepository:
 
     @staticmethod
     def _infer_institution_from_account(account_id: str) -> str:
-        clean = account_id.replace(" ", "").upper()
-        if "BUNQ" in clean or clean.startswith("NL") and "BUNQ" in clean:
-            return "bunq"
-        if (
-            clean.startswith("BE")
-            or "KRED" in clean
-            or "XXXX" in clean
-            or clean.startswith("5489")
-            or clean.startswith("5176")
-        ):
-            return "KBC"
-        return "Unknown"
+        return infer_institution_from_account(account_id)
 
     def save_discovered_liabilities(self, liabilities: list[Liability]) -> None:
         """Upserts discovered liabilities.

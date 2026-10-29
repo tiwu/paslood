@@ -9,10 +9,11 @@ import hmac
 import json
 import os
 import secrets
+import tempfile
 import uuid
 from decimal import Decimal
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -22,6 +23,9 @@ from paslood.domain.asset import Asset, AssetClass
 from paslood.domain.bucket import AllocationRule, Bucket
 from paslood.domain.liability import Liability, LoanType
 from paslood.domain.money import Money
+
+if TYPE_CHECKING:
+    from paslood.adapters.security.secret_vault import SecretVault
 
 
 def _decimal_representer(dumper: Any, data: Decimal) -> Any:
@@ -176,8 +180,10 @@ class ConfigRepository:
         config_path: str | Path | None = None,
         data_dir: str | Path | None = None,
         tenant_id: str = "default",
+        secret_vault: SecretVault | None = None,
     ) -> None:
         self.tenant_id = tenant_id
+        self.secret_vault = secret_vault
         if config_path:
             self.config_path = Path(config_path)
         else:
@@ -199,6 +205,36 @@ class ConfigRepository:
         self.rules_path = self.config_path.parent / "rules.yaml"
         self._ensure_defaults()
 
+    def _get_secret_vault(self) -> SecretVault:
+        if self.secret_vault is not None:
+            return self.secret_vault
+        from paslood.adapters.security.secret_vault import SecretVault
+        from paslood.adapters.settings import AppSettings
+
+        return SecretVault(AppSettings.from_env().secret_key)
+
+    @staticmethod
+    def _write_yaml_atomic(path: Path, data: Any) -> None:
+        """Atomically writes YAML data via a sibling temp file and sets 0o600 permissions."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(
+            dir=str(path.parent),
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+        )
+        tmp_path = Path(tmp_name)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                yaml.dump(data, f, sort_keys=False, indent=2)
+                f.flush()
+            _secure_file_perms(tmp_path)
+            os.replace(tmp_path, path)
+            _secure_file_perms(path)
+        except Exception:
+            with contextlib.suppress(Exception):
+                tmp_path.unlink(missing_ok=True)
+            raise
+
     def _ensure_defaults(self) -> None:
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         _secure_dir_perms(self.config_path.parent)
@@ -209,14 +245,10 @@ class ConfigRepository:
                 "manual_assets": [],
                 "manual_liabilities": [],
             }
-            with open(self.config_path, "w", encoding="utf-8") as f:
-                yaml.dump(default_data, f, sort_keys=False, indent=2)
-            _secure_file_perms(self.config_path)
+            self._write_yaml_atomic(self.config_path, default_data)
 
         if not self.rules_path.exists():
-            with open(self.rules_path, "w", encoding="utf-8") as f:
-                yaml.dump([], f, sort_keys=False)
-            _secure_file_perms(self.rules_path)
+            self._write_yaml_atomic(self.rules_path, [])
 
     def load_buckets(self) -> list[Bucket]:
         """Loads configured strategic buckets with allocation rules."""
@@ -283,8 +315,7 @@ class ConfigRepository:
                 b["target_weight_pct"] = float(targets[bid])
 
         data["buckets"] = buckets
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def save_bucket(self, bucket_data: dict[str, Any]) -> str:
         """Adds or updates a strategic allocation bucket in portfolio.yaml."""
@@ -347,8 +378,7 @@ class ConfigRepository:
             )
 
         data["buckets"] = buckets
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
         return bucket_id
 
     def delete_bucket(self, bucket_id: str) -> bool:
@@ -363,8 +393,7 @@ class ConfigRepository:
             return False
 
         data["buckets"] = buckets
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
         return True
 
     def load_known_accounts(self) -> list[KnownAccount]:
@@ -415,8 +444,7 @@ class ConfigRepository:
             new_list.append(acc_dict)
 
         data["known_accounts"] = new_list
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def delete_known_account(self, account_id: str) -> None:
         """Removes a known account by id from portfolio.yaml."""
@@ -426,8 +454,7 @@ class ConfigRepository:
         raw_accounts = data.get("known_accounts", [])
         data["known_accounts"] = [acc for acc in raw_accounts if acc.get("id") != account_id]
 
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def load_manual_assets(self) -> list[Asset]:
         """Loads manually configured assets (e.g. Bunq savings, private real estate)."""
@@ -541,8 +568,7 @@ class ConfigRepository:
         else:
             rules.append(rule)
 
-        with open(self.rules_path, "w", encoding="utf-8") as f:
-            yaml.dump(rules, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.rules_path, rules)
 
     def load_settings(self) -> dict[str, Any]:
         """Loads system settings (PDT credentials, MCP servers, AI config, Tax settings)."""
@@ -578,17 +604,11 @@ class ConfigRepository:
 
         ai_key = settings.get("ai", {}).get("api_key")
         if isinstance(ai_key, str) and ai_key.startswith("enc:"):
-            from paslood.adapters.security.secret_vault import SecretVault
-            from paslood.adapters.settings import AppSettings
-
-            ai_key = SecretVault(AppSettings.from_env().secret_key).decrypt(ai_key)
+            ai_key = self._get_secret_vault().decrypt(ai_key)
 
         pdt_token = pdt_cfg.get("auth_token")
         if isinstance(pdt_token, str) and pdt_token.startswith("enc:"):
-            from paslood.adapters.security.secret_vault import SecretVault
-            from paslood.adapters.settings import AppSettings
-
-            pdt_token = SecretVault(AppSettings.from_env().secret_key).decrypt(pdt_token)
+            pdt_token = self._get_secret_vault().decrypt(pdt_token)
 
         # Return consolidated settings with defaults
         return {
@@ -668,10 +688,7 @@ class ConfigRepository:
                 current_settings[key] = val
 
         data["settings"] = current_settings
-
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
-        _secure_file_perms(self.config_path)
+        self._write_yaml_atomic(self.config_path, data)
 
     def save_pdt_tokens(self, tokens: dict[str, Any]) -> None:
         """Stores received PDT OAuth tokens in settings and standalone pdt_auth.json."""
@@ -753,8 +770,7 @@ class ConfigRepository:
             manual_assets.append(asset_dict)
 
         data["manual_assets"] = manual_assets
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def delete_manual_asset(self, asset_id: str) -> None:
         """Deletes a manual asset by id."""
@@ -765,8 +781,7 @@ class ConfigRepository:
             a for a in data.get("manual_assets", []) if str(a.get("id")) != str(asset_id)
         ]
         data["manual_assets"] = manual_assets
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def save_manual_liability(self, liability_dict: dict[str, Any]) -> None:
         """Saves or updates a manual liability (mortgage/loan) in portfolio.yaml."""
@@ -784,8 +799,7 @@ class ConfigRepository:
             liabilities.append(liability_dict)
 
         data["manual_liabilities"] = liabilities
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def delete_manual_liability(self, liability_id: str) -> None:
         """Deletes a manual liability by id."""
@@ -798,8 +812,7 @@ class ConfigRepository:
             if str(liab.get("id")) != str(liability_id)
         ]
         data["manual_liabilities"] = liabilities
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def assign_asset_to_bucket(
         self,
@@ -849,8 +862,7 @@ class ConfigRepository:
                         keywords.append(name)
 
         data["buckets"] = buckets
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def load_milestones(self) -> list[dict[str, Any]]:
         """Loads configured wealth milestones."""
@@ -901,8 +913,7 @@ class ConfigRepository:
         with open(self.config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
         data["milestones"] = milestones
-        with open(self.config_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, sort_keys=False, indent=2)
+        self._write_yaml_atomic(self.config_path, data)
 
     def export_raw_config(self) -> dict[str, Any]:
         """Exports portfolio.yaml and rules.yaml dictionaries for encrypted vault backups."""
@@ -922,10 +933,6 @@ class ConfigRepository:
     def import_raw_config(self, config_bundle: dict[str, Any]) -> None:
         """Restores portfolio.yaml and rules.yaml from decrypted vault backup."""
         if "portfolio" in config_bundle and isinstance(config_bundle["portfolio"], dict):
-            with open(self.config_path, "w", encoding="utf-8") as f:
-                yaml.dump(config_bundle["portfolio"], f, sort_keys=False, indent=2)
-            _secure_file_perms(self.config_path)
+            self._write_yaml_atomic(self.config_path, config_bundle["portfolio"])
         if "rules" in config_bundle and isinstance(config_bundle["rules"], list):
-            with open(self.rules_path, "w", encoding="utf-8") as f:
-                yaml.dump(config_bundle["rules"], f, sort_keys=False, indent=2)
-            _secure_file_perms(self.rules_path)
+            self._write_yaml_atomic(self.rules_path, config_bundle["rules"])

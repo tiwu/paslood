@@ -17,7 +17,6 @@ from paslood.adapters.ingestion.kbc_csv import KbcCsvGateway
 from paslood.adapters.repositories.config_repo import ConfigRepository
 from paslood.adapters.repositories.local_db import LocalDbRepository
 from paslood.adapters.settings import AppSettings
-from paslood.domain.balance_sheet import BalanceSheet
 from paslood.domain.money import Money
 from paslood.use_cases.advise_contribution import AdviseContributionUseCase
 from paslood.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
@@ -106,7 +105,7 @@ def set_password(
     ),
 ) -> None:
     """Set or update the master admin password for remote access."""
-    from paslood.delivery.web.auth import hash_password
+    from paslood.adapters.security.auth_manager import hash_password
 
     hashed = hash_password(password)
     settings = AppSettings.from_env()
@@ -134,34 +133,12 @@ def status(
     repo = ConfigRepository(config_path=config)
     db = LocalDbRepository(db_path=repo.config_path.parent / "paslood.db")
     buckets = repo.load_buckets()
-    assets = repo.load_manual_assets()
-    liabilities = repo.load_manual_liabilities()
-
-    # Merge discovered assets from DB
-    existing_asset_ids = {a.id for a in assets}
-    for da in db.get_discovered_assets():
-        if da.id not in existing_asset_ids:
-            assets.append(da)
-            existing_asset_ids.add(da.id)
-
-    # Merge discovered liabilities from DB
-    existing_liab_ids = {liab.id for liab in liabilities}
-    for dl in db.get_discovered_liabilities():
-        if dl.id not in existing_liab_ids:
-            liabilities.append(dl)
-            existing_liab_ids.add(dl.id)
-
-    cashflow = db.get_monthly_cashflow()
-    bs = BalanceSheet(
-        assets=assets,
-        liabilities=liabilities,
-        cashflow=cashflow,
-    )
+    bs = BuildPortfolioOverviewUseCase.consolidate_balance_sheet(repo, db)
 
     overview_builder = BuildPortfolioOverviewUseCase()
     overview_builder.execute(balance_sheet=bs, buckets=buckets)
     alloc_calc = CalculateBucketAllocationUseCase()
-    allocations = alloc_calc.execute(assets=assets, buckets=buckets)
+    allocations = alloc_calc.execute(assets=bs.assets, buckets=buckets)
 
     # Balance Sheet Table
     console.print("\n[bold white]🏛️ Balance Sheet & Net Worth Overview[/bold white]")
@@ -216,12 +193,12 @@ def advise(
 ) -> None:
     """Calculate smart buy-only contribution advice and debt payoff priorities."""
     repo = ConfigRepository(config_path=config)
+    db = LocalDbRepository(db_path=repo.config_path.parent / "paslood.db")
     buckets = repo.load_buckets()
-    assets = repo.load_manual_assets()
-    liabilities = repo.load_manual_liabilities()
+    bs = BuildPortfolioOverviewUseCase.consolidate_balance_sheet(repo, db)
 
     alloc_calc = CalculateBucketAllocationUseCase()
-    allocations = alloc_calc.execute(assets=assets, buckets=buckets)
+    allocations = alloc_calc.execute(assets=bs.assets, buckets=buckets)
 
     contrib_calc = AdviseContributionUseCase()
     contribution_orders = contrib_calc.execute(
@@ -248,7 +225,7 @@ def advise(
 
     debt_advisor = AdviseDebtPayoffUseCase()
     debt_advices = debt_advisor.execute(
-        liabilities=liabilities,
+        liabilities=bs.liabilities,
         monthly_surplus=Money.from_val(deposit),
     )
 
