@@ -132,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Cashflow Table Pagination, Multi-Account Badges & Semantic Categories (#39)**:
   - Added full client-side table pagination controls (page size selector: 25 / 50 / 100 / All, First / Prev / Page Indicator / Next / Last buttons, and "Showing X–Y of Z transactions" counter).
   - Added instant search box (`#tx-search-input`) and category filter dropdown (`#tx-category-filter`).
-  - Added **Account** column displaying human-friendly badges (`KBC ••2832`, `KBC Card ••9128`, `bunq ••9982`) and dynamic multi-account filter dropdown (`#tx-account-filter`).
+  - Added **Account** column displaying human-friendly badges (`KBC ••1234`, `KBC Card ••9999`, `bunq ••1111`) and dynamic multi-account filter dropdown (`#tx-account-filter`).
   - Serialized `account_id` in `GET /api/overview` and expanded SQLite transaction fetch limit to 10,000 records.
   - Color-coded transaction categories with distinct semantic palettes across all categories and rebuilt precompiled Tailwind stylesheet `styles.css`.
 - **Precompiled Tailwind CSS & Toast Confirmation Modals (#32)**:
@@ -169,7 +169,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Legally Grounded Belgian Fiscal Shield & EquatePlus Forensic Tax Engine**:
-  - Added `src/paslood/domain/tax_rules.py` with official Belgian statutory rules and FOD Financiën citations (`WIB 92 Art. 90/101`, `WDRT Art. 120–126/2`, `WIB 92 Art. 19bis`), TOB plafond caps (`0.12%` cap €1,300, `0.35%` cap €1,600, `1.32%` cap €4,000), and ASML's official Dec 31, 2025 Euronext Amsterdam closing price (`€921.40`).
+  - Added `src/paslood/domain/tax_rules.py` with official Belgian statutory rules and FOD Financiën citations (`WIB 92 Art. 90/101`, `WDRT Art. 120–126/2`, `WIB 92 Art. 19bis`), TOB plafond caps (`0.12%` cap €1,300, `0.35%` cap €1,600, `1.32%` cap €4,000), and official Dec 31, 2025 benchmark price configuration for equity plans.
   - Enhanced `OptimizeTaxUseCase` with pre-2026 historical loss protection (`max(benchmark_price, historical_purchase_price)`), 5-year exemption carryover (`+€1,000/yr` up to `€15,000`, doubled for joint filing), Art. 19bis Reynders 30% tax split for funds with `>10%` debt claims, and an inverse **Max Tax-Free Share Trim Solver**.
   - Added `EQUATEPLUS_CH` (Equatex AG Zurich) custodian profile reconciling `0.35%` brokerage commission + `0.15%` Swiss stamp duty (*Zegelrechten*), unwithheld `0.35%` Belgian TOB self-declaration alerts, and historical FMV vs. 31 Dec 2025 fotomoment gain comparison.
 
@@ -185,7 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Legally Grounded Belgian Fiscal Shield & EquatePlus Forensic Tax Engine**:
-  - Added `src/paslood/domain/tax_rules.py` with official Belgian statutory rules and FOD Financiën citations (`WIB 92 Art. 90/101`, `WDRT Art. 120–126/2`, `WIB 92 Art. 19bis`), TOB plafond caps (`0.12%` cap €1,300, `0.35%` cap €1,600, `1.32%` cap €4,000), and ASML's official Dec 31, 2025 Euronext Amsterdam closing price (`€921.40`).
+  - Added `src/paslood/domain/tax_rules.py` with official Belgian statutory rules and FOD Financiën citations (`WIB 92 Art. 90/101`, `WDRT Art. 120–126/2`, `WIB 92 Art. 19bis`), TOB plafond caps (`0.12%` cap €1,300, `0.35%` cap €1,600, `1.32%` cap €4,000), and official Dec 31, 2025 benchmark price configuration for equity plans.
   - Enhanced `OptimizeTaxUseCase` with pre-2026 historical loss protection (`max(benchmark_price, historical_purchase_price)`), 5-year exemption carryover (`+€1,000/yr` up to `€15,000`, doubled for joint filing), Art. 19bis Reynders 30% tax split for funds with `>10%` debt claims, and an inverse **Max Tax-Free Share Trim Solver**.
   - Added `EQUATEPLUS_CH` (Equatex AG Zurich) custodian profile reconciling `0.35%` brokerage commission + `0.15%` Swiss stamp duty (*Zegelrechten*), unwithheld `0.35%` Belgian TOB self-declaration alerts, and historical FMV vs. 31 Dec 2025 fotomoment gain comparison.
 

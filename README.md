@@ -1,12 +1,54 @@
 # Paslood 🧭
 
-> **Whole-Life Balance Sheet, PDT Strategic Companion & Belgian Fiscal Shield**
+> **Whole-Life Balance Sheet, Portfolio Allocation Engine & Belgian Fiscal Shield**
 >
-> *"You can't know where you're going if you don't know where you are."*
+> Open-source, local-first personal balance sheet management and macro asset allocation platform.
 
-**Paslood** (*in het lood staan* — plumb-line alignment for your personal balance sheet) is a local-first, privacy-respecting financial decision engine. While broker trackers like **Portfolio Dividend Tracker (PDT)** excel at tracking brokerage holdings and dividends, they are blind to the rest of your financial reality: checking and savings accounts (KBC, Bunq), pillar pension savings (*pensioensparen*), primary residence equity, mortgages, consumer/vehicle loans (e.g., Alpha Credit), and recurring employee share purchase plans (e.g., ASML shares on EquatePlus).
+**Paslood** (*in het lood staan* — plumb-line balance) reconciles brokerage portfolios with off-broker liquid cash (KBC, Bunq), pillar pension savings (*pensioensparen*), primary residence equity, amortized loans (mortgages, consumer credit), and recurring employee share purchase plans (e.g., ESPP/equity plans on EquatePlus or foreign custodians).
 
-Paslood unifies your PDT portfolio with your off-broker balance sheet to answer **what to do next**: keeping your macro allocation buckets level, prioritizing debt payoff against expected portfolio CAGR, and safely de-concentrating employee stock under Belgian tax law.
+The engine analyzes your whole-life balance sheet to determine optimal financial allocation: maintaining macro asset allocation targets, prioritizing debt payoff against expected investment returns, and modeling equity sales under Belgian tax legislation.
+
+---
+
+## Architecture Overview
+
+```mermaid
+flowchart TB
+    subgraph ExternalSources["External Financial Sources"]
+        PDT["Portfolio Dividend Tracker<br/>(MCP Server / Broker CSV)"]
+        BANK["Bank Checking & Savings<br/>(KBC CSV / Bunq CSV)"]
+        PROP["Real Estate & Mortgages<br/>(Configured Liabilities)"]
+        ESPP["Employee Equity Plans<br/>(EquatePlus / Foreign Custodian)"]
+    end
+
+    subgraph PasloodEngine["Paslood Core Engine"]
+        BAL["Whole-Life Balance Sheet<br/>(Assets - Liabilities = Net Worth)"]
+        BUCKETS["Strategic Allocation Buckets<br/>(Target Weights & Drift Tracking)"]
+        REBAL["Buy-Only Rebalancing<br/>(Deposit Optimization without Selling)"]
+        SHIELD["Belgian Fiscal Shield<br/>(2026 CGT, TOB Plafonds, Reynders)"]
+        AVALANCHE["Debt Avalanche Advisor<br/>(APR vs. Portfolio CAGR)"]
+    end
+
+    subgraph Delivery["Delivery Interfaces"]
+        WEB["FastAPI Web Dashboard<br/>(Responsive PWA & Mobile UI)"]
+        CLI["Typer Scriptable CLI<br/>(Terminal Health Checks)"]
+    end
+
+    PDT --> BAL
+    BANK --> BAL
+    PROP --> BAL
+    ESPP --> BAL
+
+    BAL --> BUCKETS
+    BAL --> AVALANCHE
+    BUCKETS --> REBAL
+    ESPP --> SHIELD
+
+    REBAL --> WEB
+    SHIELD --> WEB
+    AVALANCHE --> WEB
+    BAL --> CLI
+```
 
 ---
 
@@ -143,14 +185,44 @@ uv run paslood web --port 8000
 
 ## Clean Architecture Overview
 
-Paslood strictly adheres to **Uncle Bob's Clean Architecture**:
+Paslood strictly adheres to Clean Architecture (Hexagonal / Ports & Adapters):
 
-```text
-src/paslood/
-├── domain/        # Pure Python enterprise business rules (Money, Asset, Liability, Bucket, Identity)
-├── use_cases/     # Application orchestrators (CalculateBucketAllocation, AdviseContribution, BuildOverview)
-├── adapters/      # Gateways (PDT MCP, KBC/Generic CSV, SecretVault, Settings, ConfigRepository)
-└── delivery/      # Frameworks & Drivers (FastAPI web routes, templates, AuthManager, CLI)
+```mermaid
+flowchart TD
+    subgraph Delivery["Delivery Layer (Frameworks & Drivers)"]
+        WEB["FastAPI Endpoints & Jinja2 Templates"]
+        CLI["Typer CLI Commands"]
+        AUTH["Session & Password AuthManager"]
+    end
+
+    subgraph Adapters["Adapters Layer (Interface Gateways)"]
+        REPO["ConfigRepository & LocalDbRepository"]
+        INGEST["KBC, Bunq & Generic CSV Gateways"]
+        MCP["PDT MCP Gateway"]
+        VAULT["AES-256-GCM SecretVault"]
+        AI["Universal AI Client"]
+    end
+
+    subgraph UseCases["Use Cases Layer (Application Business Rules)"]
+        UC1["CalculateBucketAllocation"]
+        UC2["AdviseContribution (Buy-Only)"]
+        UC3["AdviseDebtPayoff (Avalanche)"]
+        UC4["OptimizeTax (Belgian Fiscal Shield)"]
+        UC5["BuildPortfolioOverview"]
+    end
+
+    subgraph Domain["Domain Layer (Enterprise Business Rules)"]
+        D1["Money (Decimal Precision)"]
+        D2["Asset & Liability"]
+        D3["Bucket & AllocationRule"]
+        D4["BalanceSheet"]
+        D5["TobTier & BrokerTaxProfile"]
+    end
+
+    Delivery --> UseCases
+    Adapters --> UseCases
+    UseCases --> Domain
+    Adapters -.-> Domain
 ```
 
 ---
@@ -158,7 +230,7 @@ src/paslood/
 ## Testing & Quality Assurance
 
 ```bash
-# Run all unit, delivery, and integration tests (126 tests)
+# Run all unit, delivery, and integration tests (250+ tests)
 uv run pytest
 
 # Run tests with coverage (target >= 90%)

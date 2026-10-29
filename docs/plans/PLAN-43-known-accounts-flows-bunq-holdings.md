@@ -14,7 +14,7 @@
 
 1. **Bunq Accounts Missing from Holdings & Bucket Allocation**:
    - Bunq CSV exports lack a `Saldo` running balance column. `BunqCsvGateway` returned a placeholder cash asset with `current_value = Money(0.00)`. Because holdings tables filter `a.current_value > 0`, Bunq accounts never appeared in Holdings or bucket assignment widgets.
-   - We must calculate the cumulative statement balance from the transactions (e.g. €5.86 for spending, €3,444.22 for savings), create distinct cash assets per discovered account with `institution="bunq"` and `account_id`, and display them in Holdings with auto-mapping to Cash/Emergency buffer buckets.
+   - We must calculate the cumulative statement balance from the transactions (e.g. €150.00 for spending, €5,000.00 for savings), create distinct cash assets per discovered account with `institution="bunq"` and `account_id`, and display them in Holdings with auto-mapping to Cash/Emergency buffer buckets.
 2. **Recognizing Saxo & Custom User Accounts**:
    - The user wants to register their Saxo account numbers / IBANs with a label (e.g. "Saxo Trading", "Saxo Investor"), so transactions to/from Saxo are automatically recognized as investment contributions/withdrawals.
    - Users need a "Known Accounts" configuration where they can register external accounts (Saxo, off-broker banks, pension schemes) with `account_number`, `label`, `account_type` (`INVESTMENT`, `SAVINGS`, `CHECKING`), and optional `institution`.

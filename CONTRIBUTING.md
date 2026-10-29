@@ -46,6 +46,14 @@ uv run ruff check src tests
 
 We follow the **Red-Green-Refactor** workflow:
 
+```mermaid
+flowchart LR
+    RED["🔴 1. Red<br/>Write failing test in tests/"] --> GREEN["🟢 2. Green<br/>Implement minimal code in src/"]
+    GREEN --> REFACTOR["🔵 3. Refactor<br/>Ruff check, format & cov &ge; 90%"]
+    REFACTOR --> VERIFY["🧪 4. Verify<br/>Run pytest & mkdocs --strict"]
+    VERIFY --> PR["🚀 5. Open PR<br/>Conventional commit & CI review"]
+```
+
 1. **Create a branch**:
    ```bash
    git checkout -b feature/your-feature-name
