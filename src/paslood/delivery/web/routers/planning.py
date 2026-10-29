@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
@@ -23,6 +24,7 @@ from paslood.delivery.web.helpers import get_consolidated_balance_sheet
 from paslood.domain.money import Money
 from paslood.use_cases.advise_contribution import AdviseContributionUseCase
 from paslood.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
+from paslood.use_cases.find_oldest_date import FindOldestDateUseCase
 from paslood.use_cases.optimize_tax import OptimizeTaxUseCase
 from paslood.use_cases.project_net_worth import ProjectNetWorthUseCase
 
@@ -255,6 +257,8 @@ async def save_milestones(
 async def get_projection(
     years: int = 30,
     cagr: float = 7.0,
+    start_year: int | None = None,
+    auto_detect_start: bool = True,
     annual_savings: float | None = None,
     exclude_property: bool = False,
     repo: ConfigRepository = Depends(get_repo),
@@ -269,22 +273,47 @@ async def get_projection(
         if annual_savings is not None
         else effective_bs.free_monthly_cashflow
     )
+
+    now_yr = datetime.now().year
+    oldest_info = FindOldestDateUseCase().execute(
+        balance_sheet=effective_bs,
+        oldest_tx_date=db.get_oldest_transaction_date(),
+    )
+    oldest_detected_year = oldest_info.get("oldest_year")
+    oldest_detected_date = oldest_info.get("oldest_date")
+
+    effective_start_yr: int | None = start_year
+    if effective_start_yr is None and auto_detect_start and oldest_detected_year:
+        effective_start_yr = min(oldest_detected_year, now_yr)
+    elif not auto_detect_start and effective_start_yr is None:
+        effective_start_yr = now_yr
+
     trajectory = net_worth_projector.execute(
         initial_assets=effective_bs.total_assets,
         initial_debts=effective_bs.total_liabilities,
         monthly_savings=savings_money,
         annual_return_pct=Decimal(str(cagr)),
         years=years,
+        start_year=effective_start_yr,
+        current_year=now_yr,
+        balance_sheet=effective_bs,
     )
     return {
+        "start_year": effective_start_yr or now_yr,
+        "current_year": now_yr,
+        "oldest_detected_year": oldest_detected_year,
+        "oldest_detected_date": oldest_detected_date,
         "years": years,
         "cagr": cagr,
         "trajectory": [
             {
                 "year": t["year"],
+                "calendar_year": t.get("calendar_year", now_yr + t["year"]),
                 "assets": float(t["assets"]),
                 "debts": float(t["debts"]),
                 "net_worth": float(t["net_worth"]),
+                "is_historical": t.get("is_historical", False),
+                "is_current": t.get("is_current", t["year"] == 0),
                 "milestones": t["milestones"],
             }
             for t in trajectory

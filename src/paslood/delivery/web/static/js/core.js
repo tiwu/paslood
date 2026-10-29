@@ -20,6 +20,8 @@ let projectionChartInstance = null;
 let activeRebucketTx = null;
 let currentProjectionYears = 30;
 let currentProjectionCagr = 7.0;
+let currentProjectionStartYear = null;
+let currentAutoDetectStart = true;
 let currentMcpServers = [];
 let excludePropertyState = localStorage.getItem('paslood_exclude_property') === 'true';
 

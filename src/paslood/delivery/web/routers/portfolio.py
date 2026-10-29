@@ -66,6 +66,8 @@ class ManualAssetRequest(BaseModel):
     current_value: Decimal
     institution: str | None = "Manual"
     currency: str = "EUR"
+    cost_basis: Decimal | None = None
+    acquisition_date: str | None = None
 
 
 class ManualLiabilityRequest(BaseModel):
@@ -82,6 +84,8 @@ class ManualLiabilityRequest(BaseModel):
     duration_months: int | None = None
     institution: str | None = "Manual"
     currency: str = "EUR"
+    cost_basis: Decimal | None = None
+    acquisition_date: str | None = None
     is_tax_deductible: bool = False
     account_reference: str | None = None
 

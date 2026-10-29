@@ -73,6 +73,7 @@ class BuildPortfolioOverviewUseCase:
         exclude_property: bool = False,
         cagr_pct: Decimal = Decimal("7.0"),
         projection_years: int = 30,
+        start_year: int | None = None,
     ) -> dict[str, Any]:
         effective_bs = balance_sheet.with_effective_assets(
             buckets=buckets, exclude_property=exclude_property
@@ -105,6 +106,8 @@ class BuildPortfolioOverviewUseCase:
             monthly_savings=effective_bs.free_monthly_cashflow,
             annual_return_pct=cagr_pct,
             years=projection_years,
+            start_year=start_year,
+            balance_sheet=effective_bs,
         )
 
         asset_list = []

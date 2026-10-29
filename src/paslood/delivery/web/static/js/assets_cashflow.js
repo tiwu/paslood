@@ -557,6 +557,10 @@ function openAddAssetModal(editAsset = null) {
     document.getElementById('manual-asset-val').value = editAsset.current_value || (editAsset.current_value_formatted ? parseFloat(editAsset.current_value_formatted.replace(/[^0-9.-]/g, '')) : '');
     document.getElementById('manual-asset-inst').value = editAsset.institution || 'Manual';
     document.getElementById('manual-asset-sym').value = editAsset.symbol || '';
+    const acqDateEl = document.getElementById('manual-asset-acq-date');
+    if (acqDateEl) acqDateEl.value = editAsset.acquisition_date || editAsset.start_date || '';
+    const costBasisEl = document.getElementById('manual-asset-cost-basis');
+    if (costBasisEl) costBasisEl.value = editAsset.cost_basis ? (editAsset.cost_basis.amount || editAsset.cost_basis) : '';
   } else {
     if (title) title.textContent = '🏠 Add Real Estate or Asset';
     document.getElementById('manual-asset-id').value = '';
@@ -565,6 +569,10 @@ function openAddAssetModal(editAsset = null) {
     document.getElementById('manual-asset-val').value = '';
     document.getElementById('manual-asset-inst').value = '';
     document.getElementById('manual-asset-sym').value = '';
+    const acqDateEl = document.getElementById('manual-asset-acq-date');
+    if (acqDateEl) acqDateEl.value = '';
+    const costBasisEl = document.getElementById('manual-asset-cost-basis');
+    if (costBasisEl) costBasisEl.value = '';
   }
   modal.classList.remove('hidden');
 }
@@ -588,6 +596,8 @@ async function saveManualAsset() {
   const val = parseFloat(document.getElementById('manual-asset-val').value) || 0;
   const inst = document.getElementById('manual-asset-inst').value.trim() || 'Manual';
   const sym = document.getElementById('manual-asset-sym').value.trim();
+  const acqDate = document.getElementById('manual-asset-acq-date') ? document.getElementById('manual-asset-acq-date').value.trim() : '';
+  const costBasisVal = document.getElementById('manual-asset-cost-basis') ? parseFloat(document.getElementById('manual-asset-cost-basis').value) : NaN;
 
   if (!name || val <= 0) {
     showToast('Please provide an asset name and valid estimated value.', 'warning');
@@ -602,6 +612,8 @@ async function saveManualAsset() {
       institution: inst,
       symbol: sym || null
     };
+    if (acqDate) payload.acquisition_date = acqDate;
+    if (!isNaN(costBasisVal) && costBasisVal > 0) payload.cost_basis = costBasisVal;
     if (assetId) payload.id = assetId;
 
     const res = await fetch('/api/assets/manual', {

@@ -471,6 +471,11 @@ class ConfigRepository:
                 ac = AssetClass.CASH
 
             val = Money.from_val(a.get("current_value", 0.0), a.get("currency", "EUR"))
+            cost_raw = a.get("cost_basis")
+            cost_val = (
+                Money.from_val(cost_raw, a.get("currency", "EUR")) if cost_raw is not None else None
+            )
+            acq_date = a.get("acquisition_date") or a.get("start_date")
             assets.append(
                 Asset(
                     id=str(a.get("id", "manual")),
@@ -479,8 +484,10 @@ class ConfigRepository:
                     isin=a.get("isin"),
                     asset_class=ac,
                     current_value=val,
+                    cost_basis=cost_val,
                     institution=str(a.get("institution", "Manual")),
                     currency=val.currency,
+                    acquisition_date=str(acq_date) if acq_date else None,
                 )
             )
         return assets
