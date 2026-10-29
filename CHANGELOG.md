@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.13.0] - 2026-10-29
+
+### Added
 - **Clean Architecture Boundary & Port Alignment (#47)**:
   - Added `@runtime_checkable` `AIAdvisorPort` and `StatementGatewayPort` protocols in `src/paslood/use_cases/ports.py` and aligned `PortfolioRepository` and `TransactionRepository` method signatures with `ConfigRepository` and `LocalDbRepository`.
   - Added `BalanceSheet.with_effective_assets(buckets, exclude_property)` in `src/paslood/domain/balance_sheet.py` and `BuildPortfolioOverviewUseCase.consolidate_balance_sheet(repo, db)` in `src/paslood/use_cases/build_overview.py` to centralize asset exclusion and balance sheet consolidation across Web and CLI.
@@ -317,7 +327,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/tiwu/paslood/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/tiwu/paslood/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/tiwu/paslood/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/tiwu/paslood/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/tiwu/paslood/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/tiwu/paslood/compare/v0.9.0...v0.10.0
