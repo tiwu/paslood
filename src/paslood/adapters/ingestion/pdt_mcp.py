@@ -89,9 +89,29 @@ def resolve_ticker_symbol(raw_symbol: str) -> str:
         if base in STATUTORY_2025_12_31_CLOSING_PRICES_EUR or base in SYMBOL_ALIASES:
             return SYMBOL_ALIASES.get(base, base)
     for alias_key, canonical in SYMBOL_ALIASES.items():
-        if cleaned.startswith(alias_key):
+        if (
+            cleaned == alias_key
+            or cleaned.startswith(alias_key + " ")
+            or cleaned.startswith(alias_key + ".")
+        ):
             return canonical
     return cleaned
+
+
+def match_asset_by_symbol_or_name(assets: list[Asset], symbol: str) -> Asset | None:
+    """Matches a holding against a user-entered symbol or company name using exact normalized matching."""
+    raw_sym = symbol.strip().upper()
+    resolved_sym = resolve_ticker_symbol(raw_sym)
+    return next(
+        (
+            a
+            for a in assets
+            if (a.symbol and a.symbol.strip().upper() in (raw_sym, resolved_sym))
+            or (a.symbol and resolve_ticker_symbol(a.symbol) == resolved_sym)
+            or (a.name and resolve_ticker_symbol(a.name) == resolved_sym)
+        ),
+        None,
+    )
 
 
 class PdtMcpGateway:
@@ -220,7 +240,6 @@ class PdtMcpGateway:
     ) -> tuple[Money, str, str] | None:
         """Looks up closing price for a security on a historical date, returning (Money, source, resolved_symbol)."""
         resolved_sym = resolve_ticker_symbol(symbol)
-        raw_sym = symbol.strip().upper()
 
         headers = {
             "Content-Type": "application/json",
@@ -258,16 +277,8 @@ class PdtMcpGateway:
                         data = await _call_mcp(c)
 
                 assets = self._parse_holdings_response(data)
-                match = next(
-                    (
-                        a
-                        for a in assets
-                        if a.symbol.upper() in (raw_sym, resolved_sym)
-                        or resolve_ticker_symbol(a.symbol) == resolved_sym
-                        or (quote_id and quote_id in a.id)
-                        or raw_sym in a.name.upper()
-                        or resolved_sym in a.name.upper()
-                    ),
+                match = match_asset_by_symbol_or_name(assets, symbol) or next(
+                    (a for a in assets if quote_id and quote_id in a.id),
                     None,
                 )
                 if match and match.quantity > Decimal("0.0"):

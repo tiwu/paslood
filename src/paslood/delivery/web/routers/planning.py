@@ -125,17 +125,9 @@ async def lookup_historical_tax_price(
 
     # Check consolidated portfolio holdings for matching asset with pre-benchmark cost basis or unit price
     bs = get_consolidated_balance_sheet(repo, db)
-    sym_upper = raw_sym.upper()
-    matching_asset = next(
-        (
-            a
-            for a in bs.assets
-            if (a.symbol and a.symbol.strip().upper() in (sym_upper, resolved_sym))
-            or (a.symbol and resolve_ticker_symbol(a.symbol) == resolved_sym)
-            or a.name.strip().upper() in (sym_upper, resolved_sym)
-        ),
-        None,
-    )
+    from paslood.adapters.ingestion.pdt_mcp import match_asset_by_symbol_or_name
+
+    matching_asset = match_asset_by_symbol_or_name(list(bs.assets), symbol)
     if matching_asset:
         qty = (
             matching_asset.quantity if matching_asset.quantity > Decimal("0.0") else Decimal("1.0")

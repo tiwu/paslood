@@ -127,6 +127,12 @@ function setValByIds(val, ...ids) {
   }
 }
 
+function computeAssetUnitPrice(asset, qty) {
+  if (asset.unit_price && asset.unit_price > 0) return asset.unit_price;
+  if (asset.current_price && asset.current_price > 0) return asset.current_price;
+  return (asset.current_value || 0) / qty;
+}
+
 function populateTaxHoldingDropdown(data) {
   const select = document.getElementById('sim-tax-holding-select');
   if (!select) return;
@@ -142,9 +148,7 @@ function populateTaxHoldingDropdown(data) {
     opt.dataset.assetId = a.id || '';
     opt.dataset.symbol = a.symbol;
     const qty = parseFloat(a.shares ?? a.quantity ?? 1) || 1;
-    const price = (a.unit_price && a.unit_price > 0)
-      ? a.unit_price
-      : ((a.current_price && a.current_price > 0) ? a.current_price : ((a.current_value || 0) / qty));
+    const price = computeAssetUnitPrice(a, qty);
     opt.dataset.price = price;
     opt.dataset.quantity = qty;
     if (a.cost_basis !== undefined && a.cost_basis !== null) {
@@ -174,10 +178,7 @@ async function onSelectTaxHolding(symbolOrId) {
   const sym = (opt?.dataset?.symbol) || (matchedAsset?.symbol) || val;
   const qty = parseFloat(opt?.dataset?.quantity ?? matchedAsset?.shares ?? matchedAsset?.quantity ?? 1) || 1;
   const unitPrice = parseFloat(
-    opt?.dataset?.price
-      ?? matchedAsset?.unit_price
-      ?? matchedAsset?.current_price
-      ?? ((matchedAsset?.current_value || 0) / qty)
+    opt?.dataset?.price ?? computeAssetUnitPrice(matchedAsset || {}, qty)
   ) || 0;
   const rawCostBasis = opt?.dataset?.costBasis !== undefined
     ? parseFloat(opt.dataset.costBasis)
@@ -195,17 +196,33 @@ async function onSelectTaxHolding(symbolOrId) {
   if (qty > 0) {
     setValByIds(String(qty), 'sim-tax-shares-pre', 'tax-pre-shares');
   }
-  setValByIds('0', 'sim-tax-shares-post', 'tax-post-shares');
-  const sellQtyEl = getElByIds('sim-tax-sell-qty', 'tax-sell-shares');
-  if (sellQtyEl && (!sellQtyEl.value || parseFloat(sellQtyEl.value) === 0)) {
-    setValByIds(String(qty), 'sim-tax-sell-qty', 'tax-sell-shares');
+  setValByIds(String(qty), 'sim-tax-shares-post', 'tax-post-shares');
+  setValByIds(String(qty), 'sim-tax-sell-qty', 'tax-sell-shares');
+
+  const acquisitionDate = opt?.dataset?.acquisitionDate ?? matchedAsset?.acquisition_date ?? '';
+
+  if (qty > 0) {
+    if (acquisitionDate && acquisitionDate > '2025-12-31') {
+      setValByIds(String(qty), 'sim-tax-shares-post', 'tax-post-shares');
+      setValByIds('0', 'sim-tax-shares-pre', 'tax-pre-shares');
+    } else {
+      setValByIds(String(qty), 'sim-tax-shares-pre', 'tax-pre-shares');
+      setValByIds('0', 'sim-tax-shares-post', 'tax-post-shares');
+    }
   }
 
   if (rawCostBasis !== null && !Number.isNaN(rawCostBasis) && rawCostBasis > 0) {
     const unitBasis = qty > 0 ? (rawCostBasis / qty) : rawCostBasis;
-    setValByIds(unitBasis.toFixed(2), 'sim-tax-pre-buy-price', 'tax-pre-buy-price');
+    if (acquisitionDate && acquisitionDate > '2025-12-31') {
+      setValByIds(unitBasis.toFixed(2), 'sim-tax-post-buy-price', 'tax-post-buy-price');
+      setValByIds('', 'sim-tax-pre-buy-price', 'tax-pre-buy-price');
+    } else {
+      setValByIds(unitBasis.toFixed(2), 'sim-tax-pre-buy-price', 'tax-pre-buy-price');
+      setValByIds('', 'sim-tax-post-buy-price', 'tax-post-buy-price');
+    }
   } else {
     setValByIds('', 'sim-tax-pre-buy-price', 'tax-pre-buy-price');
+    setValByIds('', 'sim-tax-post-buy-price', 'tax-post-buy-price');
   }
 
   await lookupTaxPrice();
@@ -249,6 +266,7 @@ async function lookupTaxPrice() {
         feedback.textContent = data.message || `No historical quote found on PDT for ${symbol}. You can set the base price manually.`;
         feedback.className = 'text-[10px] text-amber-400 mt-1 block';
       }
+      await runTaxSimulation();
     }
   } catch (err) {
     if (feedback) {
