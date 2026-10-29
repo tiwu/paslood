@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.14.0] - 2026-10-29
+
+### Added
 - **Expanded Expense Categories & Heuristics (#50)**:
   - Added `TAX`, `UTILITIES`, `LEISURE`, and `TRANSPORT` to `TransactionCategory` with Belgian/European merchant heuristics (`DEFAULT_PATTERNS`) and localized UI labels (`EN`, `NL`, `FR`, `DE`).
 - **Cashflow Sankey Diagram & Monthly Spending / Savings Potential Visualizations (#50)**:
@@ -343,7 +353,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/tiwu/paslood/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/tiwu/paslood/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/tiwu/paslood/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/tiwu/paslood/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/tiwu/paslood/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/tiwu/paslood/compare/v0.10.0...v0.11.0

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "paslood"
-version = "0.13.0"
+version = "0.14.0"
 description = "Paslood — Whole-Life Balance Sheet, PDT Strategic Companion & Belgian Fiscal Shield"
 readme = "README.md"
 requires-python = ">=3.12"
