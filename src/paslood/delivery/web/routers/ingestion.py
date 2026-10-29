@@ -152,7 +152,13 @@ async def rebucket_transaction(
     db.update_transaction_category(req.transaction_id, req.target_category)
     updated_historical_count = 1
 
-    rule_pattern = (req.pattern or req.counterparty_name or "").strip()
+    if req.pattern is not None:
+        rule_pattern = req.pattern.strip()
+        if not rule_pattern and req.amount is None:
+            rule_pattern = (req.counterparty_name or "").strip()
+    else:
+        rule_pattern = (req.counterparty_name or "").strip()
+
     if not rule_pattern and req.amount is None:
         # Look up the transaction in DB to derive counterparty or description pattern
         existing_txs = db.get_transactions(limit=10000)

@@ -119,6 +119,26 @@ async def test_rebucket_with_custom_keyword_and_amount(tmp_path: Path) -> None:
         r.get("pattern") == "SPARING KINDEREN" and float(r.get("amount", 0)) == 250.0 for r in rules
     )
 
+    # Also verify amount-only re-bucketing when pattern is cleared ("") even if counterparty_name is passed
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res_amt_only = await client.post(
+            "/api/transactions/rebucket",
+            json={
+                "transaction_id": "tx-rb-3",
+                "target_category": "SUBSCRIPTION",
+                "counterparty_name": "KBC",
+                "pattern": "",
+                "amount": 75.0,
+                "remember_rule": True,
+            },
+        )
+        assert res_amt_only.status_code == 200
+        assert res_amt_only.json()["updated_historical_count"] == 1
+
+    txs_after = {t.id: t for t in db.get_transactions()}
+    assert txs_after["tx-rb-1"].category == "SAVINGS"
+    assert txs_after["tx-rb-3"].category == "SUBSCRIPTION"
+
 
 @pytest.mark.asyncio
 async def test_overview_cashflow_period_query_param(tmp_path: Path) -> None:

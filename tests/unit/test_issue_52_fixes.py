@@ -249,6 +249,23 @@ def test_monthly_cashflow_period_selection_last_year_vs_all_time(tmp_path: Path)
     assert cf_year.living_expenses.amount == Decimal("1000.00")
     assert cf_year.period == "year"
 
+    # Verify 13 consecutive months of data are capped at exactly 12 months when period="year"
+    db2 = LocalDbRepository(db_path=tmp_path / "test_13m.db")
+    txs_13m = [
+        Transaction(
+            id=f"tx-m-{i}",
+            date=f"{2025 + (8 + i) // 12:04d}-{(8 + i) % 12 + 1:02d}-15",
+            amount=Money(Decimal("4000.00")),
+            account_id="BE90",
+            description="Monthly Salary",
+            category="INCOME",
+        )
+        for i in range(13)  # 2025-09 through 2026-09 (13 distinct months)
+    ]
+    db2.save_transactions(txs_13m, source="kbc_csv")
+    cf_13m_year = db2.get_monthly_cashflow(period="year")
+    assert cf_13m_year.months_analyzed == 12
+
 
 def test_overview_auto_detects_historical_start_year_on_initial_load() -> None:
     """Finding 9: BuildPortfolioOverviewUseCase.execute auto-detects historical start_year on page load."""

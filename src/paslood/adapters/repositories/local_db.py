@@ -631,9 +631,10 @@ class LocalDbRepository:
             try:
                 yr = int(latest_date[:4])
                 mo = int(latest_date[5:7])
-                day = int(latest_date[8:10]) if len(latest_date) >= 10 else 1
-                cutoff_str = f"{yr - 1:04d}-{mo:02d}-{day:02d}"
-                return [t for t in transactions if t.date and t.date[:10] >= cutoff_str]
+                total_mos = yr * 12 + (mo - 1) - 11
+                cutoff_yr, cutoff_mo = divmod(total_mos, 12)
+                cutoff_ym = f"{cutoff_yr:04d}-{cutoff_mo + 1:02d}"
+                return [t for t in transactions if t.date and t.date[:7] >= cutoff_ym]
             except (ValueError, IndexError):
                 return list(transactions)
 
