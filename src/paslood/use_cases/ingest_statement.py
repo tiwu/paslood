@@ -53,7 +53,9 @@ class IngestStatementUseCase:
         total_txs = len(db.get_transactions())
 
         clean_known_set = {
-            k.account_number.replace(" ", "").upper() for k in known_accounts if k.account_number
+            "".join(ch for ch in k.account_number.upper() if ch.isalnum())
+            for k in known_accounts
+            if k.account_number
         }
         all_account_numbers: set[str] = set()
         if data.get("account_number"):
@@ -67,7 +69,7 @@ class IngestStatementUseCase:
 
         unregistered: list[dict[str, str]] = []
         for acc in sorted(all_account_numbers):
-            clean_acc = acc.replace(" ", "").upper()
+            clean_acc = "".join(ch for ch in acc.upper() if ch.isalnum())
             if clean_acc and clean_acc not in clean_known_set:
                 inst = infer_institution_from_account(acc)
                 unregistered.append(

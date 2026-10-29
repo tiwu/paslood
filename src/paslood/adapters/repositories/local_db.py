@@ -255,9 +255,9 @@ class LocalDbRepository:
         sql = """
             UPDATE transactions
             SET category = ?
-            WHERE (counterparty_name LIKE ? OR description LIKE ?)
+            WHERE (counterparty_name LIKE ? OR description LIKE ? OR counterparty_iban LIKE ?)
         """
-        params: list[Any] = [category, like_query, like_query]
+        params: list[Any] = [category, like_query, like_query, like_query]
 
         if exclude_overrides:
             sql += " AND (user_override IS NULL OR user_override = 0)"
@@ -267,6 +267,74 @@ class LocalDbRepository:
             cursor.execute(sql, params)
             conn.commit()
             return cursor.rowcount
+
+    def apply_known_account_to_transactions(
+        self,
+        account_number: str,
+        label: str,
+        account_type: str,
+    ) -> int:
+        """Retroactively classifies transactions matching a known account (ignoring spaces/formatting)."""
+        clean_num = "".join(ch for ch in (account_number or "").upper() if ch.isalnum())
+        label_lower = (label or "").strip().lower()
+        acc_type = (account_type or "").strip().upper()
+
+        if acc_type == "INVESTMENT":
+            target_cat = "INVESTMENTS"
+        elif acc_type == "SAVINGS":
+            target_cat = "SAVINGS"
+        elif acc_type in ("CHECKING", "CREDIT_CARD"):
+            target_cat = "TRANSFER"
+        else:
+            return 0
+
+        if not clean_num and not label_lower:
+            return 0
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, description, counterparty_name, counterparty_iban, user_override FROM transactions"
+            )
+            rows = cursor.fetchall()
+            matching_ids: list[str] = []
+            for r in rows:
+                if r["user_override"]:
+                    continue
+                iban_clean = "".join(
+                    ch for ch in (r["counterparty_iban"] or "").upper() if ch.isalnum()
+                )
+                desc_clean = "".join(ch for ch in (r["description"] or "").upper() if ch.isalnum())
+                name_clean = "".join(
+                    ch for ch in (r["counterparty_name"] or "").upper() if ch.isalnum()
+                )
+                name_low = (r["counterparty_name"] or "").lower()
+                desc_low = (r["description"] or "").lower()
+
+                matched = False
+                if (
+                    clean_num
+                    and (
+                        clean_num in iban_clean
+                        or clean_num in desc_clean
+                        or clean_num in name_clean
+                    )
+                    or label_lower
+                    and (label_lower in name_low or label_lower in desc_low)
+                ):
+                    matched = True
+
+                if matched:
+                    matching_ids.append(r["id"])
+
+            if matching_ids:
+                placeholders = ",".join("?" for _ in matching_ids)
+                cursor.execute(
+                    f"UPDATE transactions SET category = ? WHERE id IN ({placeholders})",
+                    [target_cat, *matching_ids],
+                )
+                conn.commit()
+            return len(matching_ids)
 
     def save_discovered_assets(self, assets: list[Asset], source: str = "kbc_csv") -> None:
         """Upserts discovered assets into the database."""
@@ -544,26 +612,69 @@ class LocalDbRepository:
                 fixed_costs=Money(Decimal("1200.00")),
                 debt_payments=Money(total_debt_payment),
                 living_expenses=Money(Decimal("800.00")),
+                investments_and_savings=Money(Decimal("0.00")),
+                months_analyzed=0,
+                is_default_estimate=True,
             )
 
-        inflows = [t.amount.amount for t in txs if t.is_inflow]
-        total_income = sum(inflows, Decimal("0.00"))
-
+        distinct_months = len({t.date[:7] for t in txs if t.date and len(t.date) >= 7}) or 1
         distinct_income_months = (
             len({t.date[:7] for t in txs if t.is_inflow and t.amount.amount > Decimal("100.0")})
-            or 1
+            or distinct_months
         )
-        avg_monthly_income = (total_income / Decimal(str(distinct_income_months))).quantize(
-            Decimal("0.01")
-        )
+        months_div = Decimal(str(distinct_months))
+        income_months_div = Decimal(str(distinct_income_months))
 
-        total_debt_payment = sum((liab.monthly_payment.amount for liab in liabs), Decimal("0.00"))
+        inflows = [
+            t.amount.amount
+            for t in txs
+            if t.is_inflow and (t.category or "").upper() not in ("TRANSFER", "SAVINGS")
+        ]
+        total_income = sum(inflows, Decimal("0.00"))
+        avg_monthly_income = (total_income / income_months_div).quantize(Decimal("0.01"))
 
+        fixed_cats = {"INSURANCE", "UTILITIES", "TAX", "SUBSCRIPTION"}
+        debt_cats = {"MORTGAGE", "DEBT_REPAYMENT"}
+        living_cats = {"GROCERIES", "LIVING_EXPENSES", "LEISURE", "TRANSPORT", "OTHER"}
+        invest_sav_cats = {"INVESTMENTS", "SAVINGS"}
+
+        total_fixed = Decimal("0.00")
+        total_debt_tx = Decimal("0.00")
+        total_living = Decimal("0.00")
+        total_invest_sav = Decimal("0.00")
+
+        for t in txs:
+            if not t.is_outflow:
+                continue
+            amt = abs(t.amount.amount)
+            cat = (t.category or "OTHER").upper()
+            if cat in fixed_cats:
+                total_fixed += amt
+            elif cat in debt_cats:
+                total_debt_tx += amt
+            elif cat in living_cats:
+                total_living += amt
+            elif cat in invest_sav_cats:
+                total_invest_sav += amt
+
+        avg_fixed = (total_fixed / months_div).quantize(Decimal("0.01"))
+        avg_living = (total_living / months_div).quantize(Decimal("0.01"))
+        avg_debt_tx = (total_debt_tx / months_div).quantize(Decimal("0.01"))
+        avg_invest_sav = (total_invest_sav / months_div).quantize(Decimal("0.01"))
+
+        liab_debt_payment = sum((liab.monthly_payment.amount for liab in liabs), Decimal("0.00"))
+        effective_debt_payment = max(avg_debt_tx, liab_debt_payment)
+
+        # If transactions only contain income/debt without any categorized fixed or living rows yet,
+        # keep actual zero or observed values accurately.
         return MonthlyCashflow(
             monthly_income=Money(avg_monthly_income),
-            fixed_costs=Money(Decimal("1200.00")),
-            debt_payments=Money(total_debt_payment),
-            living_expenses=Money(Decimal("800.00")),
+            fixed_costs=Money(avg_fixed),
+            debt_payments=Money(effective_debt_payment),
+            living_expenses=Money(avg_living),
+            investments_and_savings=Money(avg_invest_sav),
+            months_analyzed=distinct_months,
+            is_default_estimate=False,
         )
 
     def get_oldest_transaction_date(self) -> str | None:

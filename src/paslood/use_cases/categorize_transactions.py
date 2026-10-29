@@ -14,16 +14,35 @@ if TYPE_CHECKING:
 DEFAULT_PATTERNS = [
     (r"WONINGKREDIET|HYPOTHEEK|MORTGAGE", TransactionCategory.MORTGAGE.value),
     (r"FLEX BUDGET|CONSUMER|KREDIET", TransactionCategory.DEBT_REPAYMENT.value),
-    (r"VERZEKERING|ASSURANCE|SCHULDSALDO|POLIS", TransactionCategory.INSURANCE.value),
     (
-        r"ALDI|LIDL|JUMBO|DELHAIZE|COLRUYT|CARREFOUR|ALBERT HEIJN",
+        r"VERZEKERING|ASSURANCE|SCHULDSALDO|\bPOLIS\b|AG INSURANCE|BALOISE|ETHIAS|DKV",
+        TransactionCategory.INSURANCE.value,
+    ),
+    (
+        r"FOD FINANCIEN|BELASTING|VLAAMSE BELASTINGDIENST|TAX|GEMEENTEBELASTING|VERKEERSBELASTING|MYMINFIN|ONROERENDE VOORHEFFING",
+        TransactionCategory.TAX.value,
+    ),
+    (
+        r"ENGIE|ELECTRABEL|LUMINUS|ENECO|MEGA|PIDPA|DE WATERGROEP|FARYS|TELENET|PROXIMUS|MOBILE VIKINGS|ORANGE|DIGI|SCARLET|ELEKTRICITEIT|WATERFACTUUR",
+        TransactionCategory.UTILITIES.value,
+    ),
+    (
+        r"ALDI|LIDL|JUMBO|DELHAIZE|COLRUYT|CARREFOUR|ALBERT HEIJN|SPAR|OKAY|BIO-PLANET",
         TransactionCategory.GROCERIES.value,
     ),
     (
-        r"BASIC-FIT|NETFLIX|SPOTIFY|APPLE|GOOGLE|AMAZON PRIME",
+        r"BASIC-FIT|NETFLIX|SPOTIFY|APPLE|GOOGLE|AMAZON PRIME|DISNEY\+|YOUTUBE|OPENAI|CHATGPT",
         TransactionCategory.SUBSCRIPTION.value,
     ),
-    (r"SALARY|LOON|WEDDE|PAYROLL|WAGE|EMPLOYER", TransactionCategory.INCOME.value),
+    (
+        r"RESTAURANT|CAFE|BRASSERIE|BISTRO|CINEMA|KINEPOLIS|BOOKING\.COM|AIRBNB|HORECA|TAKEAWAY|UBER EATS|DELIVEROO|DECATHLON|ZOO|PRETPARK",
+        TransactionCategory.LEISURE.value,
+    ),
+    (
+        r"NMBS|SNCB|DE LIJN|STIB|MIVB|TOTALENERGIES|Q8|SHELL|ESSO|TEXACO|DATS 24|FASTNED|ALLEGO|PARKING|4411|BEPARK|TANKSTATION|GARAGE",
+        TransactionCategory.TRANSPORT.value,
+    ),
+    (r"SALARY|LOON|WEDDE|PAYROLL|WAGE|EMPLOYER|SALARIS", TransactionCategory.INCOME.value),
     (
         r"SAXO|DEGIRO|BOLERO|INTERACTIVE BROKERS|TRADE REPUBLIC|BROKER",
         TransactionCategory.INVESTMENTS.value,
@@ -87,6 +106,7 @@ class CategorizeTransactionsUseCase:
             if not matched_category and cleaned_accounts:
                 tx_desc_clean = re.sub(r"[^A-Za-z0-9]", "", tx.description or "").upper()
                 tx_iban_clean = re.sub(r"[^A-Za-z0-9]", "", tx.counterparty_iban or "").upper()
+                tx_name_clean = re.sub(r"[^A-Za-z0-9]", "", tx.counterparty_name or "").upper()
                 tx_name_lower = (tx.counterparty_name or "").lower()
                 tx_desc_lower = (tx.description or "").lower()
 
@@ -94,7 +114,11 @@ class CategorizeTransactionsUseCase:
                     matched = False
                     if (
                         clean_num
-                        and (clean_num in tx_iban_clean or clean_num in tx_desc_clean)
+                        and (
+                            clean_num in tx_iban_clean
+                            or clean_num in tx_desc_clean
+                            or clean_num in tx_name_clean
+                        )
                         or label_lower
                         and (label_lower in tx_name_lower or label_lower in tx_desc_lower)
                     ):
@@ -105,7 +129,7 @@ class CategorizeTransactionsUseCase:
                             matched_category = TransactionCategory.INVESTMENTS.value
                         elif acc_type == "SAVINGS":
                             matched_category = TransactionCategory.SAVINGS.value
-                        elif acc_type == "CHECKING":
+                        elif acc_type in ("CHECKING", "CREDIT_CARD"):
                             matched_category = TransactionCategory.TRANSFER.value
                         break
 

@@ -18,6 +18,7 @@ function renderDashboard(data) {
     ? I18N.t('dashboard.liquid_assets_count', { count: data.asset_count, _fallback: `Liquid assets (${data.asset_count} total in portfolio)` })
     : I18N.t('dashboard.across_assets_count', { count: data.asset_count, _fallback: `Across ${data.asset_count} assets & cash` });
 
+  renderCashflowBreakdownWidget(data.cashflow_breakdown || null, fc);
   renderDonutChart(data.allocations || []);
   renderProjectionChart(data.trajectory || []);
 
@@ -46,6 +47,48 @@ function renderDashboard(data) {
   document.getElementById('advice-count-badge').textContent = advices.length === 1
     ? I18N.t('dashboard.recommendation_count_one', { count: 1, _fallback: '1 Recommendation' })
     : I18N.t('dashboard.recommendation_count_many', { count: advices.length, _fallback: `${advices.length} Recommendations` });
+}
+
+function renderCashflowBreakdownWidget(cb, fallbackSurplus = 0) {
+  const container = document.getElementById('kpi-cashflow-formula');
+  if (!container) return;
+  if (!cb) {
+    container.innerHTML = `<div class="text-slate-400">Income − (Fixed + Debt + Living) = ${escapeHtml(I18N.formatCurrency(fallbackSurplus, 'EUR'))}</div>`;
+    return;
+  }
+  const inc = I18N.formatCurrency(cb.monthly_income || 0, 'EUR');
+  const fix = I18N.formatCurrency(cb.fixed_costs || 0, 'EUR');
+  const debt = I18N.formatCurrency(cb.debt_payments || 0, 'EUR');
+  const liv = I18N.formatCurrency(cb.living_expenses || 0, 'EUR');
+  const free = I18N.formatCurrency(cb.free_cashflow !== undefined ? cb.free_cashflow : fallbackSurplus, 'EUR');
+  const sourceNote = cb.is_default_estimate
+    ? 'Baseline estimate (import CSV statements in Cashflow for actuals)'
+    : `Avg across ${cb.months_analyzed || 1} month(s) of statements`;
+
+  container.innerHTML = `
+    <div class="text-[10px] text-slate-300 font-sans font-medium" title="${escapeHtml(cb.formula || '')}">
+      <span class="text-emerald-400 font-mono">${escapeHtml(inc)}</span> Inc
+      − (<span class="text-purple-300 font-mono">${escapeHtml(fix)}</span> Fix
+      + <span class="text-rose-400 font-mono">${escapeHtml(debt)}</span> Debt
+      + <span class="text-amber-300 font-mono">${escapeHtml(liv)}</span> Liv)
+      = <span class="text-emerald-400 font-mono font-bold">${escapeHtml(free)}</span>
+    </div>
+    <div id="kpi-cashflow-detail-rows" class="hidden pt-1.5 mt-1 border-t border-slate-800/80 space-y-0.5 text-[10px]">
+      <div class="flex justify-between"><span>+ Avg Monthly Income:</span><span class="text-emerald-400">${escapeHtml(inc)}</span></div>
+      <div class="flex justify-between"><span>− Fixed (Tax, Utilities, Ins., Subs):</span><span class="text-slate-300">${escapeHtml(fix)}</span></div>
+      <div class="flex justify-between"><span>− Debt &amp; Mortgage Payments:</span><span class="text-rose-400">${escapeHtml(debt)}</span></div>
+      <div class="flex justify-between"><span>− Living (Groceries, Leisure, Transp.):</span><span class="text-amber-300">${escapeHtml(liv)}</span></div>
+      <div class="flex justify-between font-bold border-t border-slate-800 pt-0.5"><span>= Free Monthly Cashflow:</span><span class="text-emerald-400">${escapeHtml(free)}</span></div>
+      <div class="text-[9px] text-slate-500 font-sans italic pt-0.5">${escapeHtml(sourceNote)}</div>
+    </div>
+  `;
+}
+
+function toggleCashflowFormulaBreakdown() {
+  const detail = document.getElementById('kpi-cashflow-detail-rows');
+  if (detail) {
+    detail.classList.toggle('hidden');
+  }
 }
 
 function renderDonutChart(allocations) {

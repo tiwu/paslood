@@ -104,3 +104,55 @@ async def test_rebucket_endpoint_retroactive_application(tmp_path: Path) -> None
     txs = {t.id: t for t in db.get_transactions()}
     assert txs["tx-1" if "tx-1" in txs else "tx-cc-1"].category == "LIVING_EXPENSES"
     assert txs["tx-2" if "tx-2" in txs else "tx-cc-2"].category == "LIVING_EXPENSES"
+
+
+@pytest.mark.asyncio
+async def test_rebucket_applies_to_other_matching_rows_even_without_remember_rule_or_with_prior_override(
+    tmp_path: Path,
+) -> None:
+    """When an expense is categorized, the classification is applied to the target row AND other matching rows."""
+    config_file = tmp_path / "portfolio.yaml"
+    db_file = tmp_path / "paslood.db"
+    repo = ConfigRepository(config_path=config_file)
+    db = LocalDbRepository(db_path=db_file)
+
+    tx1 = Transaction(
+        id="tx-u-1",
+        date="2026-04-01",
+        amount=Money(Decimal("-85.00")),
+        account_id="BE90735017192832",
+        description="DOMICILIERING TELENET NV",
+        counterparty_name="TELENET",
+        category="OTHER",
+    )
+    tx2 = Transaction(
+        id="tx-u-2",
+        date="2026-05-01",
+        amount=Money(Decimal("-85.00")),
+        account_id="BE90735017192832",
+        description="DOMICILIERING TELENET NV",
+        counterparty_name="TELENET",
+        category="LIVING_EXPENSES",
+    )
+    db.save_transactions([tx1, tx2], source="kbc_csv")
+    # Even if tx1 was previously touched, re-categorizing it should update both rows
+    db.update_transaction_category("tx-u-1", "LIVING_EXPENSES")
+
+    app = create_app(config_repo=repo, local_db=db)
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        res = await client.post(
+            "/api/transactions/rebucket",
+            json={
+                "transaction_id": "tx-u-1",
+                "target_category": "UTILITIES",
+                "counterparty_name": "TELENET",
+                "remember_rule": False,
+            },
+        )
+        assert res.status_code == 200
+        assert res.json()["updated_historical_count"] == 2
+
+    txs = {t.id: t for t in db.get_transactions()}
+    assert txs["tx-u-1"].category == "UTILITIES"
+    assert txs["tx-u-2"].category == "UTILITIES"

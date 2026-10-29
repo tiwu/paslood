@@ -687,6 +687,7 @@ async def list_known_accounts(repo: ConfigRepository = Depends(get_repo)):
 async def create_or_update_known_account(
     req: KnownAccountRequest,
     repo: ConfigRepository = Depends(get_repo),
+    db: LocalDbRepository = Depends(get_db),
 ):
     acc_id = req.id or f"acc-{uuid.uuid4().hex[:8]}"
     account = KnownAccount(
@@ -697,8 +698,47 @@ async def create_or_update_known_account(
         institution=req.institution.strip(),
     )
     repo.save_known_account(account)
+    updated_txs = db.apply_known_account_to_transactions(
+        account_number=account.account_number,
+        label=account.label,
+        account_type=account.account_type,
+    )
     return {
         "status": "success",
+        "updated_transactions_count": updated_txs,
+        "account": {
+            "id": account.id,
+            "account_number": account.account_number,
+            "label": account.label,
+            "account_type": account.account_type,
+            "institution": account.institution,
+        },
+    }
+
+
+@router.put("/api/accounts/known/{account_id}")
+async def update_known_account_endpoint(
+    account_id: str,
+    req: KnownAccountRequest,
+    repo: ConfigRepository = Depends(get_repo),
+    db: LocalDbRepository = Depends(get_db),
+):
+    account = KnownAccount(
+        id=account_id,
+        account_number=req.account_number.strip(),
+        label=req.label.strip(),
+        account_type=req.account_type.upper().strip(),
+        institution=req.institution.strip(),
+    )
+    repo.save_known_account(account)
+    updated_txs = db.apply_known_account_to_transactions(
+        account_number=account.account_number,
+        label=account.label,
+        account_type=account.account_type,
+    )
+    return {
+        "status": "success",
+        "updated_transactions_count": updated_txs,
         "account": {
             "id": account.id,
             "account_number": account.account_number,
@@ -725,11 +765,15 @@ async def list_discovered_accounts(
 ):
     discovered = db.get_discovered_account_summaries()
     known = repo.load_known_accounts()
-    clean_known = {k.account_number.replace(" ", "").upper(): k for k in known if k.account_number}
+    clean_known = {
+        "".join(ch for ch in k.account_number.upper() if ch.isalnum()): k
+        for k in known
+        if k.account_number
+    }
 
     results = []
     for d in discovered:
-        clean_acc = d["account_id"].replace(" ", "").upper()
+        clean_acc = "".join(ch for ch in d["account_id"].upper() if ch.isalnum())
         match = clean_known.get(clean_acc)
         results.append(
             {
@@ -738,6 +782,7 @@ async def list_discovered_accounts(
                 "transaction_count": d["transaction_count"],
                 "has_cash_asset": d["has_cash_asset"],
                 "is_known": match is not None,
+                "known_id": match.id if match else None,
                 "known_label": match.label if match else None,
                 "known_type": match.account_type if match else None,
             }

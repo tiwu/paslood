@@ -55,6 +55,14 @@ function getCategoryBadgeClasses(cat) {
       return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25';
     case 'GROCERIES':
       return 'bg-lime-500/15 text-lime-300 border-lime-500/30 hover:bg-lime-500/25';
+    case 'LEISURE':
+      return 'bg-pink-500/15 text-pink-300 border-pink-500/30 hover:bg-pink-500/25';
+    case 'TRANSPORT':
+      return 'bg-sky-500/15 text-sky-300 border-sky-500/30 hover:bg-sky-500/25';
+    case 'UTILITIES':
+      return 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25';
+    case 'TAX':
+      return 'bg-red-500/15 text-red-300 border-red-500/30 hover:bg-red-500/25';
     case 'HOUSING':
     case 'MORTGAGE':
       return 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25';
@@ -115,16 +123,22 @@ function goToTxPage(action) {
 }
 
 function getFilteredTransactions(allTxs) {
+  const cleanFilterAcc = txAccountFilter === 'ALL' ? 'ALL' : String(txAccountFilter).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
   return allTxs.filter(tx => {
     if (txCategoryFilter !== 'ALL' && String(tx.category || '').toUpperCase() !== txCategoryFilter) {
       return false;
     }
-    if (txAccountFilter !== 'ALL' && String(tx.account_id || '') !== txAccountFilter) {
-      return false;
+    if (cleanFilterAcc !== 'ALL') {
+      const cleanTxAcc = String(tx.account_id || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      if (cleanTxAcc !== cleanFilterAcc) {
+        return false;
+      }
     }
     if (txSearchQuery) {
-      const matchText = `${tx.description || ''} ${tx.counterparty_name || ''} ${tx.account_id || ''} ${tx.amount_formatted || ''}`.toLowerCase();
-      if (!matchText.includes(txSearchQuery)) return false;
+      const matchText = `${tx.description || ''} ${tx.counterparty_name || ''} ${tx.counterparty_iban || ''} ${tx.account_id || ''} ${tx.amount_formatted || ''}`.toLowerCase();
+      const cleanSearch = txSearchQuery.replace(/\s+/g, '');
+      const cleanMatchText = matchText.replace(/\s+/g, '');
+      if (!matchText.includes(txSearchQuery) && !cleanMatchText.includes(cleanSearch)) return false;
     }
     return true;
   });
@@ -135,7 +149,16 @@ function populateAccountFilter(txs) {
   if (!select) return;
 
   const currentVal = txAccountFilter;
-  const accounts = Array.from(new Set(txs.map(t => (t.account_id || '').trim()).filter(Boolean))).sort();
+  const seenClean = new Map();
+  txs.forEach(t => {
+    const raw = (t.account_id || '').trim();
+    if (!raw) return;
+    const clean = raw.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (clean && !seenClean.has(clean)) {
+      seenClean.set(clean, raw);
+    }
+  });
+  const accounts = Array.from(seenClean.values()).sort();
 
   select.innerHTML = '<option value="ALL">All Accounts (KBC &amp; Bunq)</option>';
   accounts.forEach(acc => {
@@ -143,12 +166,15 @@ function populateAccountFilter(txs) {
     const opt = document.createElement('option');
     opt.value = acc;
     opt.textContent = `${badge.label} (${acc})`;
-    if (acc === currentVal) opt.selected = true;
+    if (acc === currentVal || acc.replace(/[^A-Za-z0-9]/g, '').toUpperCase() === String(currentVal).replace(/[^A-Za-z0-9]/g, '').toUpperCase()) {
+      opt.selected = true;
+    }
     select.appendChild(opt);
   });
 }
 
 function renderTransactions(data) {
+  renderCashflowAnalytics(data);
   const tbody = document.getElementById('tx-table-body');
   if (!tbody) return;
   tbody.innerHTML = '';
@@ -818,4 +844,169 @@ async function deleteManualLiability(liabId) {
   } catch (err) {
     console.error('Failed to delete liability:', err);
   }
+}
+
+let monthlySpendingChartInstance = null;
+
+function renderCashflowAnalytics(data) {
+  const analytics = data?.cashflow_analytics;
+  renderCashflowSankey(analytics?.sankey || null, data?.cashflow_breakdown || null);
+  renderMonthlySpendingAndSavings(analytics || null);
+}
+
+function renderCashflowSankey(sankeyData, breakdown) {
+  const container = document.getElementById('cashflow-sankey-container');
+  if (!container) return;
+
+  const income = sankeyData?.monthly_income || breakdown?.monthly_income || 0;
+  const links = (sankeyData?.links || []).filter(l => (l.value || 0) > 0);
+
+  if (income <= 0 && links.length === 0) {
+    container.innerHTML = `<div class="text-xs text-slate-500 text-center py-6">Import a bank statement CSV above to visualize your Income → Investments &amp; Payments Sankey flow.</div>`;
+    return;
+  }
+
+  const totalOut = links.reduce((s, l) => s + (l.value || 0), 0);
+  const maxTotal = Math.max(income, totalOut, 1);
+
+  const svgW = 540;
+  const svgH = 220;
+  const leftX = 20;
+  const leftW = 18;
+  const rightX = 340;
+  const rightW = 16;
+  const availH = 160;
+  const startY = 30;
+
+  const incBarH = Math.max(24, (income / maxTotal) * availH);
+  const incY = startY + (availH - incBarH) / 2;
+
+  let curLeftOffset = incY;
+  const gap = links.length > 1 ? Math.min(12, 48 / (links.length - 1)) : 0;
+  const totalBarsH = availH - gap * Math.max(0, links.length - 1);
+  let curRightY = startY;
+
+  let pathsHtml = '';
+  let rightNodesHtml = '';
+
+  links.forEach((link) => {
+    const weight = (link.value || 0) / Math.max(totalOut, maxTotal);
+    const barH = Math.max(10, weight * totalBarsH);
+    const strokeW = Math.max(6, (link.value / maxTotal) * incBarH);
+
+    const y1 = curLeftOffset + strokeW / 2;
+    curLeftOffset += strokeW;
+
+    const y2 = curRightY + barH / 2;
+    const cX1 = leftX + leftW + (rightX - (leftX + leftW)) * 0.45;
+    const cX2 = leftX + leftW + (rightX - (leftX + leftW)) * 0.55;
+    const color = escapeHtml(link.color || '#3B82F6');
+    const formattedVal = escapeHtml(I18N.formatCurrency(link.value, 'EUR'));
+    const pct = income > 0 ? Math.round((link.value / income) * 100) : 0;
+
+    pathsHtml += `
+      <path d="M ${leftX + leftW} ${y1.toFixed(1)} C ${cX1.toFixed(1)} ${y1.toFixed(1)}, ${cX2.toFixed(1)} ${y2.toFixed(1)}, ${rightX} ${y2.toFixed(1)}"
+            fill="none" stroke="${color}" stroke-width="${Math.max(4, strokeW).toFixed(1)}" stroke-opacity="0.45" />
+    `;
+
+    rightNodesHtml += `
+      <rect x="${rightX}" y="${curRightY.toFixed(1)}" width="${rightW}" height="${barH.toFixed(1)}" rx="3" fill="${color}" />
+      <text x="${rightX + rightW + 8}" y="${(curRightY + barH / 2 - 2).toFixed(1)}" fill="#f8fafc" font-size="11" font-weight="600">${escapeHtml(link.target)}</text>
+      <text x="${rightX + rightW + 8}" y="${(curRightY + barH / 2 + 11).toFixed(1)}" fill="#94a3b8" font-size="10" font-family="monospace">${formattedVal}/mo (${pct}%)</text>
+    `;
+
+    curRightY += barH + gap;
+  });
+
+  const incFormatted = escapeHtml(I18N.formatCurrency(income, 'EUR'));
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full h-auto max-h-[230px]" role="img" aria-label="Monthly Cashflow Sankey Diagram">
+      ${pathsHtml}
+      <rect x="${leftX}" y="${incY.toFixed(1)}" width="${leftW}" height="${incBarH.toFixed(1)}" rx="4" fill="#10B981" />
+      <text x="${leftX}" y="${Math.max(14, incY - 14).toFixed(1)}" fill="#f8fafc" font-size="11" font-weight="700">Monthly Income</text>
+      <text x="${leftX}" y="${Math.max(25, incY - 3).toFixed(1)}" fill="#34d399" font-size="11" font-family="monospace" font-weight="600">${incFormatted}/mo</text>
+      ${rightNodesHtml}
+    </svg>
+  `;
+}
+
+function renderMonthlySpendingAndSavings(analytics) {
+  const oppContainer = document.getElementById('savings-opportunities-container');
+  const canvas = document.getElementById('monthlySpendingChart');
+
+  const monthlyData = analytics?.monthly_spending || [];
+  const opportunities = analytics?.savings_opportunities || [];
+
+  if (canvas && typeof Chart !== 'undefined') {
+    const ctx = canvas.getContext('2d');
+    if (monthlySpendingChartInstance) monthlySpendingChartInstance.destroy();
+
+    if (monthlyData.length > 0) {
+      const labels = monthlyData.map(m => m.month);
+      const catColors = {
+        MORTGAGE: '#6366F1',
+        DEBT_REPAYMENT: '#F43F5E',
+        UTILITIES: '#F59E0B',
+        TAX: '#EF4444',
+        INSURANCE: '#A855F7',
+        GROCERIES: '#84CC16',
+        LEISURE: '#EC4899',
+        TRANSPORT: '#0EA5E9',
+        SUBSCRIPTION: '#D946EF',
+        LIVING_EXPENSES: '#F97316',
+        OTHER: '#64748B',
+      };
+
+      const allCats = Array.from(
+        new Set(monthlyData.flatMap(m => Object.keys(m.categories || {})))
+      );
+
+      const datasets = allCats.map(cat => ({
+        label: cat,
+        data: monthlyData.map(m => (m.categories && m.categories[cat]) ? m.categories[cat] : 0),
+        backgroundColor: catColors[cat] || '#3B82F6',
+        borderRadius: 3,
+      }));
+
+      monthlySpendingChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } },
+          },
+          scales: {
+            x: { stacked: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+            y: { stacked: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+          },
+        },
+      });
+    }
+  }
+
+  if (!oppContainer) return;
+  if (opportunities.length === 0) {
+    oppContainer.innerHTML = `<div class="text-[11px] text-slate-500 italic">Categorize your monthly expenses (Leisure, Subscriptions, Groceries, Transport, Utilities) to unlock targeted savings recommendations.</div>`;
+    return;
+  }
+
+  oppContainer.innerHTML = `
+    <div class="text-[11px] font-semibold text-slate-300 pb-0.5">💡 Top Monthly Savings Opportunities:</div>
+    ${opportunities.slice(0, 3).map(opp => `
+      <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px]">
+        <div class="min-w-0 pr-2">
+          <span class="font-semibold text-white">${escapeHtml(opp.label)}</span>
+          <span class="text-slate-400 ml-1">(${escapeHtml(I18N.formatCurrency(opp.monthly_avg, 'EUR'))}/mo)</span>
+          <div class="text-[10px] text-slate-400 truncate">${escapeHtml(opp.tip)}</div>
+        </div>
+        <div class="text-right shrink-0 font-mono">
+          <div class="text-emerald-400 font-bold">+${escapeHtml(I18N.formatCurrency(opp.potential_monthly_savings, 'EUR'))}/mo</div>
+          <div class="text-[9px] text-slate-500">${escapeHtml(I18N.formatCurrency(opp.annual_impact, 'EUR'))}/yr</div>
+        </div>
+      </div>
+    `).join('')}
+  `;
 }

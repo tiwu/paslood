@@ -194,9 +194,15 @@
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm">
-          <div data-i18n="dashboard.kpi_monthly_cashflow" class="text-xs font-medium text-slate-400">Monthly Free Cashflow</div>
+          <div class="flex items-center justify-between">
+            <div data-i18n="dashboard.kpi_monthly_cashflow" class="text-xs font-medium text-slate-400">Monthly Free Cashflow</div>
+            <button type="button" onclick="toggleCashflowFormulaBreakdown()" class="text-[10px] text-blue-400 hover:text-blue-300 font-medium underline" title="Show how Monthly Free Cashflow is calculated">How calculated?</button>
+          </div>
           <div id="kpi-surplus" class="text-2xl font-bold text-emerald-400 mt-1">€ 0,00</div>
           <div id="kpi-savings-rate" data-i18n="dashboard.kpi_savings_rate_default" class="text-xs text-slate-500 mt-1">Available for allocation</div>
+          <div id="kpi-cashflow-formula" class="mt-2 pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 font-mono space-y-1">
+            <!-- Populated dynamically with Income - Fixed - Debt - Living = Free Cashflow -->
+          </div>
         </div>
       </div>
 
@@ -874,6 +880,38 @@
         <div id="upload-status" class="hidden text-xs py-2 px-3 rounded-lg"></div>
       </div>
 
+      <!-- Cashflow Visualizations: Sankey Flow Diagram & Monthly Spending / Savings Potential -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Sankey Diagram: Income vs Investments & Payments Flow -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm flex flex-col space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-white">🌊 Monthly Cashflow Sankey — Income vs. Investments &amp; Outflows</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Proportional flow from average monthly income to wealth building, debt servicing, and expenses.</p>
+            </div>
+          </div>
+          <div id="cashflow-sankey-container" class="flex-1 min-h-[240px] flex items-center justify-center bg-slate-950/60 border border-slate-800/80 rounded-lg p-3 overflow-x-auto">
+            <!-- Populated dynamically with SVG Sankey diagram -->
+          </div>
+        </div>
+
+        <!-- Monthly Spending Breakdown & Where Savings Can Be Made -->
+        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl shadow-sm flex flex-col space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-white">📊 Monthly Spending &amp; Savings Opportunities</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Where money is spent each month by category and actionable areas to boost investable surplus.</p>
+            </div>
+          </div>
+          <div class="relative h-48 bg-slate-950/60 border border-slate-800/80 rounded-lg p-2">
+            <canvas id="monthlySpendingChart"></canvas>
+          </div>
+          <div id="savings-opportunities-container" class="space-y-1.5 pt-1">
+            <!-- Populated dynamically with actionable savings insights -->
+          </div>
+        </div>
+      </div>
+
       <!-- Transactions & Interactive Re-Bucketing -->
       <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm space-y-3 p-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -894,12 +932,17 @@
               <option value="ALL">All Categories / Buckets</option>
               <option value="GROCERIES">Groceries / Supermarket</option>
               <option value="LIVING_EXPENSES">Living Expenses</option>
+              <option value="LEISURE">Leisure, Dining &amp; Entertainment</option>
+              <option value="TRANSPORT">Transport, Fuel &amp; Mobility</option>
+              <option value="UTILITIES">Utilities (Energy, Water, Telecom)</option>
+              <option value="TAX">Taxes &amp; Fiscal</option>
               <option value="MORTGAGE">Mortgage Servicing</option>
               <option value="DEBT_REPAYMENT">Debt Repayment</option>
               <option value="INSURANCE">Insurance</option>
               <option value="SUBSCRIPTION">Subscriptions</option>
               <option value="INVESTMENTS">Investments</option>
               <option value="SAVINGS">Savings</option>
+              <option value="TRANSFER">Internal Transfer</option>
               <option value="INCOME">Income / Salary</option>
               <option value="OTHER">Other</option>
             </select>
@@ -1114,9 +1157,10 @@
           </div>
         </div>
 
-        <!-- Add Known Account Form -->
+        <!-- Add / Edit Known Account Form -->
         <div id="add-known-account-form" class="hidden bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-3 text-xs">
-          <div class="font-semibold text-white">Register Known Account</div>
+          <div id="known-acc-form-title" class="font-semibold text-white">Register Known Account</div>
+          <input type="hidden" id="new-known-acc-id" value="">
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
               <label class="block text-slate-400 mb-1">Account Number / IBAN</label>
@@ -1386,12 +1430,17 @@
         <select id="modal-category-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
           <option value="GROCERIES" data-i18n="modals.cat_groceries">Groceries / Supermarket</option>
           <option value="LIVING_EXPENSES" data-i18n="modals.cat_living">Living Expenses</option>
+          <option value="LEISURE" data-i18n="modals.cat_leisure">Leisure, Dining &amp; Entertainment</option>
+          <option value="TRANSPORT" data-i18n="modals.cat_transport">Transport, Fuel &amp; Mobility</option>
+          <option value="UTILITIES" data-i18n="modals.cat_utilities">Utilities (Energy, Water, Telecom)</option>
+          <option value="TAX" data-i18n="modals.cat_tax">Taxes &amp; Fiscal</option>
           <option value="MORTGAGE" data-i18n="modals.cat_mortgage">Mortgage Servicing</option>
           <option value="DEBT_REPAYMENT" data-i18n="modals.cat_debt">Debt Repayment</option>
           <option value="INSURANCE" data-i18n="modals.cat_insurance">Insurance</option>
           <option value="SUBSCRIPTION" data-i18n="modals.cat_subscription">Subscriptions</option>
           <option value="INVESTMENTS" data-i18n="modals.cat_investments">Investments (Brokerage Funding)</option>
           <option value="SAVINGS" data-i18n="modals.cat_savings">Savings (Bunq/Buffer)</option>
+          <option value="TRANSFER">Internal Transfer</option>
           <option value="INCOME" data-i18n="modals.cat_income">Income / Salary</option>
           <option value="OTHER" data-i18n="modals.cat_other">Other</option>
         </select>

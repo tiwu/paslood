@@ -55,6 +55,7 @@ class AssignAssetRequest(BaseModel):
     isin: str | None = None
     asset_id: str | None = None
     name: str | None = None
+    asset_name: str | None = None
 
 
 class ManualAssetRequest(BaseModel):
@@ -125,12 +126,17 @@ async def get_overview(
             "account_id": t.account_id,
             "description": t.description,
             "counterparty_name": t.counterparty_name,
+            "counterparty_iban": t.counterparty_iban,
             "amount_value": float(t.amount.amount),
             "amount_formatted": t.amount.format(),
             "category": t.category,
         }
         for t in txs
     ]
+    data["cashflow_analytics"] = BuildPortfolioOverviewUseCase.build_cashflow_analytics(
+        transactions=txs,
+        cashflow=bs.cashflow,
+    )
 
     known_accounts = repo.load_known_accounts()
     data["known_accounts"] = [
@@ -280,7 +286,7 @@ async def assign_asset_to_bucket(
         symbol=req.symbol,
         isin=req.isin,
         asset_id=req.asset_id,
-        name=req.name,
+        name=req.name or req.asset_name,
     )
     bs = get_consolidated_balance_sheet(repo, db)
     buckets = repo.load_buckets()

@@ -349,6 +349,8 @@ class ConfigRepository:
                 and bucket_data["include_in_net_worth"] is not None
             ):
                 existing["include_in_net_worth"] = bool(bucket_data["include_in_net_worth"])
+            if "rules" in bucket_data and bucket_data["rules"] is not None:
+                existing["rules"] = bucket_data["rules"]
         else:
             palette = [
                 "#3B82F6",
@@ -433,8 +435,16 @@ class ConfigRepository:
             "institution": account.institution,
         }
 
+        clean_target = "".join(ch for ch in account.account_number.upper() if ch.isalnum())
+
         for existing in raw_accounts:
-            if existing.get("id") == account.id:
+            existing_clean = "".join(
+                ch for ch in str(existing.get("account_number", "")).upper() if ch.isalnum()
+            )
+            if existing.get("id") == account.id or (
+                clean_target and existing_clean == clean_target
+            ):
+                acc_dict["id"] = account.id or existing.get("id")
                 new_list.append(acc_dict)
                 updated = True
             else:
@@ -829,15 +839,20 @@ class ConfigRepository:
         asset_id: str | None = None,
         name: str | None = None,
     ) -> None:
-        """Assigns an asset to a strategic bucket by updating symbol/isin mapping rules in portfolio.yaml."""
+        """Assigns an asset to a strategic bucket by updating symbol/isin/name mapping rules in portfolio.yaml."""
         with open(self.config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
 
         buckets = data.get("buckets", [])
-        target_sym = (symbol or "").strip()
+        raw_sym = (symbol or "").strip()
+        # Treat generic placeholder 'CASH' as non-unique symbol so individual cash/savings accounts map by name
+        target_sym = "" if raw_sym.upper() == "CASH" else raw_sym
         target_isin = (isin or "").strip()
+        target_name = (name or "").strip()
+        if not target_name and asset_id:
+            target_name = asset_id.strip()
 
-        # Remove matching symbol or ISIN from all buckets to avoid duplicate/conflicting classification
+        # Remove matching symbol, ISIN, or name_keywords from all buckets to avoid duplicate/conflicting classification
         for b in buckets:
             for rule in b.get("rules", []):
                 if target_sym and "symbols" in rule:
@@ -846,6 +861,28 @@ class ConfigRepository:
                     ]
                 if target_isin and "isins" in rule:
                     rule["isins"] = [i for i in rule["isins"] if i.upper() != target_isin.upper()]
+                if target_name and "name_keywords" in rule:
+                    rule["name_keywords"] = [
+                        k
+                        for k in rule["name_keywords"]
+                        if k.upper() != target_name.upper() and k.upper() not in target_name.upper()
+                    ]
+                # If unassigning or re-assigning a cash/savings account without ticker/ISIN, remove broad institution/CASH catch-alls from other buckets if they would shadow
+                if not target_sym and not target_isin and target_name and b.get("id") != bucket_id:
+                    if "institutions" in rule:
+                        rule["institutions"] = [
+                            inst
+                            for inst in rule["institutions"]
+                            if inst.upper() not in target_name.upper()
+                        ]
+                    if (
+                        bucket_id == "unassigned"
+                        and "asset_classes" in rule
+                        and "CASH" in rule["asset_classes"]
+                    ):
+                        rule["asset_classes"] = [
+                            ac for ac in rule["asset_classes"] if ac.upper() != "CASH"
+                        ]
 
         # Assign to the target bucket if bucket_id is not empty or "unassigned"
         if bucket_id and bucket_id != "unassigned":
@@ -863,10 +900,10 @@ class ConfigRepository:
                     isins = first_rule.setdefault("isins", [])
                     if target_isin not in isins:
                         isins.append(target_isin)
-                elif name:
+                elif target_name:
                     keywords = first_rule.setdefault("name_keywords", [])
-                    if name not in keywords:
-                        keywords.append(name)
+                    if target_name not in keywords:
+                        keywords.append(target_name)
 
         data["buckets"] = buckets
         self._write_yaml_atomic(self.config_path, data)
