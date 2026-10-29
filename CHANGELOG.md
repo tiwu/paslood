@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.16.0] - 2026-10-29
+
+### Added
 - **Company Name & Ticker Normalization for Historical Benchmark Lookup (#57)**:
   - Added `resolve_ticker_symbol()`, statutory Fotomoment (`2025-12-31`) closing reference prices in EUR for major global and Belgian securities (`NVDA`/`NVIDIA`, `ASML`, `VWCE`, `IWDA`, `EMIM`, `CSP1`, `SWRD`, `AAPL`, `MSFT`, `GOOGL`, `AMZN`, `META`, `TSLA`, `BRK-B`, `NOVO-B`, `ABI`, `KBC`, `ACKB`, `SOF`), and pre-2026 portfolio lot cost-basis fallback in `/api/tax/lookup-price`.
 
@@ -389,7 +399,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/tiwu/paslood/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/tiwu/paslood/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/tiwu/paslood/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/tiwu/paslood/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/tiwu/paslood/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/tiwu/paslood/compare/v0.12.0...v0.13.0
