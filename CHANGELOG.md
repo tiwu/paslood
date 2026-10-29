@@ -10,10 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Clean Architecture Boundary & Port Alignment (#47)**:
+  - Added `@runtime_checkable` `AIAdvisorPort` and `StatementGatewayPort` protocols in `src/paslood/use_cases/ports.py` and aligned `PortfolioRepository` and `TransactionRepository` method signatures with `ConfigRepository` and `LocalDbRepository`.
+  - Added `BalanceSheet.with_effective_assets(buckets, exclude_property)` in `src/paslood/domain/balance_sheet.py` and `BuildPortfolioOverviewUseCase.consolidate_balance_sheet(repo, db)` in `src/paslood/use_cases/build_overview.py` to centralize asset exclusion and balance sheet consolidation across Web and CLI.
+  - Added `IngestStatementUseCase` in `src/paslood/use_cases/ingest_statement.py` and `infer_institution_from_account()` in `src/paslood/domain/account.py`.
 
 ### Changed
+- **Use Case & Adapter Decoupling (#47)**:
+  - Removed direct adapter import (`paslood.adapters.ai.base`) and duplicate constants from `AdviseAiUseCase` (`src/paslood/use_cases/advise_ai.py`), exposing public `validate_question()` and `build_prompt()` methods.
+  - Simplified `/api/ingest/kbc` and `/api/ingest/bunq` in `src/paslood/delivery/web/routers/ingestion.py` to delegate to `IngestStatementUseCase` without mutating singleton gateway state.
+  - Relocated `AuthManager`, `hash_password`, and `verify_password` to `src/paslood/adapters/security/auth_manager.py` with backward-compatible re-exports in `src/paslood/delivery/web/auth.py`.
 
 ### Fixed
+- **Persistence & Precision Hygiene (#47)**:
+  - Injected `SecretVault` into `ConfigRepository` and implemented atomic YAML writes via `_write_yaml_atomic` (`tempfile` + `0o600` permissions + `os.replace`).
+  - Applied SQLite WAL pragmas directly on the primary connection in `LocalDbRepository._get_connection()`, eliminating redundant double connection opens per query.
+  - Updated `cli.py:advise` to include discovered assets and liabilities from `LocalDbRepository` and converted `enrich_liability_dict` in `src/paslood/delivery/web/helpers.py` to `Decimal` arithmetic.
 
 ---
 

@@ -19,7 +19,7 @@ from paslood.delivery.web.dependencies import (
     get_kbc_gateway,
     get_repo,
 )
-from paslood.use_cases.categorize_transactions import CategorizeTransactionsUseCase
+from paslood.use_cases.ingest_statement import IngestStatementUseCase
 
 router = APIRouter(tags=["ingestion"])
 
@@ -38,6 +38,7 @@ async def ingest_kbc_file(
     repo: ConfigRepository = Depends(get_repo),
     db: LocalDbRepository = Depends(get_db),
     kbc_gateway: BaseIngestionGateway = Depends(get_kbc_gateway),
+    bunq_gateway: BaseIngestionGateway = Depends(get_bunq_gateway),
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
@@ -49,75 +50,22 @@ async def ingest_kbc_file(
         tmp_path = Path(tmp.name)
 
     try:
-        rules = repo.load_transaction_rules()
-        known_accounts = repo.load_known_accounts()
-        kbc_gateway.categorizer = CategorizeTransactionsUseCase()
-
-        # Content-based auto-detection fallback
         sample = content[:2048].decode("utf-8", errors="replace").lower()
         if '"date"' in sample and '"amount"' in sample and '"account"' in sample:
-            from paslood.adapters.ingestion.bunq_csv import BunqCsvGateway
-
-            data = BunqCsvGateway(kbc_gateway.categorizer).parse_file(tmp_path)
-            cash_assets = data.get("discovered_cash_assets") or (
-                [data["cash_asset"]] if data.get("cash_asset") else []
-            )
+            gateway = bunq_gateway
             source = "bunq_csv"
         else:
-            data = kbc_gateway.parse_file(tmp_path)
-            cash_assets = [data["cash_asset"]] if data.get("cash_asset") else []
+            gateway = kbc_gateway
             source = "kbc_csv"
 
-        categorized_txs = kbc_gateway.categorizer.execute(
-            data["transactions"], rules, known_accounts=known_accounts
+        use_case = IngestStatementUseCase()
+        return use_case.execute(
+            file_path=tmp_path,
+            gateway=gateway,
+            repo=repo,
+            db=db,
+            source=source,
         )
-
-        inserted_txs = db.save_transactions(categorized_txs, source=source)
-        if cash_assets:
-            db.save_discovered_assets(cash_assets, source=source)
-        if data.get("discovered_liabilities"):
-            db.save_discovered_liabilities(data["discovered_liabilities"])
-
-        total_txs = len(db.get_transactions())
-
-        # Check for unmapped / unknown accounts
-        clean_known_set = {
-            k.account_number.replace(" ", "").upper() for k in known_accounts if k.account_number
-        }
-        all_account_numbers = set()
-        if data.get("account_number"):
-            all_account_numbers.add(data["account_number"])
-        for ca in cash_assets:
-            if ca.account_id:
-                all_account_numbers.add(ca.account_id)
-        for tx in categorized_txs:
-            if tx.account_id:
-                all_account_numbers.add(tx.account_id)
-
-        unregistered = []
-        for acc in sorted(all_account_numbers):
-            clean_acc = acc.replace(" ", "").upper()
-            if clean_acc and clean_acc not in clean_known_set:
-                inst = LocalDbRepository._infer_institution_from_account(acc)
-                unregistered.append(
-                    {
-                        "account_id": acc,
-                        "institution_hint": inst,
-                        "suggested_label": f"{inst} {acc[-4:]}" if len(acc) >= 4 else inst,
-                    }
-                )
-
-        return {
-            "status": "success",
-            "account_number": data["account_number"],
-            "latest_balance": data["latest_balance"].format(),
-            "transaction_count": len(categorized_txs),
-            "transactions_processed": len(categorized_txs),
-            "new_transactions": inserted_txs,
-            "total_cumulative_transactions": total_txs,
-            "discovered_liabilities_count": len(data["discovered_liabilities"]),
-            "unregistered_accounts": unregistered,
-        }
     finally:
         if tmp_path.exists():
             tmp_path.unlink()
@@ -140,61 +88,14 @@ async def ingest_bunq_file(
         tmp_path = Path(tmp.name)
 
     try:
-        rules = repo.load_transaction_rules()
-        known_accounts = repo.load_known_accounts()
-        bunq_gateway.categorizer = CategorizeTransactionsUseCase()
-        data = bunq_gateway.parse_file(tmp_path)
-
-        categorized_txs = bunq_gateway.categorizer.execute(
-            data["transactions"], rules, known_accounts=known_accounts
+        use_case = IngestStatementUseCase()
+        return use_case.execute(
+            file_path=tmp_path,
+            gateway=bunq_gateway,
+            repo=repo,
+            db=db,
+            source="bunq_csv",
         )
-
-        inserted_txs = db.save_transactions(categorized_txs, source="bunq_csv")
-        cash_assets = data.get("discovered_cash_assets") or (
-            [data["cash_asset"]] if data.get("cash_asset") else []
-        )
-        if cash_assets:
-            db.save_discovered_assets(cash_assets, source="bunq_csv")
-
-        total_txs = len(db.get_transactions())
-
-        # Check for unmapped / unknown accounts
-        clean_known_set = {
-            k.account_number.replace(" ", "").upper() for k in known_accounts if k.account_number
-        }
-        all_account_numbers = set()
-        if data.get("account_number"):
-            all_account_numbers.add(data["account_number"])
-        for ca in cash_assets:
-            if ca.account_id:
-                all_account_numbers.add(ca.account_id)
-        for tx in categorized_txs:
-            if tx.account_id:
-                all_account_numbers.add(tx.account_id)
-
-        unregistered = []
-        for acc in sorted(all_account_numbers):
-            clean_acc = acc.replace(" ", "").upper()
-            if clean_acc and clean_acc not in clean_known_set:
-                inst = LocalDbRepository._infer_institution_from_account(acc)
-                unregistered.append(
-                    {
-                        "account_id": acc,
-                        "institution_hint": inst,
-                        "suggested_label": f"{inst} {acc[-4:]}" if len(acc) >= 4 else inst,
-                    }
-                )
-
-        return {
-            "status": "success",
-            "account_number": data["account_number"],
-            "latest_balance": data["latest_balance"].format(),
-            "transaction_count": len(categorized_txs),
-            "transactions_processed": len(categorized_txs),
-            "new_transactions": inserted_txs,
-            "total_cumulative_transactions": total_txs,
-            "unregistered_accounts": unregistered,
-        }
     finally:
         if tmp_path.exists():
             tmp_path.unlink()

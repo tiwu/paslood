@@ -204,3 +204,64 @@ def test_transaction_entity():
     )
     assert tx_inc.is_inflow is True
     assert tx_inc.is_outflow is False
+
+
+def test_balance_sheet_with_effective_assets():
+    assets = [
+        Asset(
+            id="a_etf",
+            name="VWCE",
+            symbol="VWCE",
+            asset_class=AssetClass.ETF,
+            current_value=Money.from_val(50000.0),
+        ),
+        Asset(
+            id="a_house",
+            name="Primary Home",
+            symbol="HOME",
+            asset_class=AssetClass.REAL_ESTATE,
+            current_value=Money.from_val(400000.0),
+        ),
+        Asset(
+            id="a_car",
+            name="Family Car",
+            symbol="CAR",
+            asset_class=AssetClass.OTHER,
+            current_value=Money.from_val(25000.0),
+        ),
+    ]
+    buckets = [
+        Bucket(
+            id="b_etf",
+            name="ETFs",
+            target_weight_pct=Decimal("100.0"),
+            rules=[AllocationRule(symbols={"VWCE"})],
+            include_in_net_worth=True,
+        ),
+        Bucket(
+            id="b_dep",
+            name="Depreciating Assets",
+            target_weight_pct=Decimal("0.0"),
+            rules=[AllocationRule(symbols={"CAR"})],
+            include_in_net_worth=False,
+        ),
+    ]
+    bs = BalanceSheet(assets=assets, liabilities=[])
+
+    bs_all = bs.with_effective_assets(buckets=buckets, exclude_property=False)
+    assert len(bs_all.assets) == 3
+    assert bs_all.total_assets.amount == Decimal("475000.00")
+
+    bs_filtered = bs.with_effective_assets(buckets=buckets, exclude_property=True)
+    assert [a.id for a in bs_filtered.assets] == ["a_etf"]
+    assert bs_filtered.total_assets.amount == Decimal("50000.00")
+
+
+def test_infer_institution_from_account():
+    from paslood.domain.account import infer_institution_from_account
+
+    assert infer_institution_from_account("NL31 BUNQ 2093 8099 82") == "bunq"
+    assert infer_institution_from_account("BE68 7390 1234 5678") == "KBC"
+    assert infer_institution_from_account("5489 XXXX XXXX 1234") == "KBC"
+    assert infer_institution_from_account("517612345678") == "KBC"
+    assert infer_institution_from_account("DE89 3704 0044 0532 0130 00") == "Unknown"

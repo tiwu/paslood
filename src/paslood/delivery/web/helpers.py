@@ -9,10 +9,10 @@ from typing import Any
 import httpcore
 from httpcore._backends.auto import AutoBackend
 
-from paslood.domain.asset import Asset
 from paslood.domain.balance_sheet import BalanceSheet
 from paslood.domain.liability import Liability
 from paslood.domain.money import Money
+from paslood.use_cases.build_overview import BuildPortfolioOverviewUseCase
 from paslood.use_cases.ports import PortfolioRepository, TransactionRepository
 
 
@@ -68,62 +68,44 @@ def get_consolidated_balance_sheet(
     repo: PortfolioRepository, db: TransactionRepository
 ) -> BalanceSheet:
     """Builds the consolidated BalanceSheet from manual config and discovered items in SQLite."""
-    assets: list[Asset] = []
-    # Manual assets (e.g. Bunq savings, Real Estate)
-    manual_assets = repo.load_manual_assets()
-    assets.extend(manual_assets)
-    existing_asset_ids = {a.id for a in manual_assets}
-
-    # Cached discovered assets from SQLite DB (KBC CSV, PDT MCP)
-    for a in db.get_discovered_assets():
-        if a.id not in existing_asset_ids:
-            assets.append(a)
-            existing_asset_ids.add(a.id)
-
-    liabilities: list[Liability] = []
-    manual_liabs = repo.load_manual_liabilities()
-    liabilities.extend(manual_liabs)
-    existing_liab_ids = {liab.id for liab in manual_liabs}
-    existing_liab_refs = {liab.account_reference for liab in manual_liabs if liab.account_reference}
-
-    for liab in db.get_discovered_liabilities():
-        if liab.id not in existing_liab_ids and (
-            not liab.account_reference or liab.account_reference not in existing_liab_refs
-        ):
-            liabilities.append(liab)
-
-    cashflow = db.get_monthly_cashflow()
-
-    return BalanceSheet(assets=assets, liabilities=liabilities, cashflow=cashflow)
+    return BuildPortfolioOverviewUseCase.consolidate_balance_sheet(repo, db)
 
 
 def enrich_liability_dict(liab_dict: dict[str, Any]) -> dict[str, Any]:
-    """Applies amortization estimation to manual liability dict if fields are missing."""
-    cur = liab_dict.get("currency", "EUR")
-    bal_val = float(liab_dict.get("principal_balance", 0.0))
-    pmt_val = float(liab_dict.get("monthly_payment", 0.0))
-    rate_val = float(liab_dict.get("interest_rate_pct", 0.0))
-    start_cap = liab_dict.get("start_capital")
+    """Applies Decimal-accurate amortization estimation to manual liability dict if fields are missing."""
+    cur = str(liab_dict.get("currency", "EUR"))
+    bal = Money(Decimal(str(liab_dict.get("principal_balance", 0.0) or 0.0)), cur)
+    pmt = Money(Decimal(str(liab_dict.get("monthly_payment", 0.0) or 0.0)), cur)
+    rate = Decimal(str(liab_dict.get("interest_rate_pct", 0.0) or 0.0))
+    start_cap_raw = liab_dict.get("start_capital")
+    start_cap = Money(Decimal(str(start_cap_raw)), cur) if start_cap_raw is not None else None
     start_date = liab_dict.get("start_date")
     end_date = liab_dict.get("end_date")
     dur_months = liab_dict.get("duration_months")
-    pmt_pct = liab_dict.get("monthly_payment_pct")
+    pmt_pct_raw = liab_dict.get("monthly_payment_pct")
+    pmt_pct = Decimal(str(pmt_pct_raw)) if pmt_pct_raw is not None else None
 
-    if bal_val <= 0.0 and start_cap and float(start_cap) > 0.0 and start_date:
+    if (
+        bal.amount <= Decimal("0.00")
+        and start_cap is not None
+        and start_cap.amount > Decimal("0.00")
+        and start_date
+    ):
         est_bal, est_pmt = Liability.calculate_amortized_state(
-            start_capital=Money.from_val(start_cap, cur),
-            interest_rate_pct=Decimal(str(rate_val)),
+            start_capital=start_cap,
+            interest_rate_pct=rate,
             start_date=str(start_date),
             duration_months=int(dur_months) if dur_months is not None else None,
             end_date=str(end_date) if end_date else None,
         )
-        liab_dict["principal_balance"] = float(est_bal.amount)
-        bal_val = float(est_bal.amount)
-        if pmt_val <= 0.0:
-            liab_dict["monthly_payment"] = float(est_pmt.amount)
-            pmt_val = float(est_pmt.amount)
+        bal = est_bal
+        liab_dict["principal_balance"] = float(bal.amount)
+        if pmt.amount <= Decimal("0.00"):
+            pmt = est_pmt
+            liab_dict["monthly_payment"] = float(pmt.amount)
 
-    if pmt_val <= 0.0 and pmt_pct is not None and float(pmt_pct) > 0.0:
-        liab_dict["monthly_payment"] = round(bal_val * (float(pmt_pct) / 100.0), 2)
+    if pmt.amount <= Decimal("0.00") and pmt_pct is not None and pmt_pct > Decimal("0.00"):
+        pmt = bal * (pmt_pct / Decimal("100.0"))
+        liab_dict["monthly_payment"] = float(pmt.amount)
 
     return liab_dict

@@ -5,18 +5,10 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 
-from paslood.adapters.ai.base import BaseAIAdvisorClient
 from paslood.domain.advice import AdviceItem
 from paslood.domain.balance_sheet import BalanceSheet
 from paslood.domain.bucket import BucketAllocationResult
-
-MAX_QUESTION_LENGTH = 1000
-_INJECTION_PATTERNS = re.compile(
-    r"(ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules)|"
-    r"disregard\s+(all\s+)?(previous|prior)\s+(instructions|prompts)|"
-    r"you\s+are\s+now\s+a|forget\s+your\s+system\s+prompt)",
-    re.IGNORECASE,
-)
+from paslood.use_cases.ports import AIAdvisorPort
 
 MAX_QUESTION_LENGTH = 1000
 _INJECTION_PATTERNS = re.compile(
@@ -40,11 +32,11 @@ Domain Guardrail: You must remain strictly within the domain of personal finance
 class AdviseAiUseCase:
     """Orchestrates structured, privacy-preserving financial prompt generation and AI advisory consultation."""
 
-    def __init__(self, ai_client: BaseAIAdvisorClient) -> None:
+    def __init__(self, ai_client: AIAdvisorPort | None = None) -> None:
         self.ai_client = ai_client
 
     @staticmethod
-    def _validate_question(question: str | None) -> str | None:
+    def validate_question(question: str | None) -> str | None:
         if not question:
             return None
         cleaned = question.strip()
@@ -60,6 +52,10 @@ class AdviseAiUseCase:
             )
         return cleaned
 
+    @staticmethod
+    def _validate_question(question: str | None) -> str | None:
+        return AdviseAiUseCase.validate_question(question)
+
     async def execute(
         self,
         balance_sheet: BalanceSheet,
@@ -67,13 +63,36 @@ class AdviseAiUseCase:
         deterministic_advices: Sequence[AdviceItem],
         user_question: str | None = None,
     ) -> str:
-        validated_question = self._validate_question(user_question)
-        prompt = self._build_prompt(
-            balance_sheet, allocations, deterministic_advices, validated_question
+        if self.ai_client is None:
+            raise RuntimeError("AI client is required to execute AI advisory consultation.")
+        prompt = self.build_prompt(
+            bs=balance_sheet,
+            allocations=allocations,
+            advices=deterministic_advices,
+            question=user_question,
         )
         return await self.ai_client.generate_advice(prompt=prompt, system_prompt=SYSTEM_PROMPT)
 
+    def build_prompt(
+        self,
+        bs: BalanceSheet,
+        allocations: Sequence[BucketAllocationResult],
+        advices: Sequence[AdviceItem],
+        question: str | None = None,
+    ) -> str:
+        validated_question = self.validate_question(question)
+        return self._format_prompt(bs, allocations, advices, validated_question)
+
     def _build_prompt(
+        self,
+        bs: BalanceSheet,
+        allocations: Sequence[BucketAllocationResult],
+        advices: Sequence[AdviceItem],
+        question: str | None,
+    ) -> str:
+        return self._format_prompt(bs, allocations, advices, question)
+
+    def _format_prompt(
         self,
         bs: BalanceSheet,
         allocations: Sequence[BucketAllocationResult],

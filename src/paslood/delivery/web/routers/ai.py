@@ -20,7 +20,7 @@ from paslood.delivery.web.dependencies import (
     get_secret_vault,
 )
 from paslood.delivery.web.helpers import get_consolidated_balance_sheet
-from paslood.use_cases.advise_ai import SYSTEM_PROMPT, AdviseAiUseCase
+from paslood.use_cases.advise_ai import AdviseAiUseCase
 from paslood.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
 from paslood.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
 
@@ -103,14 +103,18 @@ async def run_ai_consultation(
     ai_use_case = AdviseAiUseCase(ai_client=ai_client)
     t0 = time.perf_counter()
     try:
-        validated_question = ai_use_case._validate_question(req.question)
-        prompt = ai_use_case._build_prompt(
+        prompt = ai_use_case.build_prompt(
             bs=bs,
             allocations=allocations,
             advices=advices,
-            question=validated_question,
+            question=req.question,
         )
-        advice_text = await ai_client.generate_advice(prompt=prompt, system_prompt=SYSTEM_PROMPT)
+        advice_text = await ai_use_case.execute(
+            balance_sheet=bs,
+            allocations=allocations,
+            deterministic_advices=advices,
+            user_question=req.question,
+        )
         elapsed = time.perf_counter() - t0
         trace = getattr(ai_client, "last_trace", None) or {
             "provider": req.provider,
@@ -140,15 +144,14 @@ async def get_ai_prompt_preview(
     advices = debt_advisor.execute(
         liabilities=bs.liabilities, monthly_surplus=bs.free_monthly_cashflow
     )
-    ai_use_case = AdviseAiUseCase(ai_client=None)  # type: ignore[arg-type]
+    ai_use_case = AdviseAiUseCase()
     try:
-        validated_question = ai_use_case._validate_question(question)
+        prompt = ai_use_case.build_prompt(
+            bs=bs,
+            allocations=allocations,
+            advices=advices,
+            question=question,
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    prompt = ai_use_case._build_prompt(
-        bs=bs,
-        allocations=allocations,
-        advices=advices,
-        question=validated_question,
-    )
     return {"prompt": prompt}
