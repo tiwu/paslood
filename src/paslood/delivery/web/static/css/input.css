@@ -105,14 +105,17 @@ body,
 
 /* Tabular lining numerals for financial alignment */
 .font-mono,
-td.font-mono,
-th.font-mono,
 .tabular-nums,
-.whitespace-nowrap-numbers,
 #kpi-net-worth,
 #kpi-total-assets,
 #kpi-total-debts,
 #kpi-surplus {
+  font-variant-numeric: tabular-nums;
+}
+
+td.font-mono,
+th.font-mono,
+.whitespace-nowrap-numbers {
   font-variant-numeric: tabular-nums;
   white-space: nowrap !important;
 }
@@ -217,39 +220,31 @@ textarea:focus-visible,
 
 /* Semantic Theme Binding for Utility Classes (Light "Architectural Vellum") */
 html.light-theme body {
-  background-color: var(--pas-bg-canvas);
-  color: var(--pas-text-primary);
+  background-color: var(--pas-bg-canvas) !important;
+  color: var(--pas-text-primary) !important;
 }
 html.light-theme header,
 html.light-theme nav.fixed.bottom-0 {
-  background-color: var(--pas-bg-header);
-  border-color: var(--pas-border-subtle);
+  background-color: var(--pas-bg-header) !important;
+  border-color: var(--pas-border-subtle) !important;
 }
-html.light-theme .bg-slate-900,
-html.light-theme .bg-slate-900\/80,
-html.light-theme .bg-slate-900\/95 {
-  background-color: var(--pas-bg-surface);
-  border-color: var(--pas-border-subtle);
-  box-shadow: var(--pas-shadow-card);
+html.light-theme [class*="bg-slate-900"] {
+  background-color: var(--pas-bg-surface) !important;
+  border-color: var(--pas-border-subtle) !important;
+  box-shadow: var(--pas-shadow-card) !important;
 }
-html.light-theme .bg-slate-950,
-html.light-theme .bg-slate-950\/50,
-html.light-theme .bg-slate-950\/60,
-html.light-theme .bg-slate-950\/70,
-html.light-theme .bg-slate-950\/40 {
-  background-color: var(--pas-bg-surface-inset);
-  border-color: var(--pas-border-strong);
+html.light-theme [class*="bg-slate-950"] {
+  background-color: var(--pas-bg-surface-inset) !important;
+  border-color: var(--pas-border-strong) !important;
 }
-html.light-theme .bg-slate-850,
-html.light-theme .bg-slate-800,
-html.light-theme .bg-slate-800\/60,
-html.light-theme .bg-slate-800\/80 {
-  background-color: var(--pas-bg-surface-muted);
-  border-color: var(--pas-border-strong);
-  color: var(--pas-text-primary);
+html.light-theme [class*="bg-slate-850"],
+html.light-theme [class*="bg-slate-800"] {
+  background-color: var(--pas-bg-surface-muted) !important;
+  border-color: var(--pas-border-strong) !important;
+  color: var(--pas-text-primary) !important;
 }
 html.light-theme .text-white {
-  color: var(--pas-text-primary);
+  color: var(--pas-text-primary) !important;
 }
 html.light-theme .bg-blue-600.text-white,
 html.light-theme .bg-emerald-600.text-white,
@@ -257,30 +252,33 @@ html.light-theme .bg-rose-600.text-white,
 html.light-theme .bg-purple-600.text-white,
 html.light-theme .bg-indigo-600.text-white,
 html.light-theme .nav-btn.bg-blue-600,
-html.light-theme .mnav-btn.bg-blue-600 {
-  color: #FFFFFF;
+html.light-theme .mnav-btn.bg-blue-600,
+html.light-theme .pas-btn-primary {
+  color: #FFFFFF !important;
 }
 html.light-theme .text-slate-100,
 html.light-theme .text-slate-200,
 html.light-theme .text-slate-300 {
-  color: var(--pas-text-secondary);
+  color: var(--pas-text-secondary) !important;
 }
 html.light-theme .text-slate-400,
 html.light-theme .text-slate-500 {
-  color: var(--pas-text-tertiary);
+  color: var(--pas-text-tertiary) !important;
 }
 html.light-theme .border-slate-800,
+html.light-theme .border-slate-800\/80,
+html.light-theme .border-slate-800\/60,
 html.light-theme .border-slate-700,
 html.light-theme .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--pas-border-subtle);
+  border-color: var(--pas-border-subtle) !important;
 }
 html.light-theme input,
 html.light-theme select,
 html.light-theme textarea {
-  background-color: var(--pas-bg-surface-elevated);
-  color: var(--pas-text-primary);
-  border-color: var(--pas-border-strong);
+  background-color: var(--pas-bg-surface-elevated) !important;
+  color: var(--pas-text-primary) !important;
+  border-color: var(--pas-border-strong) !important;
 }
 html.light-theme .prose-invert {
-  color: var(--pas-text-secondary);
+  color: var(--pas-text-secondary) !important;
 }
