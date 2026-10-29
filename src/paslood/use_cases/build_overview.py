@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Sequence
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
@@ -15,6 +16,7 @@ from paslood.domain.liability import Liability
 from paslood.domain.money import Money
 from paslood.use_cases.advise_debt_payoff import AdviseDebtPayoffUseCase
 from paslood.use_cases.calculate_allocation import CalculateBucketAllocationUseCase
+from paslood.use_cases.find_oldest_date import FindOldestDateUseCase
 from paslood.use_cases.ports import PortfolioRepository, TransactionRepository
 from paslood.use_cases.project_net_worth import ProjectNetWorthUseCase
 
@@ -34,7 +36,9 @@ class BuildPortfolioOverviewUseCase:
 
     @staticmethod
     def consolidate_balance_sheet(
-        repo: PortfolioRepository, db: TransactionRepository
+        repo: PortfolioRepository,
+        db: TransactionRepository,
+        cashflow_period: str = "all",
     ) -> BalanceSheet:
         """Builds the consolidated BalanceSheet from manual config and discovered items in SQLite."""
         assets: list[Asset] = []
@@ -103,7 +107,10 @@ class BuildPortfolioOverviewUseCase:
                 if liab.account_reference:
                     existing_liab_refs.add(liab.account_reference)
 
-        cashflow = db.get_monthly_cashflow()
+        try:
+            cashflow = db.get_monthly_cashflow(period=cashflow_period)
+        except TypeError:
+            cashflow = db.get_monthly_cashflow()
         return BalanceSheet(assets=assets, liabilities=liabilities, cashflow=cashflow)
 
     @staticmethod
@@ -317,6 +324,7 @@ class BuildPortfolioOverviewUseCase:
         cagr_pct: Decimal = Decimal("7.0"),
         projection_years: int = 30,
         start_year: int | None = None,
+        oldest_tx_date: str | None = None,
     ) -> dict[str, Any]:
         effective_bs = balance_sheet.with_effective_assets(
             buckets=buckets, exclude_property=exclude_property
@@ -343,13 +351,27 @@ class BuildPortfolioOverviewUseCase:
                     )
                 )
 
+        now_yr = datetime.now().year
+        oldest_info = FindOldestDateUseCase().execute(
+            balance_sheet=effective_bs,
+            oldest_tx_date=oldest_tx_date,
+        )
+        oldest_detected_year = oldest_info.get("oldest_year")
+        oldest_detected_date = oldest_info.get("oldest_date")
+        effective_start_yr = (
+            start_year
+            if start_year is not None
+            else (min(oldest_detected_year, now_yr) if oldest_detected_year else now_yr)
+        )
+
         trajectory = self.net_worth_projector.execute(
             initial_assets=effective_bs.total_assets,
             initial_debts=effective_bs.total_liabilities,
             monthly_savings=effective_bs.free_monthly_cashflow,
             annual_return_pct=cagr_pct,
             years=projection_years,
-            start_year=start_year,
+            start_year=effective_start_yr,
+            current_year=now_yr,
             balance_sheet=effective_bs,
         )
 
@@ -369,6 +391,13 @@ class BuildPortfolioOverviewUseCase:
                     ),
                     "current_value": float(a.current_value.amount),
                     "current_value_formatted": a.current_value.format(),
+                    "cost_basis": (
+                        float(a.cost_basis.amount) if a.cost_basis is not None else None
+                    ),
+                    "cost_basis_formatted": (
+                        a.cost_basis.format() if a.cost_basis is not None else None
+                    ),
+                    "acquisition_date": a.acquisition_date,
                     "institution": a.institution,
                     "bucket_id": matched_b.id if matched_b else "unassigned",
                     "bucket_name": matched_b.name if matched_b else "Unassigned",
@@ -446,6 +475,9 @@ class BuildPortfolioOverviewUseCase:
             "savings_rate_pct": float(cf.savings_rate_pct),
             "months_analyzed": cf.months_analyzed,
             "is_default_estimate": cf.is_default_estimate,
+            "period": getattr(cf, "period", "all"),
+            "period_start": getattr(cf, "period_start", None),
+            "period_end": getattr(cf, "period_end", None),
             "formula": "Avg Monthly Income − (Fixed Costs + Debt Payments + Living Expenses) = Monthly Free Cashflow",
         }
 
@@ -463,6 +495,10 @@ class BuildPortfolioOverviewUseCase:
             "cashflow_breakdown": cashflow_breakdown,
             "asset_count": len(effective_bs.assets),
             "exclude_property": exclude_property,
+            "start_year": effective_start_yr,
+            "current_year": now_yr,
+            "oldest_detected_year": oldest_detected_year,
+            "oldest_detected_date": oldest_detected_date,
             "allocations": [
                 {
                     "bucket_id": a.bucket_id,
@@ -492,9 +528,12 @@ class BuildPortfolioOverviewUseCase:
             "trajectory": [
                 {
                     "year": t["year"],
+                    "calendar_year": t.get("calendar_year", now_yr + t["year"]),
                     "assets": float(t["assets"]),
                     "debts": float(t["debts"]),
                     "net_worth": float(t["net_worth"]),
+                    "is_historical": t.get("is_historical", False),
+                    "is_current": t.get("is_current", t["year"] == 0),
                     "milestones": t["milestones"],
                 }
                 for t in trajectory

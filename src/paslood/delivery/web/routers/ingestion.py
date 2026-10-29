@@ -29,6 +29,7 @@ class RebucketRequest(BaseModel):
     target_category: str
     counterparty_name: str | None = None
     pattern: str | None = None
+    amount: Decimal | None = None
     remember_rule: bool = False
 
 
@@ -152,25 +153,29 @@ async def rebucket_transaction(
     updated_historical_count = 1
 
     rule_pattern = (req.pattern or req.counterparty_name or "").strip()
-    if not rule_pattern:
+    if not rule_pattern and req.amount is None:
         # Look up the transaction in DB to derive counterparty or description pattern
         existing_txs = db.get_transactions(limit=10000)
         matched_tx = next((t for t in existing_txs if t.id == req.transaction_id), None)
         if matched_tx:
             rule_pattern = (matched_tx.counterparty_name or matched_tx.description or "").strip()
 
-    if rule_pattern:
+    if rule_pattern or req.amount is not None:
         if req.remember_rule:
-            repo.save_transaction_rule(
-                {
-                    "match_field": "counterparty_name",
-                    "pattern": rule_pattern,
-                    "target_category": req.target_category,
-                }
-            )
+            rule_dict = {
+                "match_field": "any",
+                "pattern": rule_pattern,
+                "target_category": req.target_category,
+            }
+            if req.amount is not None:
+                rule_dict["amount"] = float(abs(req.amount))
+            repo.save_transaction_rule(rule_dict)
         # Apply classification to all other matching rows in the ledger
         retro_count = db.apply_rule_to_transactions(
-            rule_pattern, req.target_category, exclude_overrides=False
+            rule_pattern,
+            req.target_category,
+            exclude_overrides=False,
+            amount=req.amount,
         )
         updated_historical_count = max(updated_historical_count, retro_count)
 

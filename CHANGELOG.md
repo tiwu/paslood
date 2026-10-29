@@ -10,10 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Transaction Re-Bucketing on Keyword + Amount (#52)**:
+  - Added optional `Match Amount (€)` input in the Re-Bucket modal and `amount` support in `POST /api/transactions/rebucket`, `ConfigRepository.save_transaction_rule()`, `CategorizeTransactionsUseCase`, and `LocalDbRepository.apply_rule_to_transactions()` so transactions can be classified by keyword, amount, or both.
+- **Recent Transactions Amount Comparison Filter (#52)**:
+  - Added support for amount comparison operators (`>500`, `<100`, `>=250`, `<=50`, `=100`, and combined keyword + amount queries like `saxo >500`) in the Recent Transactions search filter (`getFilteredTransactions`).
+- **Cashflow Period & Timeframe Selector (#52)**:
+  - Added timeframe selectors (`Month`, `Last Year (12M)`, `All Time`) on the Cashflow visualizations and the Overview Monthly Free Cashflow KPI card, backed by `GET /api/overview?cashflow_period=...` and `LocalDbRepository.get_monthly_cashflow(period=...)`.
 
 ### Changed
+- **Automatic Recognition of Internal Savings & Investment Transfers (#52)**:
+  - Enhanced `CategorizeTransactionsUseCase` to automatically classify internal transfers to savings accounts (e.g., Bunq IBANs, KBC Spaarrekening) as `SAVINGS` and transfers to brokerage/investment accounts as `INVESTMENTS`.
 
 ### Fixed
+- **Manual Asset Acquisition Date & Cost Basis Persistence (#52)**:
+  - Included `acquisition_date`, `cost_basis`, and `cost_basis_formatted` in `BuildPortfolioOverviewUseCase.execute()`, serialized `Decimal` values cleanly in `ConfigRepository.save_manual_asset()`, and displayed acquisition date and cost basis in the Manual Assets table and Edit Asset modal.
+- **Loan / Mortgage Modal Step Validation Warnings (#52)**:
+  - Updated numeric inputs in the Loan/Mortgage and Asset modals (`index.html`) to use `step="any"` (and `step="1"` for duration months), eliminating browser step-range validation tooltips on decimal amounts.
+- **Re-Bucket Modal Keyword Preservation & Matching (#52)**:
+  - Stopped truncating transaction descriptions to the first word in `openRebucketModal()` and matched custom rules across `counterparty_name`, `description`, and `counterparty_iban`.
+- **Compound Wealth Trajectory Historical Inception on Initial Load (#52)**:
+  - Auto-detected `oldest_detected_year` via `FindOldestDateUseCase` inside `BuildPortfolioOverviewUseCase.execute()` and populated the start-year selector in `renderDashboard()` so the Compound Wealth Trajectory chart renders historical years immediately on initial page load.
 
 ---
 

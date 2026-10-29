@@ -245,22 +245,32 @@ class LocalDbRepository:
         pattern: str,
         category: str,
         exclude_overrides: bool = True,
+        amount: Decimal | float | None = None,
     ) -> int:
         """Applies a categorization rule retroactively to all matching transactions."""
-        clean_pattern = pattern.strip()
-        if not clean_pattern:
+        clean_pattern = (pattern or "").strip()
+        if not clean_pattern and amount is None:
             return 0
 
-        like_query = f"%{clean_pattern}%"
-        sql = """
-            UPDATE transactions
-            SET category = ?
-            WHERE (counterparty_name LIKE ? OR description LIKE ? OR counterparty_iban LIKE ?)
-        """
-        params: list[Any] = [category, like_query, like_query, like_query]
+        conditions: list[str] = []
+        params: list[Any] = [category]
+
+        if clean_pattern:
+            like_query = f"%{clean_pattern}%"
+            conditions.append(
+                "(counterparty_name LIKE ? OR description LIKE ? OR counterparty_iban LIKE ?)"
+            )
+            params.extend([like_query, like_query, like_query])
+
+        if amount is not None:
+            target_abs = float(abs(Decimal(str(amount))))
+            conditions.append("ABS(ABS(CAST(amount AS REAL)) - ?) <= 0.01")
+            params.append(target_abs)
 
         if exclude_overrides:
-            sql += " AND (user_override IS NULL OR user_override = 0)"
+            conditions.append("(user_override IS NULL OR user_override = 0)")
+
+        sql = f"UPDATE transactions SET category = ? WHERE {' AND '.join(conditions)}"
 
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -598,9 +608,45 @@ class LocalDbRepository:
             )
         return liabs
 
-    def get_monthly_cashflow(self) -> MonthlyCashflow:
-        """Calculates cumulative monthly cashflow across all cached transactions."""
-        txs = self.get_transactions(limit=5000)
+    @staticmethod
+    def filter_transactions_by_period(
+        transactions: list[Transaction], period: str = "all"
+    ) -> list[Transaction]:
+        """Filters transactions to 'all', 'year' (last 12 months), or 'month' (latest month)."""
+        norm_period = (period or "all").strip().lower()
+        if norm_period == "all" or not transactions:
+            return list(transactions)
+
+        valid_dates = sorted({t.date[:10] for t in transactions if t.date and len(t.date) >= 7})
+        if not valid_dates:
+            return list(transactions)
+
+        latest_date = valid_dates[-1]
+        latest_ym = latest_date[:7]
+
+        if norm_period == "month":
+            return [t for t in transactions if t.date and t.date[:7] == latest_ym]
+
+        if norm_period == "year":
+            try:
+                yr = int(latest_date[:4])
+                mo = int(latest_date[5:7])
+                day = int(latest_date[8:10]) if len(latest_date) >= 10 else 1
+                cutoff_str = f"{yr - 1:04d}-{mo:02d}-{day:02d}"
+                return [t for t in transactions if t.date and t.date[:10] >= cutoff_str]
+            except (ValueError, IndexError):
+                return list(transactions)
+
+        return list(transactions)
+
+    def get_monthly_cashflow(self, period: str = "all") -> MonthlyCashflow:
+        """Calculates cumulative monthly cashflow across cached transactions for the requested period."""
+        norm_period = (period or "all").strip().lower()
+        if norm_period not in ("all", "year", "month"):
+            norm_period = "all"
+
+        all_txs = self.get_transactions(limit=10000)
+        txs = self.filter_transactions_by_period(all_txs, norm_period)
         liabs = self.get_discovered_liabilities()
 
         if not txs:
@@ -615,7 +661,12 @@ class LocalDbRepository:
                 investments_and_savings=Money(Decimal("0.00")),
                 months_analyzed=0,
                 is_default_estimate=True,
+                period=norm_period,
             )
+
+        valid_dates = sorted({t.date[:10] for t in txs if t.date and len(t.date) >= 7})
+        period_start = valid_dates[0] if valid_dates else None
+        period_end = valid_dates[-1] if valid_dates else None
 
         distinct_months = len({t.date[:7] for t in txs if t.date and len(t.date) >= 7}) or 1
         distinct_income_months = (
@@ -675,6 +726,9 @@ class LocalDbRepository:
             investments_and_savings=Money(avg_invest_sav),
             months_analyzed=distinct_months,
             is_default_estimate=False,
+            period=norm_period,
+            period_start=period_start,
+            period_end=period_end,
         )
 
     def get_oldest_transaction_date(self) -> str | None:

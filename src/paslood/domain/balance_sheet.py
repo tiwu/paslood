@@ -70,6 +70,9 @@ class MonthlyCashflow:
     investments_and_savings: Money = field(default_factory=lambda: Money(Decimal("0.00")))
     months_analyzed: int = 0
     is_default_estimate: bool = False
+    period: str = "all"
+    period_start: str | None = None
+    period_end: str | None = None
 
     @property
     def total_outflows(self) -> Money:
