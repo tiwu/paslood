@@ -882,6 +882,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Configuring Real Estate &amp; Mortgages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-fields-for-wealth-projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Fields for Wealth Projections
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1658,6 +1675,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/PLAN-52-assetloan-modals-transaction-re-bucketin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Issue #52 - Asset/Loan Modals, Re-Bucketing & Cashflow Period
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1826,6 +1871,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Configuring Real Estate &amp; Mortgages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-fields-for-wealth-projections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Fields for Wealth Projections
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1864,23 +1926,33 @@
 </code></pre></div>
 <hr />
 <h2 id="configuring-real-estate-mortgages">Configuring Real Estate &amp; Mortgages</h2>
-<p>To model primary residence equity alongside mortgages:</p>
+<p>To model primary residence equity alongside mortgages, provide valuation, cost basis, and loan schedule parameters:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">manual_assets</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"primary-home"</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Primary</span><span class="nv"> </span><span class="s">Residence</span><span class="nv"> </span><span class="s">(Estimated</span><span class="nv"> </span><span class="s">Market</span><span class="nv"> </span><span class="s">Value)"</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Primary</span><span class="nv"> </span><span class="s">Residence"</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">asset_class</span><span class="p">:</span><span class="w"> </span><span class="s">"REAL_ESTATE"</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">current_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">420000.00</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">institution</span><span class="p">:</span><span class="w"> </span><span class="s">"Private</span><span class="nv"> </span><span class="s">Property"</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nt">manual_liabilities</span><span class="p">:</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"mortgage-woningkrediet-1"</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"KBC</span><span class="nv"> </span><span class="s">Woningkrediet</span><span class="nv"> </span><span class="s">(Fixed</span><span class="nv"> </span><span class="s">Rate)"</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="nt">loan_type</span><span class="p">:</span><span class="w"> </span><span class="s">"MORTGAGE"</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">principal_balance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">140000.00</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">interest_rate_pct</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.85</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">monthly_payment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">579.68</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nt">institution</span><span class="p">:</span><span class="w"> </span><span class="s">"KBC"</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">current_value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">450000.00</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">cost_basis</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">320000.00</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">acquisition_date</span><span class="p">:</span><span class="w"> </span><span class="s">"2019-06-15"</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="nt">institution</span><span class="p">:</span><span class="w"> </span><span class="s">"Private</span><span class="nv"> </span><span class="s">Property"</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nt">manual_liabilities</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"mortgage-woningkrediet-1"</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"KBC</span><span class="nv"> </span><span class="s">Woningkrediet</span><span class="nv"> </span><span class="s">(Fixed</span><span class="nv"> </span><span class="s">Rate)"</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">loan_type</span><span class="p">:</span><span class="w"> </span><span class="s">"MORTGAGE"</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">start_capital</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250000.00</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nt">principal_balance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">140000.00</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="nt">interest_rate_pct</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.85</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">monthly_payment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">579.68</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="nt">start_date</span><span class="p">:</span><span class="w"> </span><span class="s">"2019-06-01"</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="nt">duration_months</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">240</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">    </span><span class="nt">institution</span><span class="p">:</span><span class="w"> </span><span class="s">"KBC"</span>
 </code></pre></div>
+<h3 id="key-fields-for-wealth-projections">Key Fields for Wealth Projections</h3>
+<ul>
+<li><strong><code>acquisition_date</code> &amp; <code>cost_basis</code></strong>: Used by the projection engine to determine portfolio inception date and compute historical cost benchmarks (e.g. Belgian capital gains tax relief thresholds).</li>
+<li><strong><code>start_capital</code>, <code>start_date</code>, and <code>duration_months</code></strong>: Enables automatic principal balance estimation and amortization modeling when remaining balances change over time.</li>
+</ul>
 
 
 
