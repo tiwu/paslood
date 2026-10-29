@@ -19,3 +19,4 @@ pdt_auth.json
 *.db
 *.sqlite3
 .DS_Store
+*.csv

@@ -161,6 +161,7 @@ Guidelines:
 ## 7. Autonomous Issue Queue & Feature Plan Tracking
 
 Paslood includes an automated, asynchronous work queue driven by GitHub Issues.
+The same workflow should also be used for interactive agents.
 
 ### 7.1 Two-Stage Lifecycle
 

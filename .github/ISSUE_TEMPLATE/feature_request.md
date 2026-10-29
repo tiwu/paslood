@@ -16,6 +16,7 @@ assignees: ""
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Automated tests cover new behavior with $\ge 90\%$ statement coverage
+- [ ] Documentation is updated
 
 ---
 

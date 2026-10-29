@@ -52,6 +52,7 @@ When `stage` is `"planning"`:
      - Use Cases: Pure business logic, port interfaces.
      - Adapters: Gateways, repositories, ingestion.
      - Delivery: Web/CLI routes.
+   - Include update of documentation, unit tests, and delivery tests in the plan.
 5. **Verify MkDocs Build**:
    ```bash
    uv run mkdocs build --strict
