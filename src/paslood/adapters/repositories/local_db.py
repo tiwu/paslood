@@ -566,6 +566,16 @@ class LocalDbRepository:
             living_expenses=Money(Decimal("800.00")),
         )
 
+    def get_oldest_transaction_date(self) -> str | None:
+        """Returns the earliest transaction date recorded in SQLite."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT MIN(date) FROM transactions WHERE date IS NOT NULL AND trim(date) != ''"
+            )
+            row = cursor.fetchone()
+            return row[0] if row and row[0] else None
+
     def clear_all_cached_data(self) -> None:
         """Clears all transactions, discovered assets, and liabilities."""
         with self._get_connection() as conn:

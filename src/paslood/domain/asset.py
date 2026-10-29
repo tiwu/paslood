@@ -35,6 +35,11 @@ class Asset:
     institution: str = "Unknown"  # e.g., "Saxo Bank", "KBC", "DEGIRO", "EquatePlus"
     account_id: str = ""
     currency: str = "EUR"
+    acquisition_date: str | None = None  # YYYY-MM-DD or YYYY
+
+    @property
+    def start_date(self) -> str | None:
+        return self.acquisition_date
 
     @property
     def unit_price(self) -> Money:

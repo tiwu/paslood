@@ -222,6 +222,13 @@
               <p data-i18n="dashboard.chart_trajectory_sub" class="text-xs text-slate-400">Simulated growth with monthly cashflow compounding</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg text-xs">
+                <span class="text-slate-400" data-i18n="dashboard.start_label">From:</span>
+                <select id="projection-start-year-select" onchange="onProjectionStartYearChanged(this.value)" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
+                  <option value="auto" data-i18n="dashboard.start_auto">Auto Inception</option>
+                  <option value="today" data-i18n="dashboard.start_today">Today only</option>
+                </select>
+              </div>
               <div class="flex items-center rounded-lg bg-slate-950 border border-slate-800 p-0.5 text-xs">
                 <button onclick="setProjectionTimeframe(5)" id="btn-timeframe-5" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">5Y</button>
                 <button onclick="setProjectionTimeframe(10)" id="btn-timeframe-10" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition">10Y</button>
@@ -1452,6 +1459,16 @@
           <div>
             <label data-i18n="modals.asset_sym_label" class="block font-medium text-slate-300 mb-1">Symbol / Ticker (Optional)</label>
             <input type="text" id="manual-asset-sym" placeholder="e.g. HOUSE, GOLD" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label data-i18n="modals.asset_acq_date_label" class="block font-medium text-slate-300 mb-1">Acquisition Date (Optional)</label>
+            <input type="date" id="manual-asset-acq-date" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+          <div>
+            <label data-i18n="modals.asset_cost_basis_label" class="block font-medium text-slate-300 mb-1">Original Cost Basis (€)</label>
+            <input type="number" id="manual-asset-cost-basis" step="1000" placeholder="e.g. 320000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
           </div>
         </div>
       </div>

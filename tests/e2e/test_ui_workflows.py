@@ -274,3 +274,29 @@ def test_offline_static_css_and_zero_runtime_tailwind_cdn(app_page, live_server)
     # Check that cdn.tailwindcss.com script is absent
     cdn_script = app_page.locator("script[src*='cdn.tailwindcss.com']")
     assert cdn_script.count() == 0
+
+
+def test_compound_wealth_trajectory_start_year_selection(app_page, live_server):
+    """Verify trajectory chart loads, displays inception selector, and updates on timeframe / inception change."""
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    chart_canvas = app_page.locator("#projectionAreaChart")
+    expect(chart_canvas).to_be_visible()
+
+    start_year_sel = app_page.locator("#projection-start-year-select")
+    expect(start_year_sel).to_be_visible()
+
+    # Switch to 'Today only'
+    start_year_sel.select_option("today")
+    app_page.wait_for_timeout(300)
+
+    # Switch timeframe to 10Y
+    app_page.locator("#btn-timeframe-10").click()
+    app_page.wait_for_timeout(300)
+
+    # Assert canvas is still visible and chart instance exists
+    has_chart = app_page.evaluate(
+        "typeof projectionChartInstance !== 'undefined' && projectionChartInstance !== null"
+    )
+    assert has_chart is True

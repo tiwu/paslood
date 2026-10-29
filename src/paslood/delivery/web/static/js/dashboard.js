@@ -112,10 +112,23 @@ function renderProjectionChart(trajectory) {
   const ctx = canvas.getContext('2d');
   if (projectionChartInstance) projectionChartInstance.destroy();
 
-  const labels = trajectory.map(t => I18N.t('dashboard.year_label', { year: t.year, _fallback: `Year ${t.year}` }));
+  const labels = trajectory.map(t => {
+    if (t.is_current) {
+      return `${t.calendar_year || 'Today'} (Today)`;
+    }
+    if (t.is_historical) {
+      return String(t.calendar_year || `${t.year}Y`);
+    }
+    return t.calendar_year ? `${t.calendar_year} (+${t.year}Y)` : I18N.t('dashboard.year_label', { year: t.year, _fallback: `Year ${t.year}` });
+  });
+
   const netWorthData = trajectory.map(t => t.net_worth);
   const assetsData = trajectory.map(t => t.assets);
   const debtsData = trajectory.map(t => t.debts);
+  const todayIdx = trajectory.findIndex(t => t.is_current);
+
+  const ptRadii = trajectory.map(t => (t.is_current ? 5 : (t.is_historical ? 2.5 : 1.5)));
+  const ptHoverRadii = trajectory.map(t => (t.is_current ? 7 : (t.is_historical ? 4.5 : 3)));
 
   projectionChartInstance = new Chart(ctx, {
     type: 'line',
@@ -128,21 +141,28 @@ function renderProjectionChart(trajectory) {
           borderColor: '#10B981',
           backgroundColor: 'rgba(16, 185, 129, 0.15)',
           fill: true,
-          tension: 0.3
+          tension: 0.3,
+          pointRadius: ptRadii,
+          pointHoverRadius: ptHoverRadii,
+          segment: {
+            borderDash: ctx => (todayIdx !== -1 && ctx.p0DataIndex < todayIdx ? [] : [4, 4])
+          }
         },
         {
           label: I18N.t('dashboard.chart_label_assets', 'Assets'),
           data: assetsData,
           borderColor: '#3B82F6',
           borderDash: [5, 5],
-          tension: 0.3
+          tension: 0.3,
+          pointRadius: ptRadii
         },
         {
           label: I18N.t('dashboard.chart_label_debts', 'Debts'),
           data: debtsData,
           borderColor: '#EF4444',
           borderDash: [2, 2],
-          tension: 0.3
+          tension: 0.3,
+          pointRadius: ptRadii
         }
       ]
     },
@@ -154,6 +174,15 @@ function renderProjectionChart(trajectory) {
         legend: { labels: { color: '#94a3b8', font: { size: 11 } } },
         tooltip: {
           callbacks: {
+            title: function(items) {
+              if (!items || !items.length) return '';
+              const idx = items[0].dataIndex;
+              const pt = trajectory[idx];
+              if (!pt) return items[0].label;
+              if (pt.is_current) return `${pt.calendar_year} — Current Balance Sheet`;
+              if (pt.is_historical) return `${pt.calendar_year} — Historical Actual / Backcast`;
+              return `${pt.calendar_year} — Projected (+${pt.year}Y)`;
+            },
             label: function(c) {
               return ` ${c.dataset.label}: ${I18N.formatCurrency(c.raw, 'EUR', 0)}`;
             }
@@ -166,6 +195,56 @@ function renderProjectionChart(trajectory) {
       }
     }
   });
+}
+
+function onProjectionStartYearChanged(val) {
+  if (val === 'auto') {
+    currentAutoDetectStart = true;
+    currentProjectionStartYear = null;
+  } else if (val === 'today') {
+    currentAutoDetectStart = false;
+    currentProjectionStartYear = new Date().getFullYear();
+  } else {
+    currentAutoDetectStart = false;
+    currentProjectionStartYear = parseInt(val, 10);
+  }
+  updateProjectionChart();
+}
+
+function populateStartYearSelect(data) {
+  const sel = document.getElementById('projection-start-year-select');
+  if (!sel) return;
+  const currentVal = sel.value;
+  const oldestYr = data.oldest_detected_year;
+  const nowYr = data.current_year || new Date().getFullYear();
+
+  const autoOptLabel = oldestYr && oldestYr < nowYr ? `Auto (${oldestYr})` : I18N.t('dashboard.start_auto', 'Auto Inception');
+
+  sel.innerHTML = '';
+  const optAuto = document.createElement('option');
+  optAuto.value = 'auto';
+  optAuto.textContent = autoOptLabel;
+  sel.appendChild(optAuto);
+
+  if (oldestYr && oldestYr < nowYr) {
+    for (let y = oldestYr; y < nowYr; y++) {
+      const opt = document.createElement('option');
+      opt.value = String(y);
+      opt.textContent = `${y}`;
+      sel.appendChild(opt);
+    }
+  }
+
+  const optToday = document.createElement('option');
+  optToday.value = 'today';
+  optToday.textContent = I18N.t('dashboard.start_today', 'Today only');
+  sel.appendChild(optToday);
+
+  if (currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
+    sel.value = currentVal;
+  } else {
+    sel.value = currentAutoDetectStart ? 'auto' : (currentProjectionStartYear ? String(currentProjectionStartYear) : 'today');
+  }
 }
 
 function setProjectionTimeframe(years) {
@@ -188,10 +267,17 @@ async function updateProjectionChart() {
   if (cagrInput) {
     currentProjectionCagr = parseFloat(cagrInput.value) || 7.0;
   }
+  let url = `/api/projection?years=${currentProjectionYears}&cagr=${currentProjectionCagr}&exclude_property=${excludePropertyState ? 'true' : 'false'}`;
+  if (!currentAutoDetectStart && currentProjectionStartYear) {
+    url += `&start_year=${currentProjectionStartYear}&auto_detect_start=false`;
+  } else if (!currentAutoDetectStart) {
+    url += `&auto_detect_start=false`;
+  }
   try {
-    const res = await fetch(`/api/projection?years=${currentProjectionYears}&cagr=${currentProjectionCagr}&exclude_property=${excludePropertyState ? 'true' : 'false'}`);
+    const res = await fetch(url);
     if (!res.ok) return;
     const data = await res.json();
+    populateStartYearSelect(data);
     renderProjectionChart(data.trajectory);
   } catch (err) {
     console.error('Failed to update projection chart:', err);
