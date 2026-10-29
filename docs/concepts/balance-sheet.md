@@ -24,4 +24,4 @@ Paslood computes your **Monthly Free Cashflow**:
 
 $$\text{Monthly Free Cashflow} = \text{Net Income} - (\text{Fixed Costs} + \text{Debt Servicing} + \text{Living Expenses})$$
 
-This surplus represents your **investable capacity**—the engine that drives your buy-only rebalancing and wealth compounding.
+This surplus represents your **investable capacity**—the engine that drives your buy-only rebalancing and wealth compounding. Cashflow can be analyzed across **All Time**, the **Last 12 Months** (calendar-aligned), or the **Latest Month**.

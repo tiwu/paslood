@@ -4,6 +4,12 @@ Paslood models compound wealth growth over 5, 10, 20, and 30 years using multi-v
 
 ---
 
+## Historical Inception & Timeline
+
+On initial load, Paslood inspects asset acquisition dates, loan start dates, and statement history to identify your earliest portfolio activity (`oldest_detected_year`). The Compound Wealth Trajectory chart begins at inception, rendering historical net worth progression up to the present before projecting forward compounding. You can also override the start year directly in the dashboard controls.
+
+---
+
 ## Compounding Variables
 
 1. **Current Net Worth**: Starting assets minus active liabilities.
