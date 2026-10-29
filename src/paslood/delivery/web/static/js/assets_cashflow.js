@@ -122,8 +122,50 @@ function goToTxPage(action) {
   renderTransactions(currentData);
 }
 
+function parseAmountFilterTokens(rawQuery) {
+  const amountFilters = [];
+  const textTokens = [];
+  const tokens = String(rawQuery || '').trim().split(/\s+/).filter(Boolean);
+
+  tokens.forEach(tok => {
+    const m = tok.match(/^(>=|<=|>|<|=|==)(-?\d+(?:[.,]\d+)?)$/);
+    if (m) {
+      const op = m[1] === '==' ? '=' : m[1];
+      const val = parseFloat(m[2].replace(',', '.'));
+      if (!isNaN(val)) {
+        amountFilters.push({ op, val, isNegativeExplicit: m[2].startsWith('-') });
+        return;
+      }
+    }
+    textTokens.push(tok.toLowerCase());
+  });
+
+  return { amountFilters, textQuery: textTokens.join(' ') };
+}
+
+function matchesAmountFilter(txAmountValue, filter) {
+  const rawVal = Number(txAmountValue || 0);
+  const cmpVal = filter.isNegativeExplicit ? rawVal : Math.abs(rawVal);
+  switch (filter.op) {
+    case '>':
+      return cmpVal > filter.val;
+    case '>=':
+      return cmpVal >= filter.val;
+    case '<':
+      return cmpVal < filter.val;
+    case '<=':
+      return cmpVal <= filter.val;
+    case '=':
+      return Math.abs(cmpVal - filter.val) < 0.01;
+    default:
+      return true;
+  }
+}
+
 function getFilteredTransactions(allTxs) {
   const cleanFilterAcc = txAccountFilter === 'ALL' ? 'ALL' : String(txAccountFilter).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const { amountFilters, textQuery } = parseAmountFilterTokens(txSearchQuery);
+
   return allTxs.filter(tx => {
     if (txCategoryFilter !== 'ALL' && String(tx.category || '').toUpperCase() !== txCategoryFilter) {
       return false;
@@ -134,11 +176,16 @@ function getFilteredTransactions(allTxs) {
         return false;
       }
     }
-    if (txSearchQuery) {
-      const matchText = `${tx.description || ''} ${tx.counterparty_name || ''} ${tx.counterparty_iban || ''} ${tx.account_id || ''} ${tx.amount_formatted || ''}`.toLowerCase();
-      const cleanSearch = txSearchQuery.replace(/\s+/g, '');
+    for (const af of amountFilters) {
+      if (!matchesAmountFilter(tx.amount_value, af)) {
+        return false;
+      }
+    }
+    if (textQuery) {
+      const matchText = `${tx.description || ''} ${tx.counterparty_name || ''} ${tx.counterparty_iban || ''} ${tx.account_id || ''} ${tx.amount_formatted || ''} ${tx.amount_value !== undefined ? Math.abs(tx.amount_value) : ''}`.toLowerCase();
+      const cleanSearch = textQuery.replace(/\s+/g, '');
       const cleanMatchText = matchText.replace(/\s+/g, '');
-      if (!matchText.includes(txSearchQuery) && !cleanMatchText.includes(cleanSearch)) return false;
+      if (!matchText.includes(textQuery) && !cleanMatchText.includes(cleanSearch)) return false;
     }
     return true;
   });
@@ -420,22 +467,38 @@ function goToRegisterKnownAccount(accountId, institution) {
 function openRebucketModalById(txId) {
   const tx = (currentData?.transactions || []).find(t => t.id === txId);
   if (tx) {
-    openRebucketModal(tx.id, tx.description, tx.counterparty_name, tx.category);
+    openRebucketModal(tx.id, tx.description, tx.counterparty_name, tx.category, tx.amount_value);
   }
 }
 
-function openRebucketModal(txId, desc, counterparty, currentCat) {
-  activeRebucketTx = { id: txId, description: desc, counterparty: counterparty };
+function openRebucketModal(txId, desc, counterparty, currentCat, amountValue = null) {
+  activeRebucketTx = {
+    id: txId,
+    description: desc,
+    counterparty: counterparty,
+    amount_value: amountValue
+  };
+  const amtHint = (amountValue !== null && amountValue !== undefined)
+    ? `<div class="text-slate-400 mt-0.5 font-mono">Amount: ${escapeHtml(I18N.formatCurrency(Math.abs(amountValue), 'EUR'))}</div>`
+    : '';
   document.getElementById('rebucket-tx-info').innerHTML = `
     <div class="font-semibold text-white">${escapeHtml(desc)}</div>
     <div class="text-slate-400 mt-0.5">Counterparty: ${escapeHtml(counterparty || 'N/A')}</div>
+    ${amtHint}
   `;
   document.getElementById('modal-category-select').value = currentCat || 'OTHER';
 
-  const defaultPattern = counterparty || desc.split(/[\s-]/)[0] || '';
+  const defaultPattern = (counterparty || desc || '').trim();
   const patternInput = document.getElementById('modal-pattern-input');
   if (patternInput) {
     patternInput.value = defaultPattern;
+  }
+  const amountInput = document.getElementById('modal-amount-input');
+  if (amountInput) {
+    amountInput.value = '';
+    amountInput.placeholder = (amountValue !== null && amountValue !== undefined)
+      ? `e.g. ${Math.abs(Number(amountValue)).toFixed(2)}`
+      : 'Optional';
   }
 
   document.getElementById('rebucket-modal').classList.remove('hidden');
@@ -450,19 +513,26 @@ async function commitRebucket() {
   if (!activeRebucketTx) return;
   const targetCat = document.getElementById('modal-category-select').value;
   const remember = document.getElementById('modal-remember-rule').checked;
-  const patternVal = document.getElementById('modal-pattern-input')?.value || activeRebucketTx.counterparty || '';
+  const patternEl = document.getElementById('modal-pattern-input');
+  const patternVal = patternEl ? patternEl.value.trim() : (activeRebucketTx.counterparty || '');
+  const amountRaw = document.getElementById('modal-amount-input')?.value?.trim() || '';
+  const parsedAmount = amountRaw !== '' ? parseFloat(amountRaw) : null;
 
   try {
+    const payload = {
+      transaction_id: activeRebucketTx.id,
+      target_category: targetCat,
+      counterparty_name: activeRebucketTx.counterparty,
+      pattern: patternVal,
+      remember_rule: remember
+    };
+    if (parsedAmount !== null && !isNaN(parsedAmount)) {
+      payload.amount = Math.abs(parsedAmount);
+    }
     const res = await fetch('/api/transactions/rebucket', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        transaction_id: activeRebucketTx.id,
-        target_category: targetCat,
-        counterparty_name: activeRebucketTx.counterparty,
-        pattern: patternVal,
-        remember_rule: remember
-      })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     closeRebucketModal();
@@ -497,8 +567,19 @@ function renderManualAssetsAndDebts(data) {
         const safeClass = escapeHtml(a.asset_class);
         const safeVal = escapeHtml(I18N.formatCurrency(a.current_value, a.currency || 'EUR'));
         const safeId = escapeHtml(a.id);
+        const rawCost = a.cost_basis && typeof a.cost_basis === 'object' ? a.cost_basis.amount : a.cost_basis;
+        const metaParts = [];
+        if (a.acquisition_date) {
+          metaParts.push(`Acquired: ${escapeHtml(a.acquisition_date)}`);
+        }
+        if (rawCost !== null && rawCost !== undefined && Number(rawCost) > 0) {
+          metaParts.push(`Basis: ${escapeHtml(I18N.formatCurrency(rawCost, a.currency || 'EUR'))}`);
+        }
+        const metaHtml = metaParts.length > 0
+          ? `<div class="text-[10px] text-slate-400 font-normal mt-0.5">${metaParts.join(' • ')}</div>`
+          : '';
         tr.innerHTML = `
-          <td class="py-2.5 font-medium text-white">${safeName}</td>
+          <td class="py-2.5 font-medium text-white">${safeName}${metaHtml}</td>
           <td class="py-2.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${safeClass}</span></td>
           <td class="py-2.5 font-mono text-emerald-400 whitespace-nowrap">${safeVal}</td>
           <td class="py-2.5 text-right whitespace-nowrap">
@@ -636,10 +717,10 @@ async function saveManualAsset() {
       asset_class: assetClass,
       current_value: val,
       institution: inst,
-      symbol: sym || null
+      symbol: sym || null,
+      acquisition_date: acqDate || null,
+      cost_basis: (!isNaN(costBasisVal) && costBasisVal > 0) ? costBasisVal : null
     };
-    if (acqDate) payload.acquisition_date = acqDate;
-    if (!isNaN(costBasisVal) && costBasisVal > 0) payload.cost_basis = costBasisVal;
     if (assetId) payload.id = assetId;
 
     const res = await fetch('/api/assets/manual', {
@@ -850,7 +931,25 @@ let monthlySpendingChartInstance = null;
 
 function renderCashflowAnalytics(data) {
   const analytics = data?.cashflow_analytics;
-  renderCashflowSankey(analytics?.sankey || null, data?.cashflow_breakdown || null);
+  const cb = data?.cashflow_breakdown;
+  const summaryEl = document.getElementById('cashflow-period-summary');
+  if (summaryEl && cb) {
+    const p = cb.period || (typeof currentCashflowPeriod !== 'undefined' ? currentCashflowPeriod : 'all');
+    const pName = p === 'year' ? 'Last 12 Months' : (p === 'month' ? 'Latest Month' : 'All Time');
+    const range = (cb.period_start && cb.period_end) ? ` (${cb.period_start.slice(0, 7)} – ${cb.period_end.slice(0, 7)})` : '';
+    summaryEl.textContent = cb.is_default_estimate
+      ? 'Baseline estimate (import CSV statements for actuals)'
+      : `${pName} — averaged across ${cb.months_analyzed || 1} month(s)${range}`;
+    ['month', 'year', 'all'].forEach(mode => {
+      const btn = document.getElementById(`btn-cf-period-${mode}`);
+      if (btn) {
+        btn.className = mode === p
+          ? 'px-2.5 py-1 rounded bg-blue-600 text-white font-medium transition'
+          : 'px-2.5 py-1 rounded text-slate-400 hover:text-white transition';
+      }
+    });
+  }
+  renderCashflowSankey(analytics?.sankey || null, cb || null);
   renderMonthlySpendingAndSavings(analytics || null);
 }
 

@@ -65,10 +65,14 @@ class _PinnedMcpNetworkBackend(httpcore.AsyncNetworkBackend):
 
 
 def get_consolidated_balance_sheet(
-    repo: PortfolioRepository, db: TransactionRepository
+    repo: PortfolioRepository,
+    db: TransactionRepository,
+    cashflow_period: str = "all",
 ) -> BalanceSheet:
     """Builds the consolidated BalanceSheet from manual config and discovered items in SQLite."""
-    return BuildPortfolioOverviewUseCase.consolidate_balance_sheet(repo, db)
+    return BuildPortfolioOverviewUseCase.consolidate_balance_sheet(
+        repo, db, cashflow_period=cashflow_period
+    )
 
 
 def enrich_liability_dict(liab_dict: dict[str, Any]) -> dict[str, Any]:

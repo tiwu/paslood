@@ -27,7 +27,7 @@ DEFAULT_PATTERNS = [
         TransactionCategory.UTILITIES.value,
     ),
     (
-        r"ALDI|LIDL|JUMBO|DELHAIZE|COLRUYT|CARREFOUR|ALBERT HEIJN|SPAR|OKAY|BIO-PLANET",
+        r"ALDI|LIDL|JUMBO|DELHAIZE|COLRUYT|CARREFOUR|ALBERT HEIJN|SPAR\b|OKAY|BIO-PLANET",
         TransactionCategory.GROCERIES.value,
     ),
     (
@@ -44,7 +44,7 @@ DEFAULT_PATTERNS = [
     ),
     (r"SALARY|LOON|WEDDE|PAYROLL|WAGE|EMPLOYER|SALARIS", TransactionCategory.INCOME.value),
     (
-        r"SAXO|DEGIRO|BOLERO|INTERACTIVE BROKERS|TRADE REPUBLIC|BROKER",
+        r"SAXO|DEGIRO|BOLERO|INTERACTIVE BROKERS|TRADE REPUBLIC|BROKER|BELEGGINGSREKENING|BELEGGEN",
         TransactionCategory.INVESTMENTS.value,
     ),
     (r"SPAARREKENING|SPAREN|SAVINGS|ÉPARGNE", TransactionCategory.SAVINGS.value),
@@ -80,27 +80,55 @@ class CategorizeTransactionsUseCase:
             # 1. Check user-defined custom rules first (highest precedence)
             for rule in user_rules:
                 field_name = rule.get("match_field", "description")
-                pattern = rule.get("pattern", "")
+                pattern = str(rule.get("pattern", "") or "").strip()
                 target_cat = rule.get("target_category", "")
+                rule_amount = rule.get("amount")
 
-                val_to_check = str(getattr(tx, field_name, "") or "")
-                # If checking counterparty_name and it is empty, also fall back to description
-                if not val_to_check and field_name == "counterparty_name":
-                    val_to_check = str(tx.description or "")
+                if not target_cat or (not pattern and rule_amount is None):
+                    continue
 
-                if pattern and target_cat:
-                    # Safely match pattern without breaking on special regex characters like '*'
+                # Check optional amount constraint first
+                if rule_amount is not None and str(rule_amount).strip() != "":
                     try:
-                        matched = bool(re.search(pattern, val_to_check, re.IGNORECASE))
+                        from decimal import Decimal
+
+                        target_amt = abs(Decimal(str(rule_amount)))
+                        tx_amt = abs(tx.amount.amount)
+                        if abs(tx_amt - target_amt) > Decimal("0.01"):
+                            continue
+                    except Exception:
+                        continue
+
+                if not pattern:
+                    matched_category = target_cat
+                    break
+
+                if field_name in ("any", "counterparty_name", "description"):
+                    candidate_values = [
+                        str(tx.counterparty_name or ""),
+                        str(tx.description or ""),
+                        str(tx.counterparty_iban or ""),
+                    ]
+                else:
+                    candidate_values = [str(getattr(tx, field_name, "") or "")]
+
+                matched = False
+                for val_to_check in candidate_values:
+                    if not val_to_check:
+                        continue
+                    try:
+                        if re.search(pattern, val_to_check, re.IGNORECASE):
+                            matched = True
+                            break
                     except re.error:
-                        matched = pattern.lower() in val_to_check.lower()
-
-                    if not matched and pattern.lower() in val_to_check.lower():
+                        pass
+                    if pattern.lower() in val_to_check.lower():
                         matched = True
-
-                    if matched:
-                        matched_category = target_cat
                         break
+
+                if matched:
+                    matched_category = target_cat
+                    break
 
             # 2. Check known accounts cross-referencing (Saxo, savings, checking)
             if not matched_category and cleaned_accounts:
@@ -133,13 +161,23 @@ class CategorizeTransactionsUseCase:
                             matched_category = TransactionCategory.TRANSFER.value
                         break
 
-            # 3. Fall back to default heuristic patterns
+            # 3. Internal transfer to savings / investment heuristic before generic DEFAULT_PATTERNS
             if not matched_category:
-                combined_text = f"{tx.description} {tx.counterparty_name}"
-                for regex, cat in DEFAULT_PATTERNS:
-                    if re.search(regex, combined_text, re.IGNORECASE):
-                        matched_category = cat
-                        break
+                iban_upper = re.sub(r"[^A-Za-z0-9]", "", tx.counterparty_iban or "").upper()
+                acc_upper = re.sub(r"[^A-Za-z0-9]", "", tx.account_id or "").upper()
+                combined_text = f"{tx.description} {tx.counterparty_name} {tx.counterparty_iban}"
+                if (
+                    "BUNQ" in iban_upper
+                    and iban_upper != acc_upper
+                    and not acc_upper.startswith("NL")
+                    and tx.is_outflow
+                ):
+                    matched_category = TransactionCategory.SAVINGS.value
+                else:
+                    for regex, cat in DEFAULT_PATTERNS:
+                        if re.search(regex, combined_text, re.IGNORECASE):
+                            matched_category = cat
+                            break
 
             # 3. Income heuristic fallback based on amount sign
             if not matched_category:

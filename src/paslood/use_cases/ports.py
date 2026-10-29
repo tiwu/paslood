@@ -107,6 +107,7 @@ class TransactionRepository(Protocol):
         pattern: str,
         category: str,
         exclude_overrides: bool = True,
+        amount: Decimal | float | None = None,
     ) -> int: ...
 
     def apply_known_account_to_transactions(
@@ -132,7 +133,7 @@ class TransactionRepository(Protocol):
 
     def delete_liability(self, liability_id: str) -> bool: ...
 
-    def get_monthly_cashflow(self) -> MonthlyCashflow: ...
+    def get_monthly_cashflow(self, period: str = "all") -> MonthlyCashflow: ...
 
     def get_oldest_transaction_date(self) -> str | None: ...
 

@@ -20,6 +20,7 @@ function renderDashboard(data) {
 
   renderCashflowBreakdownWidget(data.cashflow_breakdown || null, fc);
   renderDonutChart(data.allocations || []);
+  populateStartYearSelect(data);
   renderProjectionChart(data.trajectory || []);
 
   // All active recommendations (synchronized badge count & list)
@@ -61,9 +62,20 @@ function renderCashflowBreakdownWidget(cb, fallbackSurplus = 0) {
   const debt = I18N.formatCurrency(cb.debt_payments || 0, 'EUR');
   const liv = I18N.formatCurrency(cb.living_expenses || 0, 'EUR');
   const free = I18N.formatCurrency(cb.free_cashflow !== undefined ? cb.free_cashflow : fallbackSurplus, 'EUR');
+  const periodLabel = cb.period === 'year'
+    ? 'Last 12 Months'
+    : (cb.period === 'month' ? 'Latest Month' : 'All Time');
+  const rangeSuffix = (cb.period_start && cb.period_end)
+    ? ` (${cb.period_start.slice(0, 7)} – ${cb.period_end.slice(0, 7)})`
+    : '';
   const sourceNote = cb.is_default_estimate
     ? 'Baseline estimate (import CSV statements in Cashflow for actuals)'
-    : `Avg across ${cb.months_analyzed || 1} month(s) of statements`;
+    : `${periodLabel}: Avg across ${cb.months_analyzed || 1} month(s)${rangeSuffix}`;
+
+  const kpiSel = document.getElementById('kpi-cashflow-period-select');
+  if (kpiSel && cb.period) {
+    kpiSel.value = cb.period;
+  }
 
   container.innerHTML = `
     <div class="text-[10px] text-slate-300 font-sans font-medium" title="${escapeHtml(cb.formula || '')}">
@@ -73,6 +85,7 @@ function renderCashflowBreakdownWidget(cb, fallbackSurplus = 0) {
       + <span class="text-amber-300 font-mono">${escapeHtml(liv)}</span> Liv)
       = <span class="text-emerald-400 font-mono font-bold">${escapeHtml(free)}</span>
     </div>
+    <div class="text-[9px] text-slate-400 font-sans pt-0.5">${escapeHtml(sourceNote)}</div>
     <div id="kpi-cashflow-detail-rows" class="hidden pt-1.5 mt-1 border-t border-slate-800/80 space-y-0.5 text-[10px]">
       <div class="flex justify-between"><span>+ Avg Monthly Income:</span><span class="text-emerald-400">${escapeHtml(inc)}</span></div>
       <div class="flex justify-between"><span>− Fixed (Tax, Utilities, Ins., Subs):</span><span class="text-slate-300">${escapeHtml(fix)}</span></div>

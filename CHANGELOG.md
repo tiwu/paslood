@@ -10,10 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Transaction Re-Bucketing by Keyword and Amount (#52)**:
+  - Added an optional `Match Amount (€)` field to the Re-Bucket modal, allowing transactions to be matched by keyword, amount, or both in `POST /api/transactions/rebucket`, rules persistence, and retroactive ledger classification.
+- **Transaction Search Amount Filters (#52)**:
+  - Added amount comparison operators (`>500`, `<100`, `>=250`, `<=50`, `=100`) and composite queries (`kbc >500`) to the Recent Transactions table search.
+- **Cashflow Timeframe Selector (#52)**:
+  - Added timeframe filters (`Month`, `Last Year (12M)`, `All Time`) to the Overview Monthly Free Cashflow KPI and the Cashflow workspace visualizations (Sankey flow diagram and Monthly Spending chart).
 
 ### Changed
+- **Internal Savings & Brokerage Transfer Recognition (#52)**:
+  - Automated classification of transfers to savings accounts (Bunq, KBC Spaarrekening) as `SAVINGS` and transfers to brokerages (Saxo, Bolero, DEGIRO) as `INVESTMENTS`.
 
 ### Fixed
+- **Manual Asset Acquisition Date & Cost Basis (#52)**:
+  - Preserved and displayed `acquisition_date` and `cost_basis` in `portfolio.yaml`, `/api/overview`, the manual assets table, and edit forms.
+- **Loan & Asset Form Step Validation Warnings (#52)**:
+  - Set `step="any"` on decimal currency and rate inputs in loan and asset modals, eliminating native browser step validation tooltips.
+- **Re-Bucket Description Truncation (#52)**:
+  - Preserved full counterparty and description text when opening the Re-Bucket modal, matching custom rules across counterparty name, description, and IBAN.
+- **Historical Inception on Wealth Trajectory Initial Load (#52)**:
+  - Populated historical portfolio inception years on initial `/api/overview` page load without requiring settings interaction.
 
 ---
 

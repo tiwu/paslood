@@ -24,6 +24,7 @@ let currentProjectionStartYear = null;
 let currentAutoDetectStart = true;
 let currentMcpServers = [];
 let excludePropertyState = localStorage.getItem('paslood_exclude_property') === 'true';
+let currentCashflowPeriod = localStorage.getItem('paslood_cashflow_period') || 'all';
 
 const BUCKET_PALETTE = [
   '#3B82F6', // Blue
@@ -369,12 +370,32 @@ async function toggleExcludeProperty(checked) {
   await updateProjectionChart();
 }
 
+async function setCashflowPeriod(period) {
+  currentCashflowPeriod = period || 'all';
+  localStorage.setItem('paslood_cashflow_period', currentCashflowPeriod);
+  const kpiSel = document.getElementById('kpi-cashflow-period-select');
+  if (kpiSel && kpiSel.value !== currentCashflowPeriod) {
+    kpiSel.value = currentCashflowPeriod;
+  }
+  ['month', 'year', 'all'].forEach(p => {
+    const btn = document.getElementById(`btn-cf-period-${p}`);
+    if (btn) {
+      btn.className = p === currentCashflowPeriod
+        ? 'px-2.5 py-1 rounded bg-blue-600 text-white font-medium transition'
+        : 'px-2.5 py-1 rounded text-slate-400 hover:text-white transition';
+    }
+  });
+  await loadOverview();
+}
+
 // Initial Data Fetch
 async function loadOverview() {
   try {
     const toggleEl = document.getElementById('toggle-exclude-property');
     if (toggleEl) toggleEl.checked = excludePropertyState;
-    const url = `/api/overview?exclude_property=${excludePropertyState ? 'true' : 'false'}`;
+    const kpiSel = document.getElementById('kpi-cashflow-period-select');
+    if (kpiSel) kpiSel.value = currentCashflowPeriod;
+    const url = `/api/overview?exclude_property=${excludePropertyState ? 'true' : 'false'}&cashflow_period=${encodeURIComponent(currentCashflowPeriod)}`;
     const res = await fetch(url);
     if (!res.ok) return;
     currentData = await res.json();

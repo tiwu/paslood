@@ -495,6 +495,53 @@ if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expect
     throw new Error('renderKnownAccounts did not include Edit button');
   }}
 
+  // 12. Test getFilteredTransactions with >500, <100, and combined text + amount filters (#52)
+  const sampleTxs = [
+    {{ id: 't1', description: 'Delhaize', counterparty_name: 'Delhaize', amount_value: -85.50, category: 'GROCERIES', account_id: 'BE90' }},
+    {{ id: 't2', description: 'Transfer Saxo', counterparty_name: 'Saxo Bank', amount_value: -650.00, category: 'INVESTMENTS', account_id: 'BE90' }},
+    {{ id: 't3', description: 'Salary', counterparty_name: 'Employer', amount_value: 3200.00, category: 'INCOME', account_id: 'BE90' }}
+  ];
+  sandbox.onTxSearchInput({{ target: {{ value: '>500' }} }});
+  const gt500 = sandbox.getFilteredTransactions(sampleTxs);
+  if (gt500.length !== 2) {{
+    throw new Error('Expected 2 transactions matching >500, got: ' + gt500.length);
+  }}
+  sandbox.onTxSearchInput({{ target: {{ value: '<100' }} }});
+  const lt100 = sandbox.getFilteredTransactions(sampleTxs);
+  if (lt100.length !== 1 || lt100[0].id !== 't1') {{
+    throw new Error('Expected t1 matching <100');
+  }}
+  sandbox.onTxSearchInput({{ target: {{ value: 'saxo >500' }} }});
+  const saxoGt500 = sandbox.getFilteredTransactions(sampleTxs);
+  if (saxoGt500.length !== 1 || saxoGt500[0].id !== 't2') {{
+    throw new Error('Expected t2 matching saxo >500');
+  }}
+  sandbox.onTxSearchInput({{ target: {{ value: '' }} }});
+
+  // 13. Test openRebucketModal preserves full description when counterparty is empty (#52)
+  sandbox.openRebucketModal('tx-full', 'DOORSTAANDE OPDRACHT SPARING KINDEREN', '', 'SAVINGS', -250.0);
+  if (getEl('modal-pattern-input').value !== 'DOORSTAANDE OPDRACHT SPARING KINDEREN') {{
+    throw new Error('openRebucketModal truncated description: ' + getEl('modal-pattern-input').value);
+  }}
+
+  // 14. Test renderManualAssetsAndDebts renders acquisition_date and cost_basis (#52)
+  sandbox.renderManualAssetsAndDebts({{
+    assets: [{{
+      id: 'asset-home',
+      name: 'Leuven House',
+      asset_class: 'REAL_ESTATE',
+      current_value: 450000,
+      cost_basis: 320000,
+      acquisition_date: '2019-06-15',
+      institution: 'Manual'
+    }}],
+    liabilities: []
+  }});
+  const assetRowHtml = getEl('manual-assets-tbody').children[0].innerHTML;
+  if (!assetRowHtml.includes('2019-06-15') || !assetRowHtml.includes('320000.00')) {{
+    throw new Error('renderManualAssetsAndDebts did not display acquisition_date or cost_basis: ' + assetRowHtml);
+  }}
+
   console.log('NODE_UNIT_OK');
 }})().catch(err => {{
   console.error(err);

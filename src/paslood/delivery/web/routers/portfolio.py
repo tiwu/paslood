@@ -95,6 +95,7 @@ class ManualLiabilityRequest(BaseModel):
 async def get_overview(
     request: Request,
     exclude_property: bool = False,
+    cashflow_period: str = "all",
     repo: ConfigRepository = Depends(get_repo),
     db: LocalDbRepository = Depends(get_db),
     settings: AppSettings = Depends(get_app_settings),
@@ -102,7 +103,7 @@ async def get_overview(
     debt_advisor: AdviseDebtPayoffUseCase = Depends(get_debt_advisor),
     net_worth_projector: ProjectNetWorthUseCase = Depends(get_net_worth_projector),
 ):
-    bs = get_consolidated_balance_sheet(repo, db)
+    bs = get_consolidated_balance_sheet(repo, db, cashflow_period=cashflow_period)
     buckets = repo.load_buckets()
     configured_milestones = repo.load_milestones()
 
@@ -116,6 +117,7 @@ async def get_overview(
         buckets=buckets,
         configured_milestones=configured_milestones,
         exclude_property=exclude_property,
+        oldest_tx_date=db.get_oldest_transaction_date(),
     )
 
     txs = db.get_transactions(limit=10000)
@@ -133,8 +135,9 @@ async def get_overview(
         }
         for t in txs
     ]
+    filtered_cf_txs = LocalDbRepository.filter_transactions_by_period(txs, cashflow_period)
     data["cashflow_analytics"] = BuildPortfolioOverviewUseCase.build_cashflow_analytics(
-        transactions=txs,
+        transactions=filtered_cf_txs,
         cashflow=bs.cashflow,
     )
 

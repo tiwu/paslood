@@ -578,12 +578,35 @@ class ConfigRepository:
     def save_transaction_rule(self, rule: dict[str, Any]) -> None:
         """Appends a learned transaction classification rule."""
         rules = self.load_transaction_rules()
-        # Deduplicate by pattern
-        existing = next((r for r in rules if r.get("pattern") == rule.get("pattern")), None)
+        rule_clean = dict(rule)
+        if "amount" in rule_clean and rule_clean["amount"] is not None:
+            try:
+                rule_clean["amount"] = float(rule_clean["amount"])
+            except (ValueError, TypeError):
+                rule_clean.pop("amount", None)
+        elif "amount" in rule_clean:
+            rule_clean.pop("amount", None)
+
+        rule_amt = rule_clean.get("amount")
+
+        def _same_rule_key(r: dict[str, Any]) -> bool:
+            if r.get("pattern") != rule_clean.get("pattern"):
+                return False
+            existing_amt = r.get("amount")
+            if rule_amt is None and existing_amt is None:
+                return True
+            if rule_amt is not None and existing_amt is not None:
+                try:
+                    return abs(float(existing_amt) - float(rule_amt)) < 0.005
+                except (ValueError, TypeError):
+                    return False
+            return False
+
+        existing = next((r for r in rules if _same_rule_key(r)), None)
         if existing:
-            existing.update(rule)
+            existing.update(rule_clean)
         else:
-            rules.append(rule)
+            rules.append(rule_clean)
 
         self._write_yaml_atomic(self.rules_path, rules)
 
@@ -779,12 +802,25 @@ class ConfigRepository:
         manual_assets = data.get("manual_assets", [])
         asset_id = str(asset_dict.get("id") or f"asset-{uuid.uuid4().hex[:8]}")
         asset_dict["id"] = asset_id
+        cleaned = dict(asset_dict)
+        if "current_value" in cleaned and cleaned["current_value"] is not None:
+            cleaned["current_value"] = float(cleaned["current_value"])
+        if "cost_basis" in cleaned:
+            cleaned["cost_basis"] = (
+                float(cleaned["cost_basis"]) if cleaned["cost_basis"] is not None else None
+            )
+        if "acquisition_date" in cleaned:
+            cleaned["acquisition_date"] = (
+                str(cleaned["acquisition_date"]).strip() or None
+                if cleaned["acquisition_date"] is not None
+                else None
+            )
 
         existing = next((a for a in manual_assets if str(a.get("id")) == asset_id), None)
         if existing:
-            existing.update(asset_dict)
+            existing.update(cleaned)
         else:
-            manual_assets.append(asset_dict)
+            manual_assets.append(cleaned)
 
         data["manual_assets"] = manual_assets
         self._write_yaml_atomic(self.config_path, data)
