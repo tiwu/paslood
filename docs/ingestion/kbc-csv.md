@@ -1,32 +1,44 @@
 # Ingesting Belgian KBC Bank Statements
 
-Paslood features native, zero-configuration support for **KBC Bank CSV statement exports**.
+Paslood provides native parsing for **KBC Bank CSV statement exports**.
 
 ---
 
-## How to Export from KBC Touch / KBC Mobile
+## Ingestion Flow
 
-1. Log in to **KBC Touch** (web) or **KBC Mobile**.
-2. Navigate to your checking account (`Zichtrekening`).
-3. Click **Historiek exporteren** (Export History) -> Select **CSV-formaat**.
-4. Download the `.csv` file.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Account Holder
+    participant UI as Web Dashboard
+    participant Gateway as KbcCsvGateway
+    participant DB as SQLite LocalDb
+
+    User->>UI: Upload KBC CSV export
+    UI->>Gateway: Parse file stream
+    Gateway->>Gateway: Detect encoding (Latin-1 / Windows-1252) & normalize line endings
+    Gateway->>Gateway: Extract closing balance from latest transaction
+    Gateway->>Gateway: Detect loan repayment patterns (WONINGKREDIET, FLEX BUDGET)
+    Gateway->>DB: Save discovered Cash asset & Liabilities
+    Gateway->>DB: Deduplicate and insert transactions
+    DB-->>UI: Refresh cashflow summary & transaction ledger
+```
 
 ---
 
-## File Format Specs Handled Automatically
+## Supported Statement Formats
 
-- **Encoding**: ISO-8859-1 (Latin-1) / Windows-1252
-- **Delimiter**: Semicolon (`;`)
-- **Number Formats**: European format (e.g., `-579,68` or `1.452,04`)
-- **Date Format**: `DD/MM/YYYY`
+| Statement Type | Header Signatures | Encoding | Auto-Discovered Data |
+| :--- | :--- | :--- | :--- |
+| **Checking (`Zichtrekening`)** | `Rekeningnummer;Datum;Bedrag;Omschrijving` | ISO-8859-1 | Current liquid cash, salary income, mortgage payments (`WONINGKREDIET`), revolving credit (`FLEX BUDGET`). |
+| **Savings (`Spaarrekening`)** | `Rekeningnummer;Datum;Bedrag;Omschrijving` | ISO-8859-1 | Dedicated emergency savings cash asset, transfer inflows/outflows. |
+| **Credit Card** | `kredietkaart;kaarthouder;bedrag in EUR` | Windows-1252 | Credit card transactions, merchant locations, foreign currency conversions. |
+| **Position Overview** | `Productklasse;Waardeinfo/ISIN;Naam product` | ISO-8859-1 | Pension savings funds (*Pensioensparen*), mutual funds, investment cash accounts. |
 
 ---
 
-## Automated Discovery
+## Automated Field Parsing Specs
 
-When you upload or ingest your KBC CSV:
-1. **Liquid Checking Balance**: Extracted from the most recent transaction's `Saldo` column and assigned to the Cash asset.
-2. **Liabilities Discovery**: Scans descriptions for loan references (`WONINGKREDIET` and `FLEX BUDGET`) and automatically records active debts.
-3. **Monthly Debt Servicing**: Sums recurring mortgage repayments and consumer credit payments.
-4. **Income Extraction**: Averages recurring salary deposits from your employer.
-5. **Interactive Re-Bucketing**: Displays all transactions in the Web Dashboard, allowing you to re-bucket any transaction and save custom categorization rules.
+- **Delimiters**: Semicolon (`;`) delimiter with European number formatting (`1.250,50` $\rightarrow$ `Decimal("1250.50")`).
+- **Date Format**: `DD/MM/YYYY`.
+- **Deduplication**: SHA-256 row hashing incorporating row sequence indexes to preserve legitimate same-day charges while ensuring idempotent re-uploads.

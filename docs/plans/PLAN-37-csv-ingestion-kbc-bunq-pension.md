@@ -37,12 +37,12 @@ Users uploading CSV exports from `./csv/` encounter silent failures or empty/bog
   - Normalize line endings and skip `sep=;` + preamble lines in KBC `Positie-overzicht` exports until the `Productklasse;Waardeinfo/ISIN` header row.
   - Parse Belgian decimal formatting (`12.038,76` -> `Decimal("12038.76")`).
   - Map `beleggingsfonds` with `PENSION` in the name to `AssetClass.PENSION` (otherwise `AssetClass.EQUITY`), and `spaarrekening` to `AssetClass.CASH`.
-  - Extract the IBAN from `spaarrekening` rows (`BE63 7450 2071 3108`) and assign `id="kbc-checking-BE63745020713108"` so uploading both the KBC savings CSV and the position overview updates the same cash asset without double-counting.
+  - Extract the IBAN from `spaarrekening` rows (`BE68 0000 0000 1234`) and assign `id="kbc-checking-BE68000000001234"` so uploading both the KBC savings CSV and the position overview updates the same cash asset without double-counting.
   - Validate headers in `_parse_generic` so unrecognized transaction CSVs raise a clear `ValueError` instead of creating `€ 0.00` dummy assets.
 - **`src/paslood/adapters/ingestion/bunq_csv.py`** (New):
   - Implement `BunqCsvGateway` parsing `"Date","Interest Date","Amount","Account","Counterparty","Name","Description"`.
   - Parse European decimal amounts (`1.000,00`, `-1,80`) into `Money(Decimal, "EUR")`.
-  - Generate deterministic transaction IDs (`bunq-tx-<hash>`) with a per-row occurrence index so identical same-day purchases (e.g., two `"Burgers Zoo"` `-3,50` rows on `2023-07-20`) are both preserved while re-uploads remain idempotent.
+  - Generate deterministic transaction IDs (`bunq-tx-<hash>`) with a per-row occurrence index so identical same-day purchases (e.g., two identical €3.50 merchant charge rows) are both preserved while re-uploads remain idempotent.
 - **`src/paslood/adapters/repositories/local_db.py`**:
   - Clean up any legacy bogus `gen-*` assets with `0` balance during initialization/save.
 
@@ -57,7 +57,7 @@ Users uploading CSV exports from `./csv/` encounter silent failures or empty/bog
 ## 3. TDD Verification Plan
 
 1. **Unit & Integration Tests (`tests/integration/test_ingestion_csv_formats.py`)**:
-   - Test KBC checking (`export_BE90735017192832_*.csv`), KBC savings (`export_BE63745020713108_*.csv`), KBC credit card (`export_KBC-Kredietkaart_*.csv`), KBC position overview (`Positie-overzicht op *.csv`), and Bunq checking/savings (`*_bunq-afschrift.csv`).
+   - Test KBC checking (`export_BE90000000001234_*.csv`), KBC savings (`export_BE68000000005678_*.csv`), KBC credit card (`export_KBC-Kredietkaart_*.csv`), KBC position overview (`Positie-overzicht op *.csv`), and Bunq checking/savings (`*_bunq-afschrift.csv`).
    - Verify foreign currency (`MGA`) conversion to `EUR`, settlement row filtering, duplicate same-day merchant transaction preservation, and idempotent re-uploads.
    - Verify `spaarrekening` IBAN deduplication between `KbcCsvGateway` and `GenericCsvGateway`.
 2. **Delivery API Tests**:

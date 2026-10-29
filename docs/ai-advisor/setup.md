@@ -1,35 +1,58 @@
 # AI Financial Advisor Setup
 
-Paslood includes an optional **AI Financial Advisor** layer designed to provide qualitative, human-readable reviews of your macro financial plan.
+Paslood features a server-side AI advisory layer that provides qualitative assessments of macro financial plans.
 
 ---
 
-## Bring Your Own API Key (BYO Key)
+## Privacy-Preserving Architecture
 
-To guarantee complete privacy and zero markups, you provide your own API key from your preferred provider:
+```mermaid
+flowchart LR
+    subgraph LocalHost["Local Paslood Instance (Private)"]
+        DATA["Raw Balance Sheet & Ledger<br/>(IBANs, Accounts, Real Balances)"]
+        ANON["Anonymization & Aggregation Layer<br/>Strips Account Numbers, Names, Identifiers"]
+        METRICS["Aggregated Financial Metrics<br/>(Asset Totals, Debt APRs, Drift %, Surplus)"]
+        VAULT["SecretVault (AES-256-GCM)<br/>Decrypts API Key In-Memory Only"]
+    end
 
-1. **Google Gemini (Recommended)**: Free or pay-as-you-go via [Google AI Studio](https://aistudio.google.com/).
-2. **OpenAI**: GPT-4o / GPT-4o-mini via [platform.openai.com](https://platform.openai.com/).
-3. **Anthropic**: Claude 3.5 Haiku / Sonnet via [console.anthropic.com](https://console.anthropic.com/).
-4. **Local Ollama**: 100% offline local inference (no API key required).
+    subgraph Providers["Supported LLM Providers"]
+        GEMINI["Google Gemini API"]
+        OPENAI["OpenAI API"]
+        CLAUDE["Anthropic Claude API"]
+        OLLAMA["Local Ollama (100% Offline)"]
+    end
+
+    DATA --> ANON
+    ANON --> METRICS
+    METRICS --> AI_DISPATCH["Secure Server-Side Dispatch"]
+    VAULT --> AI_DISPATCH
+    AI_DISPATCH -->|TLS Request with Anonymized Metrics| Providers
+    Providers -->|Strategic Narrative Advice| UI["Web Dashboard & CLI"]
+```
+
+---
+
+## Supported Providers
+
+| Provider | Supported Models | Key Management | Privacy Scope |
+| :--- | :--- | :--- | :--- |
+| **Google Gemini** *(Recommended)* | `gemini-2.0-flash`, `gemini-1.5-pro` | Encrypted in `SecretVault` | Anonymized metrics payload only |
+| **Anthropic Claude** | `claude-3-5-sonnet`, `claude-3-5-haiku` | Encrypted in `SecretVault` | Anonymized metrics payload only |
+| **OpenAI** | `gpt-4o`, `gpt-4o-mini` | Encrypted in `SecretVault` | Anonymized metrics payload only |
+| **Local Ollama** | Any local model (e.g. `llama3`, `mistral`) | No API key required | **100% offline local inference** |
 
 ---
 
 ## Configuration
 
-You can enter your API key directly in the Web Dashboard under the **🤖 AI Advisor** tab, or export it in your environment:
+API keys can be supplied via environment variables or entered directly into the Web Dashboard under **Settings $\rightarrow$ AI Advisor**:
 
 ```bash
-# Example environment variables
+# Optional environment variables
 export GEMINI_API_KEY="your-gemini-key"
-# or
+export ANTHROPIC_API_KEY="your-anthropic-key"
 export OPENAI_API_KEY="your-openai-key"
+export OLLAMA_HOST="http://localhost:11434"
 ```
 
----
-
-## Privacy Protection
-
-When an AI review is requested, Paslood:
-- **Never** transmits your account numbers, bank identifiers, counterparty names, or personal identities.
-- Sends **only** high-level aggregated metrics: total assets, total debt, debt APRs, bucket percentage deviations, and monthly cashflow surplus.
+All credentials entered through the UI are encrypted at rest with AES-256-GCM using per-tenant keys derived via HKDF-SHA256.

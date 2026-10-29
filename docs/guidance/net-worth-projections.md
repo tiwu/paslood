@@ -1,29 +1,46 @@
 # Net Worth Milestone Projections
 
-Paslood models compound wealth growth over 5, 10, 20, and 30 years using multi-variable trajectory simulations.
+Paslood models long-term compound wealth trajectories over 5, 10, 20, and 30-year horizons using multi-variable simulations.
 
 ---
 
-## Historical Inception & Timeline
+## Trajectory Simulation Pipeline
 
-On initial load, Paslood inspects asset acquisition dates, loan start dates, and statement history to identify your earliest portfolio activity (`oldest_detected_year`). The Compound Wealth Trajectory chart begins at inception, rendering historical net worth progression up to the present before projecting forward compounding. You can also override the start year directly in the dashboard controls.
+```mermaid
+flowchart LR
+    INCEPT["Inception Discovery<br/>(Earliest Asset/Loan Date)"] --> HIST["Historical Net Worth<br/>Progression to Present"]
+    HIST --> TODAY["Present Balance Sheet<br/>(Assets - Liabilities)"]
+
+    TODAY --> ENGINE["Multi-Variable Projection Engine"]
+    CASHFLOW["Monthly Investable Cashflow"] --> ENGINE
+    CAGR["Expected Annual Return (e.g. 7.0%)"] --> ENGINE
+    AMORT["Loan Principal Amortization"] --> ENGINE
+
+    ENGINE --> MILESTONES["Milestone Horizon Tracking"]
+    MILESTONES --> M100["€100k Savings Accelerator"]
+    MILESTONES --> M250["€250k Quarter-Million"]
+    MILESTONES --> M500["€500k Half-Million"]
+    MILESTONES --> M1M["€1.0M Liquid Millionaire"]
+    MILESTONES --> FI["Financial Independence (4% Rule)"]
+```
 
 ---
 
-## Compounding Variables
+## Core Simulation Variables
 
-1. **Current Net Worth**: Starting assets minus active liabilities.
-2. **Monthly Savings Rate**: Net investable cashflow surplus derived from your bank statement and income.
-3. **Compound Annual Return (CAGR)**: Long-term portfolio return assumption (default: 7.0%).
-4. **Debt Amortization**: Gradual paydown of principal balances over the loan lifecycle.
+1. **Current Net Worth**: Starting balance sheet equity ($\text{Assets} - \text{Liabilities}$).
+2. **Monthly Savings Rate**: Net investable cashflow surplus derived from bank statements and income.
+3. **Compound Annual Growth Rate (CAGR)**: Long-term gross investment return assumption (baseline: 7.0%).
+4. **Debt Amortization Schedule**: Monthly principal reduction across active mortgages and installment loans.
 
 ---
 
-## Wealth Milestones
+## Standard Milestone Definitions
 
-The projection engine tracks when your net worth trajectory crosses key financial milestones:
-- **€100k**: The critical baseline where investment returns begin noticeably accelerating savings.
-- **€250k**: Quarter-million milestone.
-- **€500k**: Half-million milestone.
-- **€1M**: Liquid millionaire milestone.
-- **Financial Independence (FI)**: The crossover point where annual investment yield exceeds estimated annual living expenses (using the 4.0% safe withdrawal rule).
+| Milestone | Target Valuation | Economic Significance |
+| :--- | :--- | :--- |
+| **Baseline Accelerator** | **€ 100,000** | Threshold where investment compounding begins matching or exceeding annual savings contributions. |
+| **Quarter-Million** | **€ 250,000** | Mid-stage accumulation milestone. |
+| **Half-Million** | **€ 500,000** | Substantial capital base providing significant investment yield. |
+| **Liquid Millionaire** | **€ 1,000,000** | Liquid independence threshold. |
+| **Financial Independence (FI)** | **$25 \times \text{Annual Expenses}$** | Crossover point where a 4.0% safe withdrawal rate covers all annual living costs. |

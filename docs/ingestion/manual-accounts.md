@@ -1,17 +1,17 @@
-# Manual Accounts & Bunq Integration
+# Manual Accounts & Asset Configuration
 
-Certain financial assets and liabilities don't require automated feeds or CSV statements to track accurately. Paslood allows you to define these directly in your `portfolio.yaml` or through the Web UI.
+Assets and debts that do not require recurring statement uploads (e.g. real estate appraisals, fixed mortgage amortization schedules, high-yield cash reserves) can be configured directly in `portfolio.yaml` or through the Web UI.
 
 ---
 
-## Configuring Bunq Savings
+## Configuration Schema
 
-For accounts like **Bunq High-Yield Savings** where you maintain an emergency reserve:
+### 1. Manual Cash & Savings Assets
 
 ```yaml
 manual_assets:
   - id: "bunq-savings"
-    name: "Bunq High-Yield Savings"
+    name: "High-Yield Savings Reserve"
     symbol: "SAVINGS"
     asset_class: "CASH"
     current_value: 15000.00
@@ -21,9 +21,7 @@ manual_assets:
 
 ---
 
-## Configuring Real Estate & Mortgages
-
-To model primary residence equity alongside mortgages, provide valuation, cost basis, and loan schedule parameters:
+### 2. Real Estate & Mortgage Amortization
 
 ```yaml
 manual_assets:
@@ -37,7 +35,7 @@ manual_assets:
 
 manual_liabilities:
   - id: "mortgage-woningkrediet-1"
-    name: "KBC Woningkrediet (Fixed Rate)"
+    name: "Fixed-Rate Home Mortgage"
     loan_type: "MORTGAGE"
     start_capital: 250000.00
     principal_balance: 140000.00
@@ -48,7 +46,14 @@ manual_liabilities:
     institution: "KBC"
 ```
 
-### Key Fields for Wealth Projections
+---
 
-- **`acquisition_date` & `cost_basis`**: Used by the projection engine to determine portfolio inception date and compute historical cost benchmarks (e.g. Belgian capital gains tax relief thresholds).
-- **`start_capital`, `start_date`, and `duration_months`**: Enables automatic principal balance estimation and amortization modeling when remaining balances change over time.
+## Field Reference
+
+| Field | Applicable Aggregate | Purpose |
+| :--- | :--- | :--- |
+| `cost_basis` | `Asset` | Benchmark acquisition cost used in capital gains tax relief calculations. |
+| `acquisition_date` | `Asset` | Establishes portfolio inception and determines pre-2026 tax status. |
+| `interest_rate_pct` | `Liability` | Annual Percentage Rate (APR) evaluated against expected portfolio CAGR. |
+| `monthly_payment` | `Liability` | Fixed monthly debt servicing deducted from gross income to compute free cashflow. |
+| `duration_months` | `Liability` | Total amortization period used to calculate remaining balance trajectories. |

@@ -1,39 +1,65 @@
 # Paslood Documentation 🧭
 
-> **Whole-Life Balance Sheet, PDT Strategic Companion & Belgian Fiscal Shield**
->
-> *"You can't know where you're going if you don't know where you are."*
+> **Whole-Life Balance Sheet, Portfolio Allocation Engine & Belgian Fiscal Shield**
 
-Welcome to the documentation for **Paslood** (*in het lood staan* — plumb-line alignment for your personal balance sheet), an open-source, local-first platform designed to unify your brokerage portfolio with your real-world off-broker assets, debts, and Belgian fiscal obligations.
+Paslood (*in het lood staan* — plumb-line alignment) is an open-source, local-first platform designed to unify brokerage portfolios with off-broker assets, debts, and fiscal obligations.
 
 ---
 
-## Why Paslood?
+## System Overview
 
-Brokerage portfolio trackers like **Portfolio Dividend Tracker (PDT)** do the heavy lifting of importing broker CSVs (e.g., Saxo) and tracking dividend income. However, **PDT only sees your brokerage accounts**. It knows nothing about:
+```mermaid
+flowchart TB
+    subgraph ExternalSources["External Ingestion"]
+        PDT["PDT MCP / Broker CSVs"]
+        BANK["KBC / Bunq Statement CSVs"]
+        MANUAL["Manual Assets & Liabilities"]
+        ESPP["Corporate Equity Plans"]
+    end
 
-- **Checking & Savings Accounts**: Cash buffers at KBC or Bunq.
-- **Pillar Pensions**: KBC pension savings (*pensioensparen*).
-- **Real Estate & Loans**: Primary residence value, mortgage principal/APR, or consumer/vehicle loans (e.g., Alpha Credit motorcycle loan).
-- **Employee Stock Concentration & Foreign Custodians**: Recurring employee share purchase plans (e.g., 0–10% gross salary quarterly ASML stock purchases + lump-sum grants on **EquatePlus / Equatex AG Zurich**) and the Belgian tax traps hidden on foreign settlement PDFs.
+    subgraph CoreEngine["Paslood Core Services"]
+        BS["Whole-Life Balance Sheet Engine"]
+        BUCKET["Strategic Bucket Engine"]
+        REBAL["Buy-Only Rebalance Calculator"]
+        TAX["Belgian Fiscal Shield Engine"]
+        DEBT["Debt Avalanche Analyzer"]
+    end
 
-**Paslood bridges this gap as your Strategic Decision Engine**:
-- **Macro Allocation Buckets**: Organize your *entire* financial life into target pillars (Core World ETFs, Employee Stock / High-Conviction Growth, Gold/Commodities, Cash Buffers, Real Estate) with customizable drift tolerances.
-- **Buy-Only Rebalancing**: Directs incoming monthly savings to underweight buckets without forcing taxable sales.
-- **Legally Grounded Belgian Fiscal Shield**:
-  - **2026 Meerwaardebelasting (`WIB 92 Art. 90/101`)**: Uses `max(31 Dec 2025 Fotomoment, Historical Purchase Price)` as legal cost basis, models the `€10,000` annual exemption (`+€1,000/yr` 5-year carryover, doubled for joint filing), and solves the exact **Max Tax-Free Share Trim** to de-concentrate employee stock at `€0.00` CGT.
-  - **EquatePlus (Zurich) Reconciliation & TOB (`WDRT Art. 120-126/2`)**: Separates Equatex AG's `0.35%` commission and `0.15%` Swiss stamp duty (*Zegelrechten*) from unwithheld **Belgian TOB (`0.35%`)**, alerting you to the bi-monthly FOD Financiën declaration deadline.
-  - **Reynders Tax (`WIB 92 Art. 19bis`)**: Computes the `30%` withholding tax on fixed-income/money-market funds (`>10%` debt claims).
-- **Debt vs. Investing Optimization**: Evaluates loan APRs (mortgage, vehicle loan) against long-term expected portfolio CAGR.
-- **Server-Side AI Advisor & Privacy First**: Envelope encryption (`SecretVault` with AES-256-GCM), local SQLite database, and Tailscale / Cloudflare Tunnel mobile access.
+    subgraph Interfaces["Delivery Channels"]
+        WEB["FastAPI Web Dashboard (PWA)"]
+        CLI["Typer Scriptable CLI"]
+    end
+
+    ExternalSources --> BS
+    BS --> BUCKET
+    BS --> DEBT
+    BUCKET --> REBAL
+    ESPP --> TAX
+    CoreEngine --> Interfaces
+```
 
 ---
 
-## Architectural Highlights
+## Core Capabilities
 
-Paslood strictly implements **Clean Architecture**:
+| Capability | Technical Scope | Primary Statutory / Domain Model |
+| :--- | :--- | :--- |
+| **Whole-Life Balance Sheet** | Aggregates liquid cash, brokerage securities, pension schemes, real estate, mortgages, and amortized consumer loans into a single net worth ledger. | `BalanceSheet = Assets - Liabilities` |
+| **Strategic Allocation Buckets** | Defines target percentage weights for macro pillars with configurable drift boundaries (default: $\pm 3.0\%$). | `CalculateBucketAllocationUseCase` |
+| **Buy-Only Rebalancing** | Directs periodic savings deposits to underweight buckets, restoring target weights without selling assets or realizing capital gains. | `AdviseContributionUseCase` |
+| **2026 Meerwaardebelasting** | Models the 10% Belgian capital gains tax on financial assets, incorporating the 31 Dec 2025 fotomoment cost basis, historical loss protection, and 5-year exemption carryover. | `WIB 92 Art. 90, 1° & Art. 101–102` |
+| **EquatePlus Reconciliation** | Distinguishes Swiss brokerage fees (`0.35%`) and Swiss stamp duty (`0.15%`) from unwithheld Belgian stock exchange tax (`0.35% TOB`). | `WDRT Art. 120–126/2` |
+| **Reynders Fund Tax** | Calculates the 30% withholding tax on the fixed-income portion of accumulating/distributing funds with $>10\%$ debt claims. | `WIB 92 Art. 19bis` |
+| **Debt Payoff Optimization** | Evaluates loan APRs against expected long-term portfolio CAGR (baseline: 7.0%) to prioritize debt avalanche vs. investing. | `AdviseDebtPayoffUseCase` |
+| **Local-First Privacy** | Enforces single-owner data isolation, local SQLite persistence with WAL mode, and AES-256-GCM envelope encryption. | `SecretVault` / `AppSettings` |
 
-- `domain/`: Pure business models (`Money`, `Asset`, `Liability`, `Bucket`, `AllocationRule`, `BalanceSheet`, `TobTier`, `BrokerTaxProfile`, `BelgianTaxCitation`). Zero third-party dependencies.
-- `use_cases/`: Application business rules (`CalculateBucketAllocation`, `AdviseContribution`, `AdviseDebtPayoff`, `ProjectNetWorth`, `CategorizeTransactions`, `OptimizeTax`, `BuildPortfolioOverview`).
-- `adapters/`: Ingestion gateways (KBC CSV, PDT MCP, Generic CSV), repositories (`ConfigRepository`, `LocalDbRepository`), security (`SecretVault`), and settings (`AppSettings`).
-- `delivery/`: Modern local FastAPI web dashboard (`delivery/web`) with PWA and mobile bottom navigation, authentication manager (`AuthManager`), and scriptable CLI (`cli.py`).
+---
+
+## Architectural Principles
+
+Paslood enforces Clean Architecture layer boundaries:
+
+1. **`domain/`**: Enterprise business rules (`Money`, `Asset`, `Liability`, `Bucket`, `AllocationRule`, `BalanceSheet`, `TobTier`, `BrokerTaxProfile`). Zero external dependencies.
+2. **`use_cases/`**: Application workflows (`CalculateBucketAllocation`, `AdviseContribution`, `AdviseDebtPayoff`, `ProjectNetWorth`, `CategorizeTransactions`, `OptimizeTax`, `BuildPortfolioOverview`).
+3. **`adapters/`**: Gateways and infrastructure (`KbcCsvGateway`, `BunqCsvGateway`, `GenericCsvGateway`, `PdtMcpGateway`, `ConfigRepository`, `LocalDbRepository`, `SecretVault`).
+4. **`delivery/`**: User interfaces (`delivery/web` FastAPI application, responsive dark-mode PWA, `cli.py` Typer CLI).

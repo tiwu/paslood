@@ -1,22 +1,32 @@
 # Debt Payoff Strategy: Avalanche vs. Investing
 
-A fundamental dilemma for wealth builders with surplus cashflow is:  
-**"Should I pay down my debts faster, or invest the money in my portfolio?"**
+Wealth builders with surplus cashflow face a structural decision:  
+**Should monthly savings accelerate loan payoff or be invested in the equity portfolio?**
 
-Paslood uses a mathematical framework to resolve this trade-off.
+Paslood evaluates this trade-off using a mathematical hurdle rate framework.
 
 ---
 
-## The Hurdle Rate Framework
+## Hurdle Rate Decision Framework
 
-Paslood compares each liability's **Annual Percentage Rate (APR)** against your expected long-term portfolio compound annual growth rate (**CAGR**, default: 7.0%):
+```mermaid
+flowchart TD
+    DEBT[Liability APR Evaluation] --> CHECK{Compare APR with Portfolio Expected CAGR<br/>Baseline CAGR = 7.0%}
+    CHECK -->|APR > 5.0%<br/>e.g., Consumer / Car Loan| HIGH["HIGH-INTEREST TIER<br/>Accelerate Payoff (Debt Avalanche)"]
+    CHECK -->|3.0% &le; APR &le; 5.0%| MID["MODERATE TIER<br/>Balanced Approach / Payoff Discretion"]
+    CHECK -->|APR < 3.0%<br/>e.g., Fixed Mortgage at 1.85%| LOW["LOW-INTEREST TIER<br/>Maintain Minimum Contractual Payments"]
 
-### 1. High-Interest Debt (APR > 5.0%) -> Accelerate Payoff (Debt Avalanche)
-- Examples: Consumer lines of credit (`Flex Budget`), car loans, credit cards.
-- **Why**: Paying off a 9.5% loan provides a **guaranteed, risk-free return of 9.5%**. No equity market can guarantee that return.
-- **Priority**: Direct all surplus monthly cashflow toward extinguishing this debt first.
+    HIGH --> ACT_HIGH["Action: Direct surplus cashflow to debt payoff.<br/>Yields a guaranteed, risk-free return equal to the APR."]
+    MID --> ACT_MID["Action: Split surplus between principal paydown and equity accumulation."]
+    LOW --> ACT_LOW["Action: Invest surplus into underweight equity buckets.<br/>Expected equity compounding exceeds borrowing cost."]
+```
 
-### 2. Low-Interest Debt (APR < 3.0%) -> Maintain Minimums & Invest
-- Examples: Fixed-rate mortgages (`Woningkrediet` at 1.5% - 2.5%).
-- **Why**: When borrowing costs are 1.85% and expected equity compounding is 7.0%, the expected net wealth accumulation is significantly higher by investing the surplus in productive assets rather than prepaying the mortgage.
-- **Priority**: Maintain required contractual monthly payments and invest the remaining surplus into underweight buckets.
+---
+
+## Debt Decision Matrix
+
+| Interest Tier | APR Range | Priority | Rationale & Recommended Action |
+| :--- | :--- | :--- | :--- |
+| **High Interest** | **$> 5.0\%$** | **Priority 1 (Urgent)** | Debt payoff provides a guaranteed, tax-free return equal to the loan APR. Direct 100% of investable cashflow to extinguish this balance first. |
+| **Moderate Interest** | **$3.0\% - 5.0\%$** | **Priority 2 (Discretionary)** | Near the hurdle boundary. Split surplus 50/50 between principal reduction and underweight bucket accumulation. |
+| **Low Interest** | **$< 3.0\%$** | **Priority 3 (Maintain Minimums)** | Borrowing cost is substantially below long-term expected equity returns (7.0%). Pay contractual monthly minimums and invest remaining surplus. |

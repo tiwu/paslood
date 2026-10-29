@@ -54,7 +54,7 @@ Backward compatibility: `core.js` supports `TAB_ALIASES` (`dashboard` -> `overvi
 
 ### 2.3 Mapped ETF Tickers in Buy Orders (`guidance.js`, `locales/*.json`)
 - Updated `calculateContributionAdvice()` in `guidance.js` to cross-reference `currentData.assets` by `bucket_id`.
-- Renders mapped security symbols (e.g. `VWCE.DE`, `IWDA.AS`, `ASML`) as styled badges in buy order recommendation cards.
+- Renders mapped security symbols (e.g. `VWCE.DE`, `IWDA.AS`, `AAPL`) as styled badges in buy order recommendation cards.
 
 ### 2.4 AI Prompt Transparency Drawer (`routers/ai.py`, `guidance.js`, `index.html`)
 - Added endpoint `GET /api/ai/prompt-preview`:

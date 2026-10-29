@@ -22,16 +22,16 @@ Furthermore, when users upload CSV statements (e.g. Bunq, KBC, Credit Cards) con
      - Transaction count or latest balance associated with the account.
      - Whether the account is already registered as a `KnownAccount`.
    - In Settings > Known Accounts:
-     - When unmapped discovered accounts exist, display quick-add suggestion chips or a dropdown prompt:
-       *"Discovered in statements: NL31BUNQ2093809982 (Bunq) [+ Add to Known Accounts]"*.
-     - In the "Register Known Account" form, provide an HTML `<datalist>` or quick-select for the Account Number input populated with all discovered accounts, auto-filling suggested Institution and Label when selected.
+      - When unmapped discovered accounts exist, display quick-add suggestion chips or a dropdown prompt:
+        *"Discovered in statements: NL00BUNQ0000000000 (Bunq) [+ Add to Known Accounts]"*.
+      - In the "Register Known Account" form, provide an HTML `<datalist>` or quick-select for the Account Number input populated with all discovered accounts, auto-filling suggested Institution and Label when selected.
 
 2. **Upload Feedback & Prompt for New Accounts**:
    - During statement ingestion (`/api/ingest/kbc`, `/api/ingest/bunq`, etc.), check if the ingested account(s) are already present in `known_accounts`.
    - If one or more ingested accounts are not yet known, return `unregistered_accounts: list[dict]` in the ingestion API response with `account_number`, `institution_hint`, and `suggested_label`.
    - In the frontend upload handler (`uploadFiles` in `assets_cashflow.js`):
      - If `unregistered_accounts` are detected, display an interactive notification banner or prompt with a one-click button:
-       *"New account detected: NL31BUNQ2093809982 (bunq). [Register Account]"*.
+       *"New account detected: NL00BUNQ0000000000 (bunq). [Register Account]"*.
      - Clicking the prompt opens the Known Accounts registration dialog (or a modal) with the account number, institution, and default label prefilled.
 
 3. **Clean Architecture Compliance**:

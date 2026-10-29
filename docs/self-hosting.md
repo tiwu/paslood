@@ -1,88 +1,72 @@
 # Self-Hosting & Remote Access Guide
 
-Paslood is built local-first and privacy-respecting. You can run it on your local workstation or in a Docker container on a home server (NAS, Raspberry Pi, NUC). Each installation has a single owner and one shared portfolio; SaaS and multi-user operation are not supported.
-
-This guide covers running Paslood containerized and securely accessing it from your smartphone or anywhere in the world.
+Paslood operates on a local-first, single-owner security model. It stores financial records in a private local database and rejects multi-tenant SaaS operation.
 
 ---
 
-## 1. Quickstart: Running via Docker
+## 1. Remote Access Topology
 
-### Requirements
-- Docker Engine $\ge 24.0$ & Docker Compose $\ge 2.20$
+```mermaid
+flowchart LR
+    subgraph Clients["Remote Clients"]
+        PHONE["Smartphone / Laptop<br/>(Tailscale Client)"]
+        BROWSER["Web Browser<br/>(HTTPS)"]
+    end
 
-### Setup
-1. Clone the repository or download `docker-compose.yml` and `.env.example`:
-   ```bash
-   git clone https://github.com/tiwu/paslood.git
-   cd paslood
-   cp .env.example .env
-   ```
+    subgraph Ingress["Ingress Layer"]
+        TS["Tailscale Mesh<br/>(WireGuard Tunnel)"]
+        CF["Cloudflare Edge<br/>(Tunnel Token)"]
+        CADDY["Caddy Reverse Proxy<br/>(Let's Encrypt TLS)"]
+    end
 
-2. Generate a secure secret key:
-   ```bash
-   openssl rand -hex 32
-   ```
-   Paste the generated value into `PASLOOD_SECRET_KEY` in `.env`.
+    subgraph Host["Docker Server Host"]
+        BIND["Paslood Bind Guard<br/>(Authorized Host Header Check)"]
+        APP["Paslood Container<br/>(:8000)"]
+        DATA[("Data Volume<br/>/data (SQLite & Config)")]
+    end
 
-3. Set your admin password:
-   ```bash
-   # Run the container once to set password
-   docker compose run --rm paslood set-password
-   ```
-
-4. Start Paslood:
-   ```bash
-   docker compose up -d
-   ```
-   Access the dashboard at `http://localhost:8000`.
+    PHONE --> TS --> BIND
+    BROWSER --> CF --> BIND
+    BROWSER --> CADDY --> BIND
+    BIND --> APP
+    APP --> DATA
+```
 
 ---
 
-## 2. Remote Access Methods
+## 2. Remote Access Configuration
 
-To access Paslood from your phone or outside your home network, choose one of three supported methods:
-
-| Method | Best For | Security | Public Port Required? |
+| Method | Profile | Encryption | Public Port Required |
 | :--- | :--- | :--- | :--- |
-| **Tailscale** *(Recommended)* | Personal access from phone/laptop | Zero-Trust WireGuard Mesh | **No** (Most secure) |
-| **Cloudflare Tunnel** | Access from any browser without VPN app | Zero-Trust HTTPS reverse proxy | **No** |
-| **Dynamic DNS (DuckDNS + Caddy)** | Self-managed custom domain | Automatic Let's Encrypt TLS | Yes (Ports 80/443 forwarded) |
+| **Tailscale** *(Recommended)* | `--profile tailscale` | WireGuard Peer-to-Peer | **No** |
+| **Cloudflare Tunnel** | `--profile cloudflared` | TLS Edge Tunnel | **No** |
+| **Dynamic DNS (DuckDNS + Caddy)** | `--profile ddns` | Let's Encrypt TLS | Yes (Ports 80/443) |
 
----
+### Option A: Tailscale (Recommended)
 
-### Option A: Tailscale (Private Mesh — Recommended)
-
-Tailscale connects your devices securely over an encrypted WireGuard mesh without exposing any open ports to the public internet.
-
-1. Create a free account at [tailscale.com](https://tailscale.com).
-2. Generate an Auth Key in **Tailscale Admin Console** $\rightarrow$ **Settings** $\rightarrow$ **Keys**.
-3. In your `.env`:
+1. Generate an Auth Key in the **Tailscale Admin Console** $\rightarrow$ **Settings** $\rightarrow$ **Keys**.
+2. Set configuration in `.env`:
    ```dotenv
    TAILSCALE_AUTHKEY=tskey-auth-...
    PASLOOD_TRUSTED_ORIGINS=https://paslood.your-tailnet.ts.net,http://paslood:8000
    ```
-4. Start with the Tailscale profile:
+3. Start the container:
    ```bash
    docker compose --profile tailscale up -d
    ```
-5. Install Tailscale on your iPhone or Android. You can now access Paslood securely at `http://paslood:8000` (or `https://paslood.your-tailnet.ts.net` if MagicDNS HTTPS is enabled).
+4. Access securely via `http://paslood:8000`.
 
 ---
 
 ### Option B: Cloudflare Tunnel
 
-Cloudflare Tunnel exposes your local service via Cloudflare's edge network without port forwarding on your home router.
-
-1. In Cloudflare Zero Trust dashboard, go to **Networks** $\rightarrow$ **Tunnels** and create a tunnel.
-2. Choose **Docker** as environment and copy the tunnel token.
-3. In `.env`:
+1. Create a Tunnel in the Cloudflare Zero Trust dashboard.
+2. Set configuration in `.env`:
    ```dotenv
    CLOUDFLARE_TUNNEL_TOKEN=eyJh...
-   PASLOOD_TRUSTED_ORIGINS=https://wealth.yourdomain.com
+   PASLOOD_TRUSTED_ORIGINS=https://wealth.example.com
    ```
-4. Route hostname `wealth.yourdomain.com` to `http://paslood:8000` in the Cloudflare dashboard.
-5. Start:
+3. Start the container:
    ```bash
    docker compose --profile cloudflared up -d
    ```
@@ -91,66 +75,42 @@ Cloudflare Tunnel exposes your local service via Cloudflare's edge network witho
 
 ### Option C: Dynamic DNS (DuckDNS + Caddy)
 
-For users with dynamic home IP addresses wanting direct HTTPS access:
-
-1. Create a free domain at [duckdns.org](https://duckdns.org) (e.g. `mywealth.duckdns.org`).
-2. Forward ports `80` and `443` on your home router to your Docker host.
-3. In `.env`:
+1. Register a domain at [duckdns.org](https://duckdns.org).
+2. Forward ports `80` and `443` on your router to the host.
+3. Set configuration in `.env`:
    ```dotenv
    DUCKDNS_DOMAIN=mywealth
-   ACME_EMAIL=your-email@example.com
+   ACME_EMAIL=admin@example.com
    PASLOOD_TRUSTED_ORIGINS=https://mywealth.duckdns.org
    ```
-4. Start with the DDNS profile:
+4. Start the container:
    ```bash
    docker compose --profile ddns up -d
    ```
-   Caddy will automatically provision and renew a free Let's Encrypt TLS certificate.
 
 ---
 
-## 3. Single-Owner Social OAuth Login
+## 3. Authentication & Single-Owner Guard
 
-You can enable social login alongside local password authentication. OAuth is accepted only for one configured owner email because the installation uses a single portfolio:
+Paslood enforces single-owner authentication. Multiple OAuth accounts cannot be linked to the same installation.
 
 ```dotenv
-PASLOOD_ALLOWED_EMAILS=you@example.com
+PASLOOD_ALLOWED_EMAILS=owner@example.com
 ```
 
-Do not configure multiple addresses; the app rejects OAuth identities unless exactly one address is configured. Do not expose one installation as a shared service for multiple users.
-
-### Google OAuth
-1. Go to [Google Cloud Console Credentials](https://console.cloud.google.com/apis/credentials).
-2. Create an **OAuth 2.0 Client ID** (Web application).
-3. Add Authorized redirect URI: `https://<your-domain>/auth/google/callback`.
-4. Add credentials to `.env`:
-   ```dotenv
-   PASLOOD_GOOGLE_CLIENT_ID=...
-   PASLOOD_GOOGLE_CLIENT_SECRET=...
-   ```
-
-### GitHub OAuth
-1. In GitHub, go to **Settings** $\rightarrow$ **Developer settings** $\rightarrow$ **OAuth Apps** $\rightarrow$ **New OAuth App**.
-2. Set Authorization callback URL: `https://<your-domain>/auth/github/callback`.
-3. Add to `.env`:
-   ```dotenv
-   PASLOOD_GITHUB_CLIENT_ID=...
-   PASLOOD_GITHUB_CLIENT_SECRET=...
-   ```
+Any login attempt from an unlisted email address is rejected with `403 Forbidden`.
 
 ---
 
-## 4. Backups and Data Portability
+## 4. Backup & Restore Procedures
 
-All application data (portfolios, transaction cache, encrypted secrets, user database) lives inside the Docker volume `/data` (or your local directory `PASLOOD_DATA_DIR`).
-
-### Taking a Backup
+### Backup Execution
 ```bash
 docker run --rm -v paslood_data:/data -v $(pwd):/backup alpine \
   tar czf /backup/paslood-backup-$(date +%Y%m%d).tar.gz -C /data .
 ```
 
-### Restoring a Backup
+### Restore Execution
 ```bash
 docker run --rm -v paslood_data:/data -v $(pwd):/backup alpine \
   tar xzf /backup/paslood-backup-YYYYMMDD.tar.gz -C /data

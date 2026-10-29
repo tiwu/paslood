@@ -18,7 +18,7 @@
 2. **Multi-Account Column & Filtering**:
    - When importing multiple accounts (multiple KBC checking accounts, KBC credit card, Bunq spending & savings accounts), transactions do not show which account they originated from.
    - `GET /api/overview` omits `account_id` from the returned transaction objects.
-   - Users need an **Account** column displaying a recognizable account badge (e.g. `KBC ••2832`, `KBC ••3108`, `KBC Card ••9128`, `bunq ••9982`, `bunq ••24827`) and an Account filter dropdown.
+    - Users need an **Account** column displaying a recognizable account badge (e.g. `KBC ••1234`, `KBC ••5678`, `KBC Card ••9999`, `bunq ••1111`, `bunq ••2222`) and an Account filter dropdown.
 3. **Internal Transfers Inflating Monthly Income**:
    - Transfer transactions between own savings and checking accounts (`Category.TRANSFER` or `Category.SAVINGS`) were counted as inflow income in monthly cashflow calculations.
    - `local_db.py` must exclude transfers from income calculations.
@@ -56,7 +56,7 @@
   let txAccountFilter = 'ALL';
   ```
 - Implement `formatAccountBadge(accountId)`:
-  - Formats IBANs and card numbers into clean, human-friendly badges (`KBC ••2832`, `bunq ••9982`, `KBC Card ••9128`) with full identifier on tooltip.
+  - Formats IBANs and card numbers into clean, human-friendly badges (`KBC ••1234`, `bunq ••1111`, `KBC Card ••9999`) with full identifier on tooltip.
 - Implement `getCategoryBadgeClasses(cat)`:
   - Returns semantic background, border, and text styling for all 10+ transaction categories.
 - Implement `renderTransactions()` with client-side filtering and slice-based page rendering.
