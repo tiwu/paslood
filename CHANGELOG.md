@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+---
+
+## [0.15.0] - 2026-10-29
+
+### Added
 - **Transaction Re-Bucketing by Keyword and Amount (#52)**:
   - Added an optional `Match Amount (€)` field to the Re-Bucket modal, allowing transactions to be matched by keyword, amount, or both in `POST /api/transactions/rebucket`, rules persistence, and retroactive ledger classification.
 - **Transaction Search Amount Filters (#52)**:
@@ -369,7 +379,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/tiwu/paslood/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/tiwu/paslood/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/tiwu/paslood/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/tiwu/paslood/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/tiwu/paslood/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/tiwu/paslood/compare/v0.11.0...v0.12.0
