@@ -223,12 +223,40 @@ async def test_built_in_docs_serving(test_app, tmp_path):
 async def test_tax_endpoints(test_app):
     transport = ASGITransport(app=test_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        # 1. Tax historical price lookup
+        # 1. Tax historical price lookup for ASML, NVIDIA (company name -> NVDA), and portfolio holding fallback
         lookup_resp = await client.get("/api/tax/lookup-price?symbol=ASML&date=2025-12-31")
         assert lookup_resp.status_code == 200
         l_data = lookup_resp.json()
-        assert "price" in l_data
+        assert l_data["status"] == "found"
+        assert l_data["price"] == 921.40
         assert l_data["symbol"] == "ASML"
+
+        nvidia_resp = await client.get("/api/tax/lookup-price?symbol=NVIDIA&date=2025-12-31")
+        assert nvidia_resp.status_code == 200
+        nv_data = nvidia_resp.json()
+        assert nv_data["status"] == "found"
+        assert nv_data["price"] is not None and nv_data["price"] > 0
+        assert nv_data["resolved_symbol"] == "NVDA"
+
+        # Portfolio holding cost basis fallback for custom unlisted holding acquired pre-2026
+        await client.post(
+            "/api/assets/manual",
+            json={
+                "id": "asset-custom-holding",
+                "name": "Acme Private Equity",
+                "symbol": "ACMEPE",
+                "asset_class": "EQUITY",
+                "current_value": 15000.0,
+                "cost_basis": 10000.0,
+                "shares": 100.0,
+                "acquisition_date": "2024-06-15",
+            },
+        )
+        acme_resp = await client.get("/api/tax/lookup-price?symbol=ACMEPE&date=2025-12-31")
+        assert acme_resp.status_code == 200
+        acme_data = acme_resp.json()
+        assert acme_data["status"] == "found"
+        assert acme_data["price"] == 100.0  # 10000 / 100 shares
 
         # 2. Tax calculation endpoint
         calc_resp = await client.post(

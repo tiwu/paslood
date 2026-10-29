@@ -485,6 +485,8 @@ class ConfigRepository:
             cost_val = (
                 Money.from_val(cost_raw, a.get("currency", "EUR")) if cost_raw is not None else None
             )
+            qty_raw = a.get("shares") if a.get("shares") is not None else a.get("quantity")
+            qty_val = Decimal(str(qty_raw)) if qty_raw is not None else Decimal("1.0")
             acq_date = a.get("acquisition_date") or a.get("start_date")
             assets.append(
                 Asset(
@@ -495,6 +497,7 @@ class ConfigRepository:
                     asset_class=ac,
                     current_value=val,
                     cost_basis=cost_val,
+                    quantity=qty_val,
                     institution=str(a.get("institution", "Manual")),
                     currency=val.currency,
                     acquisition_date=str(acq_date) if acq_date else None,
@@ -683,7 +686,6 @@ class ConfigRepository:
             "tax": {
                 "annual_exemption": float(settings.get("tax", {}).get("annual_exemption", 10000.0)),
                 "benchmark_date": settings.get("tax", {}).get("benchmark_date", "2025-12-31"),
-                "benchmark_price": float(settings.get("tax", {}).get("benchmark_price", 900.0)),
                 "tax_rate_pct": float(settings.get("tax", {}).get("tax_rate_pct", 10.0)),
             },
             "cloud_sync": {
@@ -809,6 +811,8 @@ class ConfigRepository:
             cleaned["cost_basis"] = (
                 float(cleaned["cost_basis"]) if cleaned["cost_basis"] is not None else None
             )
+        if "shares" in cleaned and cleaned["shares"] is not None:
+            cleaned["shares"] = float(cleaned["shares"])
         if "acquisition_date" in cleaned:
             cleaned["acquisition_date"] = (
                 str(cleaned["acquisition_date"]).strip() or None

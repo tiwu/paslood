@@ -10,10 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Company Name & Ticker Normalization for Historical Benchmark Lookup (#57)**:
+  - Added `resolve_ticker_symbol()`, statutory Fotomoment (`2025-12-31`) closing reference prices in EUR for major global and Belgian securities (`NVDA`/`NVIDIA`, `ASML`, `VWCE`, `IWDA`, `EMIM`, `CSP1`, `SWRD`, `AAPL`, `MSFT`, `GOOGL`, `AMZN`, `META`, `TSLA`, `BRK-B`, `NOVO-B`, `ABI`, `KBC`, `ACKB`, `SOF`), and pre-2026 portfolio lot cost-basis fallback in `/api/tax/lookup-price`.
 
 ### Changed
+- **Simplified Regional Tax Preferences in Settings (#57)**:
+  - Removed the global `Benchmark Reference Date` and `Default Benchmark Basis (€)` inputs from Settings, leaving a focused 2-column configuration for `Annual Exemption (€)` and `Tax Rate Above Exemption (%)`.
+- **Clean Domain & UI Defaults (#57)**:
+  - Removed `ASML_2025_12_31_BENCHMARK_EUR` from `domain/tax_rules.py`, removed hardcoded `ASML` / `921.40` / `1646.00` / `271.55` pre-filled values from the Tax Simulator, and replaced hardcoded cashflow figures in `paslood status` CLI with dynamically consolidated balance sheet cashflow.
 
 ### Fixed
+- **Stale Benchmark Carryover & Holding Selection in Tax Optimizer (#57)**:
+  - Fixed `onSelectTaxHolding()` in `guidance.js` to immediately clear stale benchmark prices, compute unit share price accurately (`current_value / shares`), populate per-share pre-2026 cost basis when available, and automatically trigger the Dec 31, 2025 historical price lookup.
+- **Architectural Vellum Light-Theme Contrast in Plan & Rebalance (#57)**:
+  - Bound semantic amber, emerald, and blue utility text classes in `input.css` to high-contrast pigment tokens in `html.light-theme` and eliminated duplicate currency symbols in localized exemption strings.
 
 ---
 

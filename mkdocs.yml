@@ -61,6 +61,7 @@ nav:
       - "Issue #50 - Cashflow Categories, Known Accounts & Visualizations": plans/PLAN-50-cashflow-buckets-visualizations.md
       - "Issue #52 - Asset/Loan Modals, Re-Bucketing & Cashflow Period": plans/PLAN-52-assetloan-modals-transaction-re-bucketin.md
       - "Issue #54 - Visual Redesign & Architectural Design System": plans/PLAN-54-featdesign-visual-redesign-architectural.md
+      - "Issue #57 - Clean Fixed Values, Tax Settings IA & Benchmark Lookup": plans/PLAN-57-clean-fixed-values-tax-lookup-ux.md
   - Architecture & UX Reviews:
       - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
       - UI/UX Review: reviews/UX-REVIEW.md

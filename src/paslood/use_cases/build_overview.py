@@ -378,6 +378,9 @@ class BuildPortfolioOverviewUseCase:
         asset_list = []
         for a in balance_sheet.assets:
             matched_b = next((b for b in buckets if b.matches(a)), None)
+            qty = float(a.quantity) if a.quantity and a.quantity > Decimal("0.0") else 1.0
+            cur_val = float(a.current_value.amount)
+            unit_p = round(cur_val / qty, 4) if qty > 0 else cur_val
             asset_list.append(
                 {
                     "id": a.id,
@@ -389,8 +392,10 @@ class BuildPortfolioOverviewUseCase:
                         if hasattr(a.asset_class, "value")
                         else str(a.asset_class)
                     ),
-                    "current_value": float(a.current_value.amount),
+                    "current_value": cur_val,
                     "current_value_formatted": a.current_value.format(),
+                    "shares": qty,
+                    "unit_price": unit_p,
                     "cost_basis": (
                         float(a.cost_basis.amount) if a.cost_basis is not None else None
                     ),

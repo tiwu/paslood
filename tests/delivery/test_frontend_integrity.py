@@ -583,6 +583,32 @@ if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expect
     throw new Error('Light mode Sankey SVG did not use #1C1917 primary ink fill');
   }}
 
+  // 16. Test onTaxHoldingSelect clears stale benchmark price and triggers lookup (#57)
+  sandbox.loadedAssets = [
+    {{
+      id: 'asset-nvda',
+      name: 'NVIDIA',
+      symbol: 'NVIDIA',
+      current_value: 3015.32,
+      shares: 25,
+      unit_price: 120.61,
+      cost_basis: 2000.0,
+      acquisition_date: '2024-03-10'
+    }}
+  ];
+  getEl('tax-bench-price').value = '921.40';
+  getEl('tax-holding-select').value = 'asset-nvda';
+  await sandbox.onTaxHoldingSelect();
+  if (getEl('tax-symbol').value !== 'NVIDIA') {{
+    throw new Error('Expected tax-symbol NVIDIA, got: ' + getEl('tax-symbol').value);
+  }}
+  if (getEl('tax-bench-price').value === '921.40') {{
+    throw new Error('onTaxHoldingSelect left stale 921.40 in tax-bench-price');
+  }}
+  if (getEl('tax-pre-buy-price').value !== '80.00') {{
+    throw new Error('Expected per-share cost basis 80.00 (2000 / 25), got: ' + getEl('tax-pre-buy-price').value);
+  }}
+
   console.log('NODE_UNIT_OK');
 }})().catch(err => {{
   console.error(err);
@@ -597,6 +623,24 @@ if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expect
     )
     assert res.returncode == 0, f"Node JS unit test harness failed:\n{res.stderr}"
     assert "NODE_UNIT_OK" in res.stdout
+
+
+def test_clean_fixed_values_and_tax_settings_ux_contract():
+    """Verify Issue #57 removal of hardcoded ASML/921.40/900 values and Settings benchmark inputs."""
+    index_html = (TEMPLATES_DIR / "index.html").read_text(encoding="utf-8")
+
+    # 1. Settings & Wizard must not contain Benchmark Reference Date or Default Benchmark Basis inputs
+    assert 'id="settings-tax-date"' not in index_html
+    assert 'id="settings-tax-bench"' not in index_html
+    assert 'id="wiz-tax-date"' not in index_html
+    assert 'id="wiz-tax-bench"' not in index_html
+
+    # 2. Tax Simulator inputs must not have pre-filled hardcoded ASML / 921.40 / 1646.00 / 271.55 values
+    assert 'value="921.40"' not in index_html
+    assert 'value="1646.00"' not in index_html
+    assert 'value="271.55"' not in index_html
+    assert 'id="tax-symbol" value="ASML"' not in index_html
+    assert "Stocks / ASML" not in index_html
 
 
 def test_paslood_architectural_design_system_and_theme_tokens():

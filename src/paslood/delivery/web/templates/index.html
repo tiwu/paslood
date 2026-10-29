@@ -530,7 +530,7 @@
               <span data-i18n="guidance.tax_title">🇧🇪 Belgian Fiscal Shield — 2026 CGT, TOB, Reynders & EquatePlus Optimizer</span>
             </h3>
             <p data-i18n="guidance.tax_desc" class="text-xs text-slate-400 mt-0.5">
-              Pre-2026 shares use <code>max(Dec 31 2025 Fotomoment, Historical Buy Price)</code> as cost basis (ASML Dec 31, 2025 = € 921,40). Includes WDRT Art. 120 TOB caps, Art. 19bis Reynders Tax (30%), and Equatex AG Zurich fee/stamp duty reconciliation.
+              Pre-2026 shares use <code>max(Dec 31 2025 Fotomoment, Historical Buy Price)</code> as cost basis. Includes WDRT Art. 120 TOB caps, Art. 19bis Reynders Tax (30%), and Equatex AG Zurich fee/stamp duty reconciliation.
             </p>
           </div>
           <span data-i18n="guidance.tax_badge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
@@ -552,12 +552,12 @@
           <div>
             <label data-i18n="guidance.tax_symbol_label" class="block text-slate-300 font-medium mb-1">Security Symbol / Ticker</label>
             <div class="flex items-center gap-1.5">
-              <input type="text" id="sim-tax-symbol" value="ASML" placeholder="e.g. ASML, NVDA, VWCE" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono uppercase">
+              <input type="text" id="sim-tax-symbol" value="" placeholder="e.g. NVDA, ASML, VWCE" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono uppercase">
               <button onclick="lookupTaxPrice()" id="btn-lookup-tax-price" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium whitespace-nowrap shadow flex items-center gap-1" title="Query PDT MCP timetravel for Dec 31, 2025 closing price">
                 <span data-i18n="guidance.tax_lookup_btn">🔍 Lookup PDT</span>
               </button>
             </div>
-            <span id="tax-lookup-feedback" class="text-[10px] text-slate-400 mt-1 block"></span>
+            <span id="tax-lookup-feedback" class="text-[10px] text-slate-400 mt-1 block">Select a holding or enter a ticker to look up its Dec 31, 2025 closing price.</span>
           </div>
 
           <!-- Benchmark Price on Dec 31, 2025 -->
@@ -566,14 +566,14 @@
               <label data-i18n="guidance.tax_bench_label" class="text-slate-300 font-medium">Dec 31, 2025 Fotomoment Price (€)</label>
               <span data-i18n="guidance.tax_user_editable" class="text-[10px] text-emerald-400">User Editable</span>
             </div>
-            <input type="number" id="sim-tax-bench-price" value="921.40" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
-            <span data-i18n="guidance.tax_bench_help" class="text-[10px] text-slate-500 mt-1 block">Official ASML Dec 31, 2025 closing price: € 921,40</span>
+            <input type="number" id="sim-tax-bench-price" value="" placeholder="0.00" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <span data-i18n="guidance.tax_bench_help" class="text-[10px] text-slate-500 mt-1 block">Base cost for shares bought on or before Dec 31, 2025</span>
           </div>
 
           <!-- Current Market Price -->
           <div>
             <label data-i18n="guidance.tax_current_price_label" class="block text-slate-300 font-medium mb-1">Current Sale Market Price (€)</label>
-            <input type="number" id="sim-tax-current-price" value="1646.00" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
+            <input type="number" id="sim-tax-current-price" value="" placeholder="0.00" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono">
             <span data-i18n="guidance.tax_current_price_help" class="text-[10px] text-slate-500 mt-1 block">Expected execution price per share</span>
           </div>
         </div>
@@ -592,7 +592,7 @@
           <div>
             <label class="block text-slate-300 font-medium mb-1">Belgian TOB Rate (WDRT Art. 120)</label>
             <select id="sim-tax-tob-tier" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
-              <option value="0.35" selected>0.35% — Stocks / ASML (Cap €1,600)</option>
+              <option value="0.35" selected>0.35% — Individual Stocks &amp; Dist ETF (Cap €1,600)</option>
               <option value="0.12">0.12% — EEA Dist ETF / Bonds (Cap €1,300)</option>
               <option value="1.32">1.32% — BE Reg Accum ETF (Cap €4,000)</option>
               <option value="0.00">0.00% — Exempt</option>
@@ -633,27 +633,27 @@
           <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
             <div>
               <label data-i18n="guidance.tax_pre_shares_label" class="block text-slate-400 mb-1">Pre-2026 Shares Held</label>
-              <input type="number" id="sim-tax-shares-pre" value="15.0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
+              <input type="number" id="sim-tax-shares-pre" value="0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
               <span data-i18n="guidance.tax_pre_shares_help" class="text-[10px] text-slate-500 mt-0.5 block">Acquired &le; Dec 31, 2025</span>
             </div>
             <div>
               <label class="block text-slate-400 mb-1">Pre-2026 Grant/Buy FMV (€)</label>
-              <input type="number" id="sim-tax-pre-buy-price" value="271.55" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
-              <span class="text-[10px] text-slate-500 mt-0.5 block">Historical FMV (e.g. Equatex statement)</span>
+              <input type="number" id="sim-tax-pre-buy-price" value="" placeholder="0.00" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+              <span class="text-[10px] text-slate-500 mt-0.5 block">Historical FMV (optional)</span>
             </div>
             <div>
               <label data-i18n="guidance.tax_post_shares_label" class="block text-slate-400 mb-1">Post-2025 Shares Held</label>
-              <input type="number" id="sim-tax-shares-post" value="5.0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
+              <input type="number" id="sim-tax-shares-post" value="0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white">
               <span data-i18n="guidance.tax_post_shares_help" class="text-[10px] text-slate-500 mt-0.5 block">Taxed vs actual buy price</span>
             </div>
             <div>
               <label data-i18n="guidance.tax_post_price_label" class="block text-slate-400 mb-1">Post-2025 Purchase Price (€)</label>
-              <input type="number" id="sim-tax-post-buy-price" value="1050.00" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
+              <input type="number" id="sim-tax-post-buy-price" value="" placeholder="0.00" step="0.01" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-mono">
               <span data-i18n="guidance.tax_post_price_help" class="text-[10px] text-slate-500 mt-0.5 block">Cost basis for post-2025 buys</span>
             </div>
             <div>
               <label data-i18n="guidance.tax_sell_qty_label" class="block text-slate-400 mb-1">Planned Shares to Sell</label>
-              <input type="number" id="sim-tax-sell-qty" value="4.0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-bold text-blue-400">
+              <input type="number" id="sim-tax-sell-qty" value="0" step="1" onchange="runTaxSimulation()" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-white font-bold text-blue-400">
               <span data-i18n="guidance.tax_sell_qty_help" class="text-[10px] text-slate-500 mt-0.5 block">Total rebalance quantity</span>
             </div>
           </div>
@@ -1294,18 +1294,10 @@
           <p data-i18n-html="settings.tax_info_body">Under the <strong>Belgian 2026 Capital Gains Tax (Meerwaardebelasting)</strong> framework, historical gains accrued before <strong>Dec 31, 2025</strong> are tax-exempt: shares bought before 2026 use their Dec 31, 2025 closing price ("Foto-moment") as their fiscal cost basis rather than original purchase price. Realized gains above the <strong>€10,000 annual exemption</strong> are taxed at <strong>10%</strong>. Setting your defaults here pre-fills the Tax Simulator in the Guidance tab and informs the AI Advisor when planning tax-free rebalancing sales.</p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div>
             <label data-i18n="settings.tax_exemption_label" class="block text-slate-300 font-medium mb-1">Annual Exemption (€)</label>
             <input type="number" id="settings-tax-exemption" value="10000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-          </div>
-          <div>
-            <label data-i18n="settings.tax_date_label" class="block text-slate-300 font-medium mb-1">Benchmark Reference Date</label>
-            <input type="date" id="settings-tax-date" value="2025-12-31" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-          </div>
-          <div>
-            <label data-i18n="settings.tax_basis_label" class="block text-slate-300 font-medium mb-1">Default Benchmark Basis (€)</label>
-            <input type="number" id="settings-tax-price" value="900" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
           </div>
           <div>
             <label data-i18n="settings.tax_rate_label" class="block text-slate-300 font-medium mb-1">Tax Rate Above Exemption (%)</label>

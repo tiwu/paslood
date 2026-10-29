@@ -112,74 +112,159 @@ async function recalculateContribution() {
 }
 
 // --- Belgian Capital Gains Tax Simulator & PDT Lookup ---
+function getElByIds(...ids) {
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el && el.value !== '') return el;
+  }
+  return document.getElementById(ids[0]);
+}
+
+function setValByIds(val, ...ids) {
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  }
+}
+
 function populateTaxHoldingDropdown(data) {
   const select = document.getElementById('sim-tax-holding-select');
   if (!select) return;
   const prevVal = select.value;
   select.innerHTML = '<option value="">-- Choose from your loaded holdings --</option>';
   const assets = data?.assets || [];
+  if (typeof window !== 'undefined') window.loadedAssets = assets;
   const stockOrEtf = assets.filter(a => a.symbol);
   stockOrEtf.forEach(a => {
     const opt = document.createElement('option');
-    opt.value = a.symbol;
-    opt.textContent = `${a.symbol} - ${a.name} (${a.current_value_formatted})`;
+    opt.value = a.symbol || a.id;
+    opt.textContent = `${a.symbol} - ${a.name} (${a.current_value_formatted || I18N.formatCurrency(a.current_value, 'EUR')})`;
+    opt.dataset.assetId = a.id || '';
     opt.dataset.symbol = a.symbol;
-    const price = (a.current_price && a.current_price > 0) ? a.current_price : (a.current_value / (a.quantity || 1));
+    const qty = parseFloat(a.shares ?? a.quantity ?? 1) || 1;
+    const price = (a.unit_price && a.unit_price > 0)
+      ? a.unit_price
+      : ((a.current_price && a.current_price > 0) ? a.current_price : ((a.current_value || 0) / qty));
     opt.dataset.price = price;
-    opt.dataset.quantity = a.quantity || 0;
+    opt.dataset.quantity = qty;
+    if (a.cost_basis !== undefined && a.cost_basis !== null) {
+      opt.dataset.costBasis = a.cost_basis;
+    }
+    if (a.acquisition_date) {
+      opt.dataset.acquisitionDate = a.acquisition_date;
+    }
     select.appendChild(opt);
   });
   if (prevVal) select.value = prevVal;
 }
 
-function onSelectTaxHolding(symbol) {
-  if (!symbol) return;
-  const select = document.getElementById('sim-tax-holding-select');
-  const opt = select.options[select.selectedIndex];
-  if (!opt) return;
-  document.getElementById('sim-tax-symbol').value = symbol;
-  if (opt.dataset.price && parseFloat(opt.dataset.price) > 0) {
-    document.getElementById('sim-tax-current-price').value = parseFloat(opt.dataset.price).toFixed(2);
+async function onSelectTaxHolding(symbolOrId) {
+  const select = getElByIds('sim-tax-holding-select', 'tax-holding-select');
+  const val = symbolOrId !== undefined ? symbolOrId : (select ? select.value : '');
+  if (!val) return;
+
+  const opt = select && select.options && select.selectedIndex >= 0
+    ? select.options[select.selectedIndex]
+    : null;
+
+  const allAssets = (typeof loadedAssets !== 'undefined' && Array.isArray(loadedAssets) ? loadedAssets : null)
+    || (typeof currentData !== 'undefined' && currentData && Array.isArray(currentData.assets) ? currentData.assets : []);
+  const matchedAsset = allAssets.find(a => a.id === val || a.symbol === val);
+
+  const sym = (opt?.dataset?.symbol) || (matchedAsset?.symbol) || val;
+  const qty = parseFloat(opt?.dataset?.quantity ?? matchedAsset?.shares ?? matchedAsset?.quantity ?? 1) || 1;
+  const unitPrice = parseFloat(
+    opt?.dataset?.price
+      ?? matchedAsset?.unit_price
+      ?? matchedAsset?.current_price
+      ?? ((matchedAsset?.current_value || 0) / qty)
+  ) || 0;
+  const rawCostBasis = opt?.dataset?.costBasis !== undefined
+    ? parseFloat(opt.dataset.costBasis)
+    : (matchedAsset?.cost_basis !== undefined && matchedAsset?.cost_basis !== null ? parseFloat(matchedAsset.cost_basis) : null);
+
+  setValByIds(sym, 'sim-tax-symbol', 'tax-symbol');
+
+  // Clear stale benchmark price immediately when switching holdings
+  setValByIds('', 'sim-tax-bench-price', 'tax-bench-price');
+
+  if (unitPrice > 0) {
+    setValByIds(unitPrice.toFixed(2), 'sim-tax-current-price', 'tax-current-price');
   }
-  if (opt.dataset.quantity && parseFloat(opt.dataset.quantity) > 0) {
-    document.getElementById('sim-tax-shares-pre').value = parseFloat(opt.dataset.quantity);
-    document.getElementById('sim-tax-shares-post').value = 0;
+
+  if (qty > 0) {
+    setValByIds(String(qty), 'sim-tax-shares-pre', 'tax-pre-shares');
   }
-  lookupTaxPrice();
+  setValByIds('0', 'sim-tax-shares-post', 'tax-post-shares');
+  const sellQtyEl = getElByIds('sim-tax-sell-qty', 'tax-sell-shares');
+  if (sellQtyEl && (!sellQtyEl.value || parseFloat(sellQtyEl.value) === 0)) {
+    setValByIds(String(qty), 'sim-tax-sell-qty', 'tax-sell-shares');
+  }
+
+  if (rawCostBasis !== null && !Number.isNaN(rawCostBasis) && rawCostBasis > 0) {
+    const unitBasis = qty > 0 ? (rawCostBasis / qty) : rawCostBasis;
+    setValByIds(unitBasis.toFixed(2), 'sim-tax-pre-buy-price', 'tax-pre-buy-price');
+  } else {
+    setValByIds('', 'sim-tax-pre-buy-price', 'tax-pre-buy-price');
+  }
+
+  await lookupTaxPrice();
+}
+
+function onTaxHoldingSelect(symbolOrId) {
+  return onSelectTaxHolding(symbolOrId);
 }
 
 async function lookupTaxPrice() {
-  const symbol = document.getElementById('sim-tax-symbol').value.trim();
+  const symEl = getElByIds('sim-tax-symbol', 'tax-symbol');
+  const symbol = (symEl?.value || '').trim();
   const btn = document.getElementById('btn-lookup-tax-price');
   const feedback = document.getElementById('tax-lookup-feedback');
   if (!symbol) {
     showToast('Please enter a ticker symbol', 'warning');
     return;
   }
-  btn.disabled = true;
-  btn.innerHTML = '<span>⏳ Looking up...</span>';
-  feedback.textContent = `Querying PDT MCP timetravel for ${symbol} on Dec 31, 2025...`;
-  feedback.className = 'text-[10px] text-blue-400 mt-1 block';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ Looking up...</span>';
+  }
+  if (feedback) {
+    feedback.textContent = `Querying Dec 31, 2025 closing price for ${symbol}...`;
+    feedback.className = 'text-[10px] text-blue-400 mt-1 block';
+  }
 
   try {
     const res = await fetch(`/api/tax/lookup-price?symbol=${encodeURIComponent(symbol)}&date=2025-12-31`);
     const data = await res.json();
-    if (res.ok && data.price !== null) {
-      document.getElementById('sim-tax-bench-price').value = data.price.toFixed(2);
-      feedback.textContent = `✓ Found Dec 31, 2025 closing price: € ${data.price.toFixed(2)} (${data.source || 'PDT MCP'})`;
-      feedback.className = 'text-[10px] text-emerald-400 mt-1 block';
+    if (res.ok && data.price !== null && data.price !== undefined) {
+      setValByIds(Number(data.price).toFixed(2), 'sim-tax-bench-price', 'tax-bench-price');
+      if (feedback) {
+        feedback.textContent = `✓ Found Dec 31, 2025 closing price: € ${Number(data.price).toFixed(2)} (${data.source || 'PDT MCP'})`;
+        feedback.className = 'text-[10px] text-emerald-400 mt-1 block';
+      }
       await runTaxSimulation();
     } else {
-      feedback.textContent = data.message || `No historical quote found on PDT for ${symbol}. You can set the base price manually.`;
-      feedback.className = 'text-[10px] text-amber-400 mt-1 block';
+      setValByIds('', 'sim-tax-bench-price', 'tax-bench-price');
+      if (feedback) {
+        feedback.textContent = data.message || `No historical quote found on PDT for ${symbol}. You can set the base price manually.`;
+        feedback.className = 'text-[10px] text-amber-400 mt-1 block';
+      }
     }
   } catch (err) {
-    feedback.textContent = `Lookup error: ${err.message}. You can manually specify base price.`;
-    feedback.className = 'text-[10px] text-red-400 mt-1 block';
+    if (feedback) {
+      feedback.textContent = `Lookup error: ${err.message}. You can manually specify base price.`;
+      feedback.className = 'text-[10px] text-red-400 mt-1 block';
+    }
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span>🔍 Lookup PDT</span>';
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔍 Lookup PDT</span>';
+    }
   }
+}
+
+function lookupHistoricalPrice() {
+  return lookupTaxPrice();
 }
 
 let _lastMaxTaxFreeShares = 13;

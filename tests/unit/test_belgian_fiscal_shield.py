@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+import paslood.domain.tax_rules as tax_rules_mod
 from paslood.domain.money import Money
 from paslood.domain.tax_rules import (
-    ASML_2025_12_31_BENCHMARK_EUR,
     BELGIAN_TAX_CITATIONS,
     BrokerTaxProfile,
     TobTier,
@@ -16,13 +16,13 @@ from paslood.use_cases.optimize_tax import OptimizeTaxUseCase
 
 
 def test_belgian_official_tax_citations_present():
-    """Verify official FOD Financiën URLs and statutory articles are defined."""
+    """Verify official FOD Financiën URLs and statutory articles are defined, and no company prices are hardcoded in domain."""
     assert len(BELGIAN_TAX_CITATIONS) >= 3
     urls = [c.official_url for c in BELGIAN_TAX_CITATIONS]
     assert any("financien.belgium.be" in u and "meerwaardebelasting" in u for u in urls)
     assert any("financien.belgium.be" in u and "taks-op-beursverrichtingen" in u for u in urls)
     assert any("fisconet" in u for u in urls)
-    assert Decimal("921.40") == ASML_2025_12_31_BENCHMARK_EUR
+    assert not hasattr(tax_rules_mod, "ASML_2025_12_31_BENCHMARK_EUR")
 
 
 def test_tob_statutory_tiers_and_plafond_caps():
@@ -54,7 +54,7 @@ def test_equateplus_oct_2026_real_pdf_forensic_reproduction():
     res = uc.calculate_capital_gains_tax(
         shares_to_sell=Decimal("4"),
         current_price=Money(Decimal("1646.00"), "EUR"),
-        benchmark_price=Money(ASML_2025_12_31_BENCHMARK_EUR, "EUR"),  # €921.40
+        benchmark_price=Money(Decimal("921.40"), "EUR"),
         shares_pre_benchmark=Decimal("4"),
         shares_post_benchmark=Decimal("0"),
         pre_benchmark_purchase_price=Money(Decimal("271.55"), "EUR"),  # 17 Apr 2020 FMV
