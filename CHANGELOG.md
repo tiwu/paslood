@@ -10,10 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Expanded Expense Categories & Heuristics (#50)**:
+  - Added `TAX`, `UTILITIES`, `LEISURE`, and `TRANSPORT` to `TransactionCategory` with Belgian/European merchant heuristics (`DEFAULT_PATTERNS`) and localized UI labels (`EN`, `NL`, `FR`, `DE`).
+- **Cashflow Sankey Diagram & Monthly Spending / Savings Potential Visualizations (#50)**:
+  - Added `BuildPortfolioOverviewUseCase.build_cashflow_analytics()` and interactive frontend visualizations: an SVG **Income → Investments & Outflows Sankey Diagram** and a **Monthly Spending & Savings Opportunities** stacked bar chart and insight analyzer.
+- **Monthly Free Cashflow Breakdown on Overview (#50)**:
+  - Added `cashflow_breakdown` to `/api/overview` and a formula/expandable breakdown widget on the Overview KPI card explaining `Avg Monthly Income − (Fixed Costs + Debt Payments + Living Expenses) = Monthly Free Cashflow`.
+- **Known Accounts Editing & Retroactive Classification (#50)**:
+  - Added `PUT /api/accounts/known/{account_id}` and an `Edit` action in Settings Known Accounts table, along with `LocalDbRepository.apply_known_account_to_transactions()` to retroactively reclassify existing transactions when a known account is created or edited.
 
 ### Changed
+- **Savings-Only Cash Buffer Strategy (Option A) (#50)**:
+  - Excluded operational `CHECKING` / `CREDIT_CARD` accounts and noisy PDT Broker Cash (`pdt-*` cash holdings) from strategic portfolio holdings in `BuildPortfolioOverviewUseCase.consolidate_balance_sheet()`, reserving `Cash & Emergency Buffer` for true `SAVINGS` accounts and manual assets.
+- **Data-Driven Monthly Cashflow Calculation (#50)**:
+  - Updated `LocalDbRepository.get_monthly_cashflow()` to derive monthly `fixed_costs`, `debt_payments`, `living_expenses`, and `investments_and_savings` directly from categorized transaction history when statements are imported.
 
 ### Fixed
+- **Bucket Assignment Persistence for Bunq & Cash Accounts (#50)**:
+  - Fixed parameter mismatch between `buckets.js` (`asset_name`) and `AssignAssetRequest` (`name`), and updated `ConfigRepository.assign_asset_to_bucket()` to map cash/savings accounts by specific `name_keywords` instead of generic `symbol="CASH"`.
+- **Retroactive Transaction Categorization & Space-Insensitive IBAN Matching (#50)**:
+  - Updated `POST /api/transactions/rebucket` to always apply the selected category to all matching rows in SQLite, populated `counterparty_iban` in `BunqCsvGateway`, and normalized IBAN comparisons across all non-alphanumeric characters.
 
 ---
 

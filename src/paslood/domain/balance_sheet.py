@@ -21,8 +21,12 @@ class TransactionCategory(StrEnum):
     MORTGAGE = "MORTGAGE"
     DEBT_REPAYMENT = "DEBT_REPAYMENT"
     INSURANCE = "INSURANCE"
+    TAX = "TAX"
+    UTILITIES = "UTILITIES"
     SUBSCRIPTION = "SUBSCRIPTION"
     GROCERIES = "GROCERIES"
+    LEISURE = "LEISURE"
+    TRANSPORT = "TRANSPORT"
     LIVING_EXPENSES = "LIVING_EXPENSES"
     INVESTMENTS = "INVESTMENTS"
     SAVINGS = "SAVINGS"
@@ -63,6 +67,9 @@ class MonthlyCashflow:
     fixed_costs: Money = field(default_factory=lambda: Money(Decimal("0.00")))
     debt_payments: Money = field(default_factory=lambda: Money(Decimal("0.00")))
     living_expenses: Money = field(default_factory=lambda: Money(Decimal("0.00")))
+    investments_and_savings: Money = field(default_factory=lambda: Money(Decimal("0.00")))
+    months_analyzed: int = 0
+    is_default_estimate: bool = False
 
     @property
     def total_outflows(self) -> Money:

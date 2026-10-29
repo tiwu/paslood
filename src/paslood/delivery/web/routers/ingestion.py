@@ -147,22 +147,32 @@ async def rebucket_transaction(
     repo: ConfigRepository = Depends(get_repo),
     db: LocalDbRepository = Depends(get_db),
 ):
+    # Always update the explicitly targeted transaction
+    db.update_transaction_category(req.transaction_id, req.target_category)
     updated_historical_count = 1
-    rule_pattern = (req.pattern or req.counterparty_name or "").strip()
 
-    if req.remember_rule and rule_pattern:
-        repo.save_transaction_rule(
-            {
-                "match_field": "counterparty_name",
-                "pattern": rule_pattern,
-                "target_category": req.target_category,
-            }
+    rule_pattern = (req.pattern or req.counterparty_name or "").strip()
+    if not rule_pattern:
+        # Look up the transaction in DB to derive counterparty or description pattern
+        existing_txs = db.get_transactions(limit=10000)
+        matched_tx = next((t for t in existing_txs if t.id == req.transaction_id), None)
+        if matched_tx:
+            rule_pattern = (matched_tx.counterparty_name or matched_tx.description or "").strip()
+
+    if rule_pattern:
+        if req.remember_rule:
+            repo.save_transaction_rule(
+                {
+                    "match_field": "counterparty_name",
+                    "pattern": rule_pattern,
+                    "target_category": req.target_category,
+                }
+            )
+        # Apply classification to all other matching rows in the ledger
+        retro_count = db.apply_rule_to_transactions(
+            rule_pattern, req.target_category, exclude_overrides=False
         )
-        # Apply retroactively to historical matching transactions
-        retro_count = db.apply_rule_to_transactions(rule_pattern, req.target_category)
         updated_historical_count = max(updated_historical_count, retro_count)
-    else:
-        db.update_transaction_category(req.transaction_id, req.target_category)
 
     return {
         "status": "success",

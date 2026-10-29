@@ -300,3 +300,62 @@ def test_compound_wealth_trajectory_start_year_selection(app_page, live_server):
         "typeof projectionChartInstance !== 'undefined' && projectionChartInstance !== null"
     )
     assert has_chart is True
+
+
+def test_overview_cashflow_formula_and_cashflow_visualizations_and_known_account_edit(
+    app_page, live_server
+):
+    """Verify Overview free cashflow breakdown toggle, Cashflow Sankey & monthly spending visualizations,
+    expanded expense categories, and Known Account editing in Settings.
+    """
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    # 1. Overview Free Cashflow calculation formula is visible and expandable
+    formula_el = app_page.locator("#kpi-cashflow-formula")
+    expect(formula_el).to_be_visible()
+    expect(formula_el).to_contain_text("Inc")
+    expect(formula_el).to_contain_text("Fix")
+    expect(formula_el).to_contain_text("Debt")
+    expect(formula_el).to_contain_text("Liv")
+
+    app_page.locator("button[onclick='toggleCashflowFormulaBreakdown()']").click()
+    expect(app_page.locator("#kpi-cashflow-detail-rows")).to_be_visible()
+
+    # 2. Navigate to Cashflow tab and verify Sankey diagram & new category options
+    app_page.locator("#nav-cashflow").click()
+    expect(app_page.locator("#tab-cashflow")).to_be_visible()
+    expect(app_page.locator("#cashflow-sankey-container")).to_be_visible()
+    expect(app_page.locator("#cashflow-sankey-container svg")).to_be_visible()
+    expect(app_page.locator("#savings-opportunities-container")).to_be_visible()
+
+    # Verify new categories exist in filter dropdown
+    cat_filter_html = app_page.locator("#tx-category-filter").inner_html()
+    for expected_cat in ("TAX", "UTILITIES", "LEISURE", "TRANSPORT"):
+        assert f'value="{expected_cat}"' in cat_filter_html
+
+    # 3. Navigate to Settings and test adding + editing a Known Account
+    app_page.locator("#nav-settings").click()
+    expect(app_page.locator("#tab-settings")).to_be_visible()
+
+    app_page.locator("button[onclick='toggleAddKnownAccountForm()']").first.click()
+    expect(app_page.locator("#add-known-account-form")).to_be_visible()
+    app_page.locator("#new-known-acc-num").fill("BE99 1234 5678 9012")
+    app_page.locator("#new-known-acc-label").fill("Saxo Broker")
+    app_page.locator("#new-known-acc-type").select_option("CHECKING")
+    app_page.locator("#new-known-acc-inst").fill("Saxo")
+    app_page.locator("button[onclick='submitNewKnownAccount()']").click()
+
+    known_tbody = app_page.locator("#known-accounts-tbody")
+    expect(known_tbody).to_contain_text("Saxo Broker")
+    expect(known_tbody).to_contain_text("CHECKING")
+
+    # Click Edit on the newly created known account
+    known_tbody.locator("button", has_text="Edit").first.click()
+    expect(app_page.locator("#add-known-account-form")).to_be_visible()
+    app_page.locator("#new-known-acc-label").fill("Saxo Investor Updated")
+    app_page.locator("#new-known-acc-type").select_option("INVESTMENT")
+    app_page.locator("button[onclick='submitNewKnownAccount()']").click()
+
+    expect(known_tbody).to_contain_text("Saxo Investor Updated")
+    expect(known_tbody).to_contain_text("INVESTMENT")

@@ -741,6 +741,7 @@ async function assignAssetToBucket(assetId, symbol, isin, name, bucketId) {
         symbol: symbol || null,
         isin: isin || null,
         asset_id: assetId || null,
+        name: name || null,
         asset_name: name || null
       })
     });

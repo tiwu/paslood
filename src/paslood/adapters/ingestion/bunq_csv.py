@@ -101,6 +101,7 @@ class BunqCsvGateway(BaseIngestionGateway):
                     account_id=account_id,
                     description=description,
                     counterparty_name=counterparty_name,
+                    counterparty_iban=counterparty,
                     category=category,
                     raw_data=dict(row),
                 )

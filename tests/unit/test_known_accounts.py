@@ -127,3 +127,69 @@ def test_categorize_inter_account_flows_with_known_accounts() -> None:
     assert results[1].category == TransactionCategory.INVESTMENTS.value
     assert results[2].category == TransactionCategory.SAVINGS.value
     assert results[3].category == TransactionCategory.TRANSFER.value
+
+
+def test_expanded_expense_categories_and_space_insensitive_known_account_matching() -> None:
+    """Verify TAX, UTILITIES, LEISURE, TRANSPORT categories and known account matching with spaces."""
+    use_case = CategorizeTransactionsUseCase()
+
+    txs = [
+        Transaction(
+            id="tx-tax",
+            date="2026-07-01",
+            amount=Money(Decimal("-450.00")),
+            account_id="BE90 7350 1719 2832",
+            description="Aanslagbiljet Personenbelasting FOD FINANCIEN",
+            counterparty_name="FOD FINANCIEN",
+        ),
+        Transaction(
+            id="tx-util",
+            date="2026-07-02",
+            amount=Money(Decimal("-135.00")),
+            account_id="BE90 7350 1719 2832",
+            description="Voorschotfactuur elektriciteit en gas",
+            counterparty_name="ENGIE ELECTRABEL",
+        ),
+        Transaction(
+            id="tx-leisure",
+            date="2026-07-03",
+            amount=Money(Decimal("-68.50")),
+            account_id="BE90 7350 1719 2832",
+            description="KINEPOLIS LEUVEN TICKETS",
+            counterparty_name="KINEPOLIS",
+        ),
+        Transaction(
+            id="tx-transport",
+            date="2026-07-04",
+            amount=Money(Decimal("-72.40")),
+            account_id="BE90 7350 1719 2832",
+            description="Tankbeurt benzine",
+            counterparty_name="DATS 24",
+        ),
+        Transaction(
+            id="tx-spaced-iban",
+            date="2026-07-05",
+            amount=Money(Decimal("-1200.00")),
+            account_id="BE90 7350 1719 2832",
+            description="Storting naar spaarrekening NL28 BUNQ 2120 8248 27",
+            counterparty_name="Eigen Rekening",
+            counterparty_iban="NL28 BUNQ 2120 8248 27",
+        ),
+    ]
+
+    known_accounts = [
+        KnownAccount(
+            id="acc-bunq-sav",
+            account_number="NL28BUNQ2120824827",
+            label="Bunq Savings",
+            account_type="SAVINGS",
+            institution="bunq",
+        )
+    ]
+
+    categorized = use_case.execute(txs, known_accounts=known_accounts)
+    assert categorized[0].category == TransactionCategory.TAX.value
+    assert categorized[1].category == TransactionCategory.UTILITIES.value
+    assert categorized[2].category == TransactionCategory.LEISURE.value
+    assert categorized[3].category == TransactionCategory.TRANSPORT.value
+    assert categorized[4].category == TransactionCategory.SAVINGS.value

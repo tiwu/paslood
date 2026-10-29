@@ -109,6 +109,13 @@ class TransactionRepository(Protocol):
         exclude_overrides: bool = True,
     ) -> int: ...
 
+    def apply_known_account_to_transactions(
+        self,
+        account_number: str,
+        label: str,
+        account_type: str,
+    ) -> int: ...
+
     def save_discovered_assets(self, assets: list[Asset], source: str = "kbc_csv") -> None: ...
 
     def get_discovered_assets(self) -> list[Asset]: ...

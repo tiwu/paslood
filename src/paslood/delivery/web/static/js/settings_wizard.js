@@ -709,13 +709,45 @@ function prefillKnownAccountForm(accountId, institution = '') {
   const form = document.getElementById('add-known-account-form');
   if (form) form.classList.remove('hidden');
 
+  const idInput = document.getElementById('new-known-acc-id');
+  const titleEl = document.getElementById('known-acc-form-title');
   const accInput = document.getElementById('new-known-acc-num');
   const labelInput = document.getElementById('new-known-acc-label');
   const typeSelect = document.getElementById('new-known-acc-type');
   const instInput = document.getElementById('new-known-acc-inst');
 
+  if (idInput) idInput.value = '';
+  if (titleEl) titleEl.textContent = 'Register Known Account';
+  if (labelInput) labelInput.value = '';
+  if (instInput) instInput.value = '';
+  if (typeSelect) typeSelect.value = 'CHECKING';
   if (accInput) accInput.value = accountId;
   onKnownAccNumChanged(accountId, institution);
+  if (labelInput) labelInput.focus();
+}
+
+function editKnownAccount(accountId) {
+  const acc = (currentKnownAccounts || []).find(
+    a => (a.id || a.account_id || a.account_number) === accountId
+  );
+  if (!acc) return;
+
+  const form = document.getElementById('add-known-account-form');
+  if (form) form.classList.remove('hidden');
+
+  const idInput = document.getElementById('new-known-acc-id');
+  const titleEl = document.getElementById('known-acc-form-title');
+  const accInput = document.getElementById('new-known-acc-num');
+  const labelInput = document.getElementById('new-known-acc-label');
+  const typeSelect = document.getElementById('new-known-acc-type');
+  const instInput = document.getElementById('new-known-acc-inst');
+
+  if (idInput) idInput.value = acc.id || '';
+  if (titleEl) titleEl.textContent = `✏️ Edit Known Account: ${acc.label || acc.account_number}`;
+  if (accInput) accInput.value = acc.account_number || '';
+  if (labelInput) labelInput.value = acc.label || '';
+  if (typeSelect) typeSelect.value = acc.account_type || 'CHECKING';
+  if (instInput) instInput.value = acc.institution || '';
   if (labelInput) labelInput.focus();
 }
 
@@ -794,7 +826,10 @@ function renderKnownAccounts(accounts) {
         </span>
       </td>
       <td class="py-2.5 px-3 text-slate-400 text-[11px]">${escapeHtml(acc.institution || '—')}</td>
-      <td class="py-2.5 px-3 text-right">
+      <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1">
+        <button onclick="editKnownAccount('${escapeHtml(accId)}')" class="px-2 py-0.5 rounded border border-blue-500/30 hover:bg-blue-500/10 text-blue-400 text-[11px]">
+          Edit
+        </button>
         <button onclick="deleteKnownAccount('${escapeHtml(accId)}')" class="px-2 py-0.5 rounded border border-red-500/30 hover:bg-red-500/10 text-red-400 text-[11px]">
           Delete
         </button>
@@ -807,10 +842,18 @@ function renderKnownAccounts(accounts) {
 function toggleAddKnownAccountForm() {
   const form = document.getElementById('add-known-account-form');
   if (!form) return;
+  const wasHidden = form.classList.contains('hidden');
   form.classList.toggle('hidden');
+  if (wasHidden) {
+    const idInput = document.getElementById('new-known-acc-id');
+    const titleEl = document.getElementById('known-acc-form-title');
+    if (idInput) idInput.value = '';
+    if (titleEl) titleEl.textContent = 'Register Known Account';
+  }
 }
 
 async function submitNewKnownAccount() {
+  const existingId = (document.getElementById('new-known-acc-id')?.value || '').trim();
   const accNum = document.getElementById('new-known-acc-num').value.trim();
   const label = document.getElementById('new-known-acc-label').value.trim();
   const type = document.getElementById('new-known-acc-type').value;
@@ -822,15 +865,20 @@ async function submitNewKnownAccount() {
   }
 
   try {
+    const payload = {
+      account_number: accNum,
+      label: label,
+      account_type: type,
+      institution: inst
+    };
+    if (existingId) {
+      payload.id = existingId;
+    }
+
     const res = await fetch('/api/accounts/known', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        account_number: accNum,
-        label: label,
-        account_type: type,
-        institution: inst
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
@@ -838,6 +886,8 @@ async function submitNewKnownAccount() {
       throw new Error(err.detail || 'Failed to save account');
     }
 
+    const idInput = document.getElementById('new-known-acc-id');
+    if (idInput) idInput.value = '';
     document.getElementById('new-known-acc-num').value = '';
     document.getElementById('new-known-acc-label').value = '';
     document.getElementById('new-known-acc-inst').value = '';

@@ -443,6 +443,58 @@ if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expect
     throw new Error('confirmDialog expected true upon confirm click, got: ' + result);
   }}
 
+  // 9. Test renderCashflowBreakdownWidget & toggleCashflowFormulaBreakdown
+  sandbox.renderCashflowBreakdownWidget({{
+    monthly_income: 5000,
+    fixed_costs: 400,
+    debt_payments: 1100,
+    living_expenses: 700,
+    free_cashflow: 2800,
+    months_analyzed: 2,
+    is_default_estimate: false,
+    formula: 'Income - Outflows = Free Cashflow'
+  }}, 2800);
+  if (!getEl('kpi-cashflow-formula').innerHTML.includes('5000.00')) {{
+    throw new Error('renderCashflowBreakdownWidget did not render monthly_income');
+  }}
+
+  // 10. Test renderCashflowSankey & renderMonthlySpendingAndSavings
+  sandbox.renderCashflowAnalytics({{
+    cashflow_analytics: {{
+      sankey: {{
+        monthly_income: 5000,
+        links: [
+          {{ source: 'Monthly Income', target: 'Investments & Savings', value: 1500, color: '#10B981' }},
+          {{ source: 'Monthly Income', target: 'Debt & Mortgage', value: 1100, color: '#F43F5E' }}
+        ]
+      }},
+      monthly_spending: [
+        {{ month: '2026-05', total_expenses: 2200, categories: {{ MORTGAGE: 1100, UTILITIES: 200, LEISURE: 300 }} }}
+      ],
+      savings_opportunities: [
+        {{ category: 'LEISURE', label: 'Leisure, Dining & Entertainment', monthly_avg: 300, potential_monthly_savings: 75, annual_impact: 900, tip: 'Trim dining out' }}
+      ]
+    }}
+  }});
+  if (!getEl('cashflow-sankey-container').innerHTML.includes('svg')) {{
+    throw new Error('renderCashflowSankey did not render SVG diagram');
+  }}
+  if (!getEl('savings-opportunities-container').innerHTML.includes('Leisure')) {{
+    throw new Error('renderMonthlySpendingAndSavings did not render savings opportunities');
+  }}
+
+  // 11. Test editKnownAccount populates form
+  sandbox.renderKnownAccounts([{{
+    id: 'acc-1',
+    account_number: 'BE99 1234 5678 9012',
+    label: 'Saxo Account',
+    account_type: 'INVESTMENT',
+    institution: 'Saxo'
+  }}]);
+  if (!getEl('known-accounts-tbody').children[0].innerHTML.includes('editKnownAccount')) {{
+    throw new Error('renderKnownAccounts did not include Edit button');
+  }}
+
   console.log('NODE_UNIT_OK');
 }})().catch(err => {{
   console.error(err);

@@ -58,6 +58,7 @@ nav:
       - "Issue #43 - Known Accounts, Flow Rules & Bunq Holdings": plans/PLAN-43-known-accounts-flows-bunq-holdings.md
       - "Issue #45 - Statement Account Prefill & Upload Prompts": plans/PLAN-45-prefill-known-accounts-statements.md
       - "Issue #47 - Clean Architecture Boundary & Port Alignment": plans/PLAN-47-align-clean-architecture-ports-use-cases.md
+      - "Issue #50 - Cashflow Categories, Known Accounts & Visualizations": plans/PLAN-50-cashflow-buckets-visualizations.md
   - Architecture & UX Reviews:
       - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
       - UI/UX Review: reviews/UX-REVIEW.md
