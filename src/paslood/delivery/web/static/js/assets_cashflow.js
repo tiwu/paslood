@@ -988,6 +988,12 @@ function renderCashflowSankey(sankeyData, breakdown) {
   let pathsHtml = '';
   let rightNodesHtml = '';
 
+  const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens() : {
+    textPrimary: '#F1F5F9',
+    textSecondary: '#94A3B8',
+    assetsColor: '#34D399'
+  };
+
   links.forEach((link) => {
     const weight = (link.value || 0) / Math.max(totalOut, maxTotal);
     const barH = Math.max(10, weight * totalBarsH);
@@ -999,7 +1005,7 @@ function renderCashflowSankey(sankeyData, breakdown) {
     const y2 = curRightY + barH / 2;
     const cX1 = leftX + leftW + (rightX - (leftX + leftW)) * 0.45;
     const cX2 = leftX + leftW + (rightX - (leftX + leftW)) * 0.55;
-    const color = escapeHtml(link.color || '#3B82F6');
+    const color = escapeHtml(link.color || '#2B5C8F');
     const formattedVal = escapeHtml(I18N.formatCurrency(link.value, 'EUR'));
     const pct = income > 0 ? Math.round((link.value / income) * 100) : 0;
 
@@ -1010,8 +1016,8 @@ function renderCashflowSankey(sankeyData, breakdown) {
 
     rightNodesHtml += `
       <rect x="${rightX}" y="${curRightY.toFixed(1)}" width="${rightW}" height="${barH.toFixed(1)}" rx="3" fill="${color}" />
-      <text x="${rightX + rightW + 8}" y="${(curRightY + barH / 2 - 2).toFixed(1)}" fill="#f8fafc" font-size="11" font-weight="600">${escapeHtml(link.target)}</text>
-      <text x="${rightX + rightW + 8}" y="${(curRightY + barH / 2 + 11).toFixed(1)}" fill="#94a3b8" font-size="10" font-family="monospace">${formattedVal}/mo (${pct}%)</text>
+      <text x="${rightX + rightW + 8}" y="${(curRightY + barH / 2 - 2).toFixed(1)}" fill="${tokens.textPrimary}" font-size="11" font-weight="600">${escapeHtml(link.target)}</text>
+      <text x="${rightX + rightW + 8}" y="${(curRightY + barH / 2 + 11).toFixed(1)}" fill="${tokens.textSecondary}" font-size="10" font-family="monospace">${formattedVal}/mo (${pct}%)</text>
     `;
 
     curRightY += barH + gap;
@@ -1022,9 +1028,9 @@ function renderCashflowSankey(sankeyData, breakdown) {
   container.innerHTML = `
     <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full h-auto max-h-[230px]" role="img" aria-label="Monthly Cashflow Sankey Diagram">
       ${pathsHtml}
-      <rect x="${leftX}" y="${incY.toFixed(1)}" width="${leftW}" height="${incBarH.toFixed(1)}" rx="4" fill="#10B981" />
-      <text x="${leftX}" y="${Math.max(14, incY - 14).toFixed(1)}" fill="#f8fafc" font-size="11" font-weight="700">Monthly Income</text>
-      <text x="${leftX}" y="${Math.max(25, incY - 3).toFixed(1)}" fill="#34d399" font-size="11" font-family="monospace" font-weight="600">${incFormatted}/mo</text>
+      <rect x="${leftX}" y="${incY.toFixed(1)}" width="${leftW}" height="${incBarH.toFixed(1)}" rx="4" fill="${tokens.assetsColor}" />
+      <text x="${leftX}" y="${Math.max(14, incY - 14).toFixed(1)}" fill="${tokens.textPrimary}" font-size="11" font-weight="700">Monthly Income</text>
+      <text x="${leftX}" y="${Math.max(25, incY - 3).toFixed(1)}" fill="${tokens.assetsColor}" font-size="11" font-family="monospace" font-weight="600">${incFormatted}/mo</text>
       ${rightNodesHtml}
     </svg>
   `;
@@ -1042,18 +1048,22 @@ function renderMonthlySpendingAndSavings(analytics) {
     if (monthlySpendingChartInstance) monthlySpendingChartInstance.destroy();
 
     if (monthlyData.length > 0) {
+      const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens() : {
+        gridColor: 'rgba(148, 163, 184, 0.08)',
+        tickColor: '#94A3B8'
+      };
       const labels = monthlyData.map(m => m.month);
       const catColors = {
-        MORTGAGE: '#6366F1',
-        DEBT_REPAYMENT: '#F43F5E',
-        UTILITIES: '#F59E0B',
-        TAX: '#EF4444',
-        INSURANCE: '#A855F7',
-        GROCERIES: '#84CC16',
-        LEISURE: '#EC4899',
-        TRANSPORT: '#0EA5E9',
-        SUBSCRIPTION: '#D946EF',
-        LIVING_EXPENSES: '#F97316',
+        MORTGAGE: '#485696',
+        DEBT_REPAYMENT: '#A84338',
+        UTILITIES: '#B88628',
+        TAX: '#9A3412',
+        INSURANCE: '#6B4E9B',
+        GROCERIES: '#2D7A5B',
+        LEISURE: '#8C533E',
+        TRANSPORT: '#2B5C8F',
+        SUBSCRIPTION: '#7C3AED',
+        LIVING_EXPENSES: '#D97706',
         OTHER: '#64748B',
       };
 
@@ -1064,7 +1074,7 @@ function renderMonthlySpendingAndSavings(analytics) {
       const datasets = allCats.map(cat => ({
         label: cat,
         data: monthlyData.map(m => (m.categories && m.categories[cat]) ? m.categories[cat] : 0),
-        backgroundColor: catColors[cat] || '#3B82F6',
+        backgroundColor: catColors[cat] || '#2B5C8F',
         borderRadius: 3,
       }));
 
@@ -1075,11 +1085,11 @@ function renderMonthlySpendingAndSavings(analytics) {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } },
+            legend: { labels: { color: tokens.tickColor, boxWidth: 10, font: { size: 10 } } },
           },
           scales: {
-            x: { stacked: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
-            y: { stacked: true, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+            x: { stacked: true, grid: { display: false }, ticks: { color: tokens.tickColor, font: { size: 10 } } },
+            y: { stacked: true, grid: { color: tokens.gridColor }, ticks: { color: tokens.tickColor, font: { size: 10 } } },
           },
         },
       });

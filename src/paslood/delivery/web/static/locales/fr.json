@@ -12,7 +12,7 @@
     "buckets": "🪣 Portefeuilles",
     "portfolio": "🪣 Portefeuille & Piliers",
     "guidance": "💡 Conseils",
-    "plan": "🧭 Planifier & Rééquilibrer",
+    "plan": "⚖️ Planifier & Rééquilibrer",
     "ai": "🤖 Conseiller IA",
     "cashflow": "💳 Cashflow & Import",
     "settings": "⚙️ Paramètres",
@@ -22,7 +22,7 @@
     "lang_label": "Langue :"
   },
   "dashboard": {
-    "explore_banner": "🧭 <strong>Mode Exploration</strong> — Télémétrie patrimoniale & trajectoires",
+    "explore_banner": "<strong>Équilibre Bilanciel</strong> — Solvabilité structurelle & trajectoires",
     "exclude_property": "Exclure l'Immobilier / Portefeuilles Illiquides de la Valeur Nette & Croissance",
     "manage_assets_link": "Gérer les Actifs & Prêts →",
     "kpi_net_worth": "Valeur Nette Totale",

@@ -400,6 +400,10 @@ function renderBulletMeters(activeAllocs, container) {
     return;
   }
 
+  const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens() : {
+    caliperColor: '#FBBF24',
+    caliperShadow: 'rgba(251, 191, 36, 0.65)'
+  };
   activeAllocs.forEach(a => {
     const target = a.target_weight_pct;
     const tol = a.drift_tolerance_pct || 2.0;
@@ -441,7 +445,7 @@ function renderBulletMeters(activeAllocs, container) {
               <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-xs">
                 <div class="flex items-center gap-1.5 truncate mr-2">
                   <span class="font-medium text-white truncate">${escapeHtml(ast.name)}</span>
-                  ${ast.symbol ? `<span class="px-1 py-0.2 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">${escapeHtml(ast.symbol)}</span>` : ''}
+                  ${ast.symbol ? `<span class="px-1 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">${escapeHtml(ast.symbol)}</span>` : ''}
                 </div>
                 <div class="font-mono text-slate-200 font-semibold whitespace-nowrap">${I18N.formatCurrency(ast.current_value, ast.currency || 'EUR')}</div>
               </div>
@@ -511,18 +515,18 @@ function renderBulletMeters(activeAllocs, container) {
              style="width: ${Math.min(100, Math.max(0, curr))}%; background-color: ${escapeHtml(a.color)};">
         </div>
 
-        <!-- Crisp Target Pin Marker -->
+        <!-- Architectural Plumb Datum Target Caliper -->
         <div class="target-pin absolute -top-1 bottom-0 z-20"
-             style="left: ${target}%; width: 2px; height: calc(100% + 8px); background-color: #ffffff; box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);"
+             style="left: ${target}%; width: 2px; height: calc(100% + 8px); background-color: ${tokens.caliperColor}; box-shadow: 0 0 6px ${tokens.caliperShadow};"
              title="${escapeHtml(I18N.t('buckets.th_target_weight', 'Target'))}: ${I18N.formatPercent(target)}">
-          <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 shadow"></div>
+          <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 shadow" style="background-color: ${tokens.caliperColor};"></div>
         </div>
       </div>
 
       <!-- Legend / Action Guidance -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-slate-400 gap-1 pt-0.5">
         <div class="flex items-center gap-2">
-          <span class="flex items-center gap-1"><span class="w-2 h-2 bg-white rounded-full inline-block"></span> ${escapeHtml(I18N.t('buckets.th_target_weight', 'Target'))}: ${I18N.formatPercent(target)}</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background-color: ${tokens.caliperColor};"></span> ${escapeHtml(I18N.t('buckets.th_target_weight', 'Target'))}: ${I18N.formatPercent(target)}</span>
           <span class="text-slate-600">•</span>
           <span class="flex items-center gap-1 text-emerald-400/90"><span class="w-2.5 h-1.5 bg-emerald-500/30 border border-emerald-500/60 rounded-sm inline-block"></span> Band: ${I18N.formatPercent(lower)} – ${I18N.formatPercent(upper)}</span>
         </div>

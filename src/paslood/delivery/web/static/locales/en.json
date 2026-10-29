@@ -12,7 +12,7 @@
     "buckets": "🪣 Buckets",
     "portfolio": "🪣 Portfolio & Buckets",
     "guidance": "💡 Guidance",
-    "plan": "🧭 Plan & Rebalance",
+    "plan": "⚖️ Plan & Rebalance",
     "ai": "🤖 AI Advisor",
     "cashflow": "💳 Cashflow & Import",
     "settings": "⚙️ Settings",
@@ -22,7 +22,7 @@
     "lang_label": "Language:"
   },
   "dashboard": {
-    "explore_banner": "🧭 <strong>Explore State</strong> — High-level wealth telemetry & trajectory",
+    "explore_banner": "<strong>Balance Sheet Alignment</strong> — Structural solvency & compound growth",
     "exclude_property": "Exclude Real Estate / Illiquid Buckets from Net Worth & Growth",
     "manage_assets_link": "Manage Assets & Loans →",
     "kpi_net_worth": "Total Net Worth",

@@ -84,7 +84,18 @@ When `stage` is `"implementation"`:
      ```
 4. **Green (Minimal Implementation)**:
    - Implement minimal required code in `src/paslood/`.
-5. **Verification**:
+   - If `input.css`, `tailwind.config.js`, or template utility classes changed, recompile CSS:
+     ```bash
+     npm run build:css
+     ```
+5. **Visual Rendering & Screenshot Review (Mandatory for Web UI / Frontend Changes)**:
+   - Whenever `src/paslood/delivery/web/` (templates, CSS, or static JS) is modified:
+     1. **Render Screenshots**: Launch an ephemeral seeded FastAPI server with Playwright Chromium (`1440×960` @ `2x` Retina scale) and capture full-page screenshots of the affected workspace(s) in **both** Dark ("Midnight Blueprint") and Light ("Architectural Vellum") modes into `docs/assets/screenshots/`.
+     2. **Inspect Rendered Output**: Use the `read` tool on each generated PNG to visually audit the actual browser rendering before delivery:
+        - Verify light-theme and dark-theme surface bindings, text contrast ($\ge 4.5:1$), and Chart.js / SVG colors render cleanly with zero unstyled dark boxes in light mode or unreadable white-on-white labels.
+        - Verify no text, formulas, or table cells overflow card boundaries, and confirm Refactoring UI hierarchy (`p-6` padding, `gap-6` spacing, 1 primary button per toolbar).
+     3. **Iterate Before Delivery**: If any visual defect is visible in the screenshot, fix the CSS/DOM/JS, run `npm run build:css`, re-render, and re-inspect the PNG until clean.
+6. **Automated Verification**:
    ```bash
    uv run pytest --cov=src/paslood
    uv run pytest tests/delivery/test_frontend_integrity.py tests/e2e/test_ui_workflows.py
@@ -92,16 +103,17 @@ When `stage` is `"implementation"`:
    uv run ruff format --check src tests
    uv run mkdocs build --strict
    ```
-6. **Update Changelog & Commit**:
+7. **Update Changelog & Commit**:
    - Add entry under `## [Unreleased]` in `CHANGELOG.md`.
-   - Stage and commit:
+   - Stage and commit (including `docs/assets/screenshots/` when UI changes were made):
      ```bash
      git add src tests CHANGELOG.md docs
      git commit -m "feat/fix(#<number>): <terse description>"
      ```
-7. **Submit Pull Request**:
+8. **Submit Pull Request & Attach Screenshots**:
    ```bash
    uv run python scripts/poll_issues.py --submit-pr <number>
    ```
-8. **Complete**:
+   - For UI changes, embed the committed `docs/assets/screenshots/*.png` images (`https://raw.githubusercontent.com/tiwu/paslood/<branch>/docs/assets/screenshots/...`) in the PR description (`gh pr edit`) so reviewers can inspect both themes directly on GitHub.
+9. **Complete**:
    - Print `"PR submitted for issue #<number>."` and finish. Do NOT run further commands.

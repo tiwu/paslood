@@ -140,11 +140,12 @@ Architecture Guidelines:
 ```text
 Task: Add or update <Widget Name> in the web dashboard.
 Guidelines:
-1. Modify src/paslood/delivery/web/templates/index.html and the corresponding module in src/paslood/delivery/web/static/js/ adhering to the slate-950 dark theme.
+1. Modify src/paslood/delivery/web/templates/index.html and the corresponding module in src/paslood/delivery/web/static/js/ adhering to the Midnight Blueprint (dark) and Architectural Vellum (light) design system tokens (--pas-*), and run 'npm run build:css'.
 2. Ensure any new API responses are parsed safely (check res.ok, handle errors gracefully without crashing JSON.parse).
 3. Provide keyboard accessibility and auto-updating state on modal dismissal.
-4. Add delivery integration tests in tests/delivery/ and E2E browser assertions in tests/e2e/test_ui_workflows.py.
-5. Verify with 'uv run pytest tests/delivery/test_frontend_integrity.py tests/e2e/test_ui_workflows.py', 'uv run ruff check src tests', and 'uv run ruff format --check src tests'.
+4. Render full-page Playwright Chromium screenshots in both Dark and Light themes into docs/assets/screenshots/, visually inspect them with the Read tool to catch contrast/overflow/theme defects before delivery, and embed them in the PR.
+5. Add delivery integration tests in tests/delivery/ and E2E browser assertions in tests/e2e/test_ui_workflows.py.
+6. Verify with 'uv run pytest tests/delivery/test_frontend_integrity.py tests/e2e/test_ui_workflows.py', 'uv run ruff check src tests', and 'uv run ruff format --check src tests'.
 ```
 
 ---

@@ -27,17 +27,58 @@ let excludePropertyState = localStorage.getItem('paslood_exclude_property') === 
 let currentCashflowPeriod = localStorage.getItem('paslood_cashflow_period') || 'all';
 
 const BUCKET_PALETTE = [
-  '#3B82F6', // Blue
-  '#10B981', // Emerald
-  '#F59E0B', // Amber
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#06B6D4', // Cyan
-  '#F97316', // Orange
-  '#6366F1', // Indigo
-  '#14B8A6', // Teal
-  '#E11D48', // Rose
+  '#2B5C8F', // Blueprint Cobalt
+  '#2D7A5B', // Architectural Patina
+  '#B88628', // Turned Brass
+  '#485696', // Slate Indigo
+  '#8C533E', // Burnt Sienna
+  '#0E7490', // Drafting Cyan
+  '#A67832', // Antique Gold
+  '#6B4E9B', // Drafting Plum
+  '#1F6F5B', // Deep Teal
+  '#A84338', // Terracotta Oxide
 ];
+
+function getChartThemeTokens() {
+  const isLight = Boolean(
+    typeof document !== 'undefined' &&
+    document.documentElement &&
+    document.documentElement.classList &&
+    document.documentElement.classList.contains('light-theme')
+  );
+  if (isLight) {
+    return {
+      isLight: true,
+      surface: '#FDFCFA',
+      textPrimary: '#1C1917',
+      textSecondary: '#44403C',
+      textTertiary: '#57534E',
+      gridColor: '#E5E0D5',
+      tickColor: '#57534E',
+      netWorthColor: '#1E4E79',
+      netWorthFill: 'rgba(30, 78, 121, 0.12)',
+      assetsColor: '#1F6F5B',
+      debtsColor: '#9A3412',
+      caliperColor: '#1C1917',
+      caliperShadow: 'rgba(28, 25, 23, 0.35)'
+    };
+  }
+  return {
+    isLight: false,
+    surface: '#131C2E',
+    textPrimary: '#F1F5F9',
+    textSecondary: '#CBD5E1',
+    textTertiary: '#94A3B8',
+    gridColor: 'rgba(148, 163, 184, 0.08)',
+    tickColor: '#94A3B8',
+    netWorthColor: '#38BDF8',
+    netWorthFill: 'rgba(56, 189, 248, 0.14)',
+    assetsColor: '#34D399',
+    debtsColor: '#FB923C',
+    caliperColor: '#FBBF24',
+    caliperShadow: 'rgba(251, 191, 36, 0.65)'
+  };
+}
 
 // Theme Toggle (Light / Dark Mode)
 function syncThemeToggleUI() {
@@ -90,6 +131,8 @@ function toggleThemeScheme() {
   if (currentData) {
     renderDonutChart(currentData.allocations || []);
     renderProjectionChart(currentData.trajectory || []);
+    if (typeof renderBuckets === 'function') renderBuckets(currentData);
+    if (typeof renderCashflowAnalytics === 'function') renderCashflowAnalytics(currentData);
   }
 }
 

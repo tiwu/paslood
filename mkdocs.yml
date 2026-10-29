@@ -60,6 +60,7 @@ nav:
       - "Issue #47 - Clean Architecture Boundary & Port Alignment": plans/PLAN-47-align-clean-architecture-ports-use-cases.md
       - "Issue #50 - Cashflow Categories, Known Accounts & Visualizations": plans/PLAN-50-cashflow-buckets-visualizations.md
       - "Issue #52 - Asset/Loan Modals, Re-Bucketing & Cashflow Period": plans/PLAN-52-assetloan-modals-transaction-re-bucketin.md
+      - "Issue #54 - Visual Redesign & Architectural Design System": plans/PLAN-54-featdesign-visual-redesign-architectural.md
   - Architecture & UX Reviews:
       - Architecture Review: reviews/ARCHITECTURE-REVIEW.md
       - UI/UX Review: reviews/UX-REVIEW.md

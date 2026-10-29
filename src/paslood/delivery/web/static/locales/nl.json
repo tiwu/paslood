@@ -12,7 +12,7 @@
     "buckets": "🪣 Buckets",
     "portfolio": "🪣 Portefeuille & Buckets",
     "guidance": "💡 Advies",
-    "plan": "🧭 Plannen & Herbalanceren",
+    "plan": "⚖️ Plannen & Herbalanceren",
     "ai": "🤖 AI Adviseur",
     "cashflow": "💳 Cashflow & Import",
     "settings": "⚙️ Instellingen",
@@ -22,7 +22,7 @@
     "lang_label": "Taal:"
   },
   "dashboard": {
-    "explore_banner": "🧭 <strong>Overzichtsmodus</strong> — Vermogenstelemetrie & groeiprojecties",
+    "explore_banner": "<strong>Balans in het Lood</strong> — Structureel overzicht & groeiprojecties",
     "exclude_property": "Vastgoed / Illiquide Buckets uitsluiten van Nettowaarde & Groei",
     "manage_assets_link": "Activa & Leningen Beheren →",
     "kpi_net_worth": "Totale Nettowaarde",
