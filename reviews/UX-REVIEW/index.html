@@ -2123,12 +2123,12 @@
 <p>Paslood has strong financial calculators (Buy-Only Rebalancing, Debt vs. Invest APR comparison, Belgian 2026 Capital Gains Tax simulator, Loan Amortization estimator, Compound Trajectory), <strong>but the interface is organized around backend storage mechanisms rather than user tasks</strong>:</p>
 <ol>
 <li><strong>Holdings &amp; Assets are split across 3 different tabs</strong>:</li>
-<li>Broker holdings &amp; bucket mapping live at the bottom of <strong>Buckets</strong> (<code>#tab-buckets</code>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L418-L447">index.html:418-447</a>).</li>
-<li>Manual assets (Real Estate, Cash) and Mortgages live in <strong>Data &amp; Assets</strong> (<code>#tab-cashflow</code>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L622-L684">index.html:622-684</a>).</li>
-<li>Live broker sync (PDT OAuth/MCP) lives inside <strong>Settings</strong> (<code>#tab-settings</code>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L815-L895">index.html:815-895</a>).</li>
-<li><strong>"Guidance" and "AI Advisor" are competing tabs</strong>: Deterministic advice appears in <strong>Overview</strong> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L359">L359</a>), again in <strong>Guidance</strong> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L487">L487</a>), while generative advice is isolated in <strong>AI Advisor</strong> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L743">L743</a>).</li>
-<li><strong>First-Run Onboarding Bug (<code>wizardFinish</code>)</strong>: The setup wizard writes bucket targets using hardcoded IDs <code>b-core-etf</code>, <code>b-conviction</code>, <code>b-gold</code>, <code>b-buffer</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L3708-L3727">index.html:3708-3727</a>), whereas <code>ConfigRepository</code> seeds buckets with IDs <code>core-etf</code>, <code>tech-growth</code>, <code>commodities</code>, <code>cash-buffer</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L114-L146">config_repo.py:114-146</a>). Completing the setup wizard creates <strong>4 duplicate buckets</strong> (8 buckets totaling 200% weight!).</li>
-<li><strong>Mobile Navigation Friction</strong>: On phone screens, all 6 sections are hidden inside a top-right hamburger drawer (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L195-L233">index.html:195-233</a>), and core data views rely on 6-to-7-column horizontal-scroll tables.</li>
+<li>Broker holdings &amp; bucket mapping live at the bottom of <strong>Buckets</strong> (<code>#tab-buckets</code>, <code>src/paslood/delivery/web/templates/index.html:418-447</code>).</li>
+<li>Manual assets (Real Estate, Cash) and Mortgages live in <strong>Data &amp; Assets</strong> (<code>#tab-cashflow</code>, <code>src/paslood/delivery/web/templates/index.html:622-684</code>).</li>
+<li>Live broker sync (PDT OAuth/MCP) lives inside <strong>Settings</strong> (<code>#tab-settings</code>, <code>src/paslood/delivery/web/templates/index.html:815-895</code>).</li>
+<li><strong>"Guidance" and "AI Advisor" are competing tabs</strong>: Deterministic advice appears in <strong>Overview</strong> (<code>L359</code>), again in <strong>Guidance</strong> (<code>L487</code>), while generative advice is isolated in <strong>AI Advisor</strong> (<code>L743</code>).</li>
+<li><strong>First-Run Onboarding Bug (<code>wizardFinish</code>)</strong>: The setup wizard writes bucket targets using hardcoded IDs <code>b-core-etf</code>, <code>b-conviction</code>, <code>b-gold</code>, <code>b-buffer</code> (<code>src/paslood/delivery/web/templates/index.html:3708-3727</code>), whereas <code>ConfigRepository</code> seeds buckets with IDs <code>core-etf</code>, <code>tech-growth</code>, <code>commodities</code>, <code>cash-buffer</code> (<code>src/paslood/adapters/repositories/config_repo.py:114-146</code>). Completing the setup wizard creates <strong>4 duplicate buckets</strong> (8 buckets totaling 200% weight!).</li>
+<li><strong>Mobile Navigation Friction</strong>: On phone screens, all 6 sections are hidden inside a top-right hamburger drawer (<code>src/paslood/delivery/web/templates/index.html:195-233</code>), and core data views rely on 6-to-7-column horizontal-scroll tables.</li>
 </ol>
 <hr />
 <h2 id="2-complete-feature-inventory-scattering-map">2. Complete Feature Inventory &amp; Scattering Map</h2>
@@ -2144,85 +2144,85 @@
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>KPI Cards</strong> (Net Worth, Assets, Debts, Free Cashflow)</td>
-<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L270-L296">L270-296</a>)</td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<code>src/paslood/delivery/web/templates/index.html:270-296</code>)</td>
 <td style="text-align: left;"><code>GET /api/overview</code></td>
 <td style="text-align: left;">Good placement; lacks "Last synced / updated" indicator and click-through to underlying assets/debts.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Exclude Property Toggle</strong></td>
-<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L254-L267">L254-267</a>)</td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<code>src/paslood/delivery/web/templates/index.html:254-267</code>)</td>
 <td style="text-align: left;"><code>GET /api/overview?exclude_property=</code></td>
 <td style="text-align: left;">Takes a full-width banner above KPIs; should be a compact pill toggle inside the Net Worth header.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Allocation Donut &amp; 30Y Trajectory</strong></td>
-<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L299-L337">L299-337</a>)</td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<code>src/paslood/delivery/web/templates/index.html:299-337</code>)</td>
 <td style="text-align: left;"><code>GET /api/projection</code></td>
 <td style="text-align: left;">Good, but CAGR/Year controls don't show the assumed monthly savings euro amount used in the curve.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>FI Milestones Tracker</strong></td>
-<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L340-L356">L340-356</a>) + <code>#milestones-modal</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L1376">L1376</a>)</td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<code>src/paslood/delivery/web/templates/index.html:340-356</code>) + <code>#milestones-modal</code> (<code>L1376</code>)</td>
 <td style="text-align: left;"><code>GET/POST /api/milestones</code></td>
 <td style="text-align: left;">5-column grid (<code>lg:grid-cols-5</code>) stacks into a tall vertical list on mobile.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Immediate Recommendations Preview</strong></td>
-<td style="text-align: left;"><code>#tab-dashboard</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L359-L372">L359-372</a>)</td>
+<td style="text-align: left;"><code>#tab-dashboard</code> (<code>src/paslood/delivery/web/templates/index.html:359-372</code>)</td>
 <td style="text-align: left;"><code>GET /api/overview</code></td>
-<td style="text-align: left;">Duplicates <code>#debt-advisor-list</code> on <code>#tab-advice</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L487">L487</a>).</td>
+<td style="text-align: left;">Duplicates <code>#debt-advisor-list</code> on <code>#tab-advice</code> (<code>L487</code>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Strategic Buckets Table &amp; Progress Meters</strong></td>
-<td style="text-align: left;"><code>#tab-buckets</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L388-L415">L388-415</a>)</td>
+<td style="text-align: left;"><code>#tab-buckets</code> (<code>src/paslood/delivery/web/templates/index.html:388-415</code>)</td>
 <td style="text-align: left;"><code>POST/PUT/DELETE /api/buckets</code></td>
-<td style="text-align: left;">Table (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L390">L390</a>) and Progress Meters (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L410">L410</a>) display the exact same numbers twice on the same screen.</td>
+<td style="text-align: left;">Table (<code>L390</code>) and Progress Meters (<code>L410</code>) display the exact same numbers twice on the same screen.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Holdings-to-Bucket Assignment Table</strong></td>
-<td style="text-align: left;"><code>#tab-buckets</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L418-L447">L418-447</a>)</td>
+<td style="text-align: left;"><code>#tab-buckets</code> (<code>src/paslood/delivery/web/templates/index.html:418-447</code>)</td>
 <td style="text-align: left;"><code>POST /api/buckets/assign-asset</code></td>
 <td style="text-align: left;">Shows all assets, but you cannot add/edit/delete an asset from here—you have to jump to <code>#tab-cashflow</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Smart Buy-Only Deposit Calculator</strong></td>
-<td style="text-align: left;"><code>#tab-advice</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L453-L484">L453-484</a>)</td>
+<td style="text-align: left;"><code>#tab-advice</code> (<code>src/paslood/delivery/web/templates/index.html:453-484</code>)</td>
 <td style="text-align: left;">Client-side JS math (!), not calling <code>AdviseContributionUseCase</code></td>
 <td style="text-align: left;"><strong>Bug/Drift</strong>: Web UI computes contribution orders in inline JS while CLI calls <code>AdviseContributionUseCase</code>. Should call a server endpoint <code>/api/advice/contribution</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Belgian 2026 CGT Simulator &amp; PDT Lookup</strong></td>
-<td style="text-align: left;"><code>#tab-advice</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L503-L609">L503-609</a>)</td>
+<td style="text-align: left;"><code>#tab-advice</code> (<code>src/paslood/delivery/web/templates/index.html:503-609</code>)</td>
 <td style="text-align: left;"><code>GET /api/tax/lookup-price</code>, <code>POST /api/tax/calculate</code></td>
-<td style="text-align: left;">Pre-filled with hardcoded dummy values (<code>ASML</code>, <code>912.00</code>, <code>1250.00</code>, <code>15</code> shares) instead of letting the user pick one of their actual portfolio holdings from a dropdown!</td>
+<td style="text-align: left;">Pre-filled with hardcoded dummy values (<code>EQUITY</code>, <code>100.00</code>, <code>150.00</code>, <code>10</code> shares) instead of letting the user pick one of their actual portfolio holdings from a dropdown!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Manual Assets &amp; Mortgages CRUD</strong></td>
-<td style="text-align: left;"><code>#tab-cashflow</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L622-L684">L622-684</a>)</td>
+<td style="text-align: left;"><code>#tab-cashflow</code> (<code>src/paslood/delivery/web/templates/index.html:622-684</code>)</td>
 <td style="text-align: left;"><code>/api/assets/manual</code>, <code>/api/liabilities/manual</code></td>
 <td style="text-align: left;">Labelled "Cashflow" in code (<code>#tab-cashflow</code>) and "Data &amp; Assets" in nav; mixes Net Worth balance-sheet items with bank statement CSV uploads.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>CSV Upload &amp; Transaction Categorization</strong></td>
-<td style="text-align: left;"><code>#tab-cashflow</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L687-L739">L687-739</a>)</td>
+<td style="text-align: left;"><code>#tab-cashflow</code> (<code>src/paslood/delivery/web/templates/index.html:687-739</code>)</td>
 <td style="text-align: left;"><code>/api/ingest/kbc</code>, <code>/api/ingest/generic</code>, <code>/api/transactions/rebucket</code></td>
-<td style="text-align: left;">Single dropzone guesses KBC vs Generic CSV by filename (<code>file.name.includes('kbc')</code>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L3663">L3663</a>)—fails if user renames the file!</td>
+<td style="text-align: left;">Single dropzone guesses KBC vs Generic CSV by filename (<code>file.name.includes('kbc')</code>, <code>L3663</code>)—fails if user renames the file!</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>AI Strategic Advisor</strong></td>
-<td style="text-align: left;"><code>#tab-ai</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L743-L805">L743-805</a>)</td>
+<td style="text-align: left;"><code>#tab-ai</code> (<code>src/paslood/delivery/web/templates/index.html:743-805</code>)</td>
 <td style="text-align: left;"><code>POST /api/ai/advise</code></td>
 <td style="text-align: left;">Single-turn prompt box; doesn't show what anonymized data payload is sent to the LLM (trust gap).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>PDT OAuth/MCP Sync, AI Keys, Tax Defaults, Language, Vault Backup</strong></td>
-<td style="text-align: left;"><code>#tab-settings</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L808-L1120">L808-1120</a>)</td>
+<td style="text-align: left;"><code>#tab-settings</code> (<code>src/paslood/delivery/web/templates/index.html:808-1120</code>)</td>
 <td style="text-align: left;"><code>/api/settings</code>, <code>/api/auth/pdt/*</code>, <code>/api/backup/*</code></td>
 <td style="text-align: left;">5 long stacked cards; PDT Sync button is buried in Settings instead of next to Portfolio Holdings.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>First-Time Setup Wizard</strong></td>
-<td style="text-align: left;"><code>#setup-wizard-modal</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L1440-L1630">L1440-1630</a>)</td>
+<td style="text-align: left;"><code>#setup-wizard-modal</code> (<code>src/paslood/delivery/web/templates/index.html:1440-1630</code>)</td>
 <td style="text-align: left;">Multiple</td>
 <td style="text-align: left;">Creates duplicate buckets due to ID mismatch (<code>b-core-etf</code> vs <code>core-etf</code>); sets <code>localStorage</code> flag so it re-triggers on every new device/phone browser.</td>
 </tr>
@@ -2266,8 +2266,8 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>UC-4: Belgian 2026 CGT Sale Simulation</strong></td>
-<td style="text-align: left;">Open <em>Guidance</em> → Scroll to bottom → Manually type ticker <code>ASML</code>, manually type share count, click Lookup PDT → Click Calculate (<strong>Manual data re-entry</strong>).</td>
-<td style="text-align: left;">In <strong>Plan &amp; Rebalance → Tax Optimizer</strong>, select any existing holding from a dropdown → auto-populates ticker, current value, and PDT Dec 31, 2025 benchmark price (<strong>2 clicks</strong>).</td>
+<td style="text-align: left;">Open <em>Guidance</em> → Scroll to bottom → Manually type ticker (e.g. <code>TICKER</code>), manually type share count, click Lookup PDT → Click Calculate (<strong>Manual data re-entry</strong>).</td>
+<td style="text-align: left;">In <strong>Plan &amp; Rebalance → Tax Optimizer</strong>, select any existing holding from a dropdown → auto-populates ticker, current value, and Dec 31, 2025 benchmark price (<strong>2 clicks</strong>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>UC-5: Sync Live Broker Holdings (PDT)</strong></td>
@@ -2296,74 +2296,73 @@
 <tr>
 <td style="text-align: left;"><strong>1. Visibility of System Status</strong></td>
 <td style="text-align: left;">3/5</td>
-<td style="text-align: left;">No global indicator of when bank CSV or PDT holdings were last synced on the Dashboard; default <code>bunq-savings</code> (€15,000) is silently pre-seeded (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L178-L188">config_repo.py:178-188</a>), making new users think demo money is real or wonder where €15k came from.</td>
+<td style="text-align: left;">No global indicator of when bank CSV or PDT holdings were last synced on the Dashboard; default <code>bunq-savings</code> (€15,000) was silently pre-seeded (<code>src/paslood/adapters/repositories/config_repo.py:178-188</code>), making new users think demo money was real.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>2. Match Between System &amp; Real World</strong></td>
 <td style="text-align: left;">3/5</td>
-<td style="text-align: left;">Nav item <code>🏦 Data &amp; Assets</code> has DOM ID <code>tab-cashflow</code>; mixes Net Worth Balance Sheet (Real Estate, Mortgages) with Cashflow (Transactions).</td>
+<td style="text-align: left;">Nav item <code>🏦 Data &amp; Assets</code> had DOM ID <code>tab-cashflow</code>; mixed Net Worth Balance Sheet (Real Estate, Mortgages) with Cashflow (Transactions).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>3. User Control &amp; Freedom</strong></td>
 <td style="text-align: left;">2.5/5</td>
-<td style="text-align: left;">Manual assets cannot be edited once created (only deleted, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L646">index.html:646</a>, unlike liabilities which have an edit button); no undo on "Reset CSV Cache".</td>
+<td style="text-align: left;">Manual assets could not be edited once created (<code>src/paslood/delivery/web/templates/index.html:646</code>, unlike liabilities which had an edit button); no undo on "Reset CSV Cache".</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>4. Consistency &amp; Standards</strong></td>
 <td style="text-align: left;">3/5</td>
-<td style="text-align: left;">Language switcher offers <code>EN</code>, <code>NL</code>, <code>FR</code>, <code>DE</code> in the UI (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L174-L177">index.html:174-177</a>), while backend <code>SUPPORTED_LANGUAGES</code> only verify <code>en</code>/<code>nl</code> in several flows; notification alerts use browser <code>alert()</code>/<code>confirm()</code> in 11 places (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L3212">L3212, L3227, L3257, L3278, L3369, L3400, L3428, L3460, L3618</a>).</td>
+<td style="text-align: left;">Language switcher offered <code>EN</code>, <code>NL</code>, <code>FR</code>, <code>DE</code> in the UI (<code>src/paslood/delivery/web/templates/index.html:174-177</code>), while backend <code>SUPPORTED_LANGUAGES</code> only verified <code>en</code>/<code>nl</code> in several flows; notification alerts used browser <code>alert()</code>/<code>confirm()</code> in multiple places (<code>L3212, L3227, L3257</code>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>5. Error Prevention</strong></td>
 <td style="text-align: left;">2/5</td>
-<td style="text-align: left;">Setup wizard creates duplicate buckets (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L3708">L3708</a>); CSV dropzone uses <code>file.name.toLowerCase().includes('kbc')</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L3663">L3663</a>) instead of content sniffing or an explicit selector.</td>
+<td style="text-align: left;">Setup wizard created duplicate buckets (<code>src/paslood/delivery/web/templates/index.html:3708</code>); CSV dropzone used <code>file.name.toLowerCase().includes('kbc')</code> (<code>src/paslood/delivery/web/templates/index.html:3663</code>) instead of content sniffing.</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>6. Recognition Rather Than Recall</strong></td>
 <td style="text-align: left;">2.5/5</td>
-<td style="text-align: left;">Tax simulator requires typing ticker symbols and share counts from memory instead of selecting from loaded holdings; Buy-Only calculator shows bucket names without showing which ETF tickers belong to each bucket.</td>
+<td style="text-align: left;">Tax simulator required typing ticker symbols and share counts from memory instead of selecting from loaded holdings; Buy-Only calculator showed bucket names without showing which ETF tickers belong to each bucket.</td>
 </tr>
 </tbody>
 </table>
 <h3 id="42-mobile-visual-hierarchy-accessibility-findings-refactoring-ui">4.2 Mobile, Visual Hierarchy &amp; Accessibility Findings (<code>refactoring-ui</code>)</h3>
 <ul>
-<li><strong>Bottom Navigation Bar Missing on Mobile</strong>: Relying on a top-right hamburger menu (<code>#btn-mobile-menu</code>, <a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L195">L195</a>) for primary navigation on phones forces two taps in the hardest-to-reach thumb zone for every tab switch. Add a fixed 5-item bottom tab bar (<code>sm:hidden fixed bottom-0 inset-x-0</code>) with <code>pb-20</code> on <code>&lt;main&gt;</code>.</li>
-<li><strong>Redundant Bucket Table + Meters</strong>: <code>#tab-buckets</code> renders a 7-column table (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L390">L390</a>) immediately followed by <code>#bucket-meters-container</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L412">L412</a>) showing the same data. Merge them into responsive <strong>Bucket Cards</strong> where each card has the progress bar, target vs. actual weight, drift badge, and an expandable list of assigned holdings.</li>
-<li><strong>Tailwind Play CDN in Production</strong>: <code>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/templates/index.html#L22">L22</a>) parses the 3,815-line DOM in the browser on every page load (~300ms+ main-thread block on mobile phones) and breaks offline PWA usage.</li>
+<li><strong>Bottom Navigation Bar Missing on Mobile</strong>: Relying on a top-right hamburger menu (<code>#btn-mobile-menu</code>, <code>src/paslood/delivery/web/templates/index.html:195</code>) for primary navigation on phones forced two taps in the hardest-to-reach thumb zone for every tab switch. Added a fixed 5-item bottom tab bar (<code>sm:hidden fixed bottom-0 inset-x-0</code>) with <code>pb-20</code> on <code>&lt;main&gt;</code>.</li>
+<li><strong>Redundant Bucket Table + Meters</strong>: <code>#tab-buckets</code> rendered a 7-column table (<code>src/paslood/delivery/web/templates/index.html:390</code>) immediately followed by <code>#bucket-meters-container</code> (<code>src/paslood/delivery/web/templates/index.html:412</code>) showing the same data. Merged them into responsive <strong>Bucket Cards</strong> where each card has the progress bar, target vs. actual weight, drift badge, and an expandable list of assigned holdings.</li>
+<li><strong>Tailwind Play CDN in Production</strong>: <code>&lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;</code> (<code>src/paslood/delivery/web/templates/index.html:22</code>) parsed the 3,815-line DOM in the browser on every page load (~300ms+ main-thread block on mobile phones) and broke offline PWA usage.</li>
 </ul>
 <hr />
 <h2 id="5-proposed-information-architecture-task-oriented-consolidation">5. Proposed Information Architecture (Task-Oriented Consolidation)</h2>
 <p>Consolidate the 6 scattered tabs into <strong>4 core task-oriented views + Settings/Account</strong>, accessible via a top segmented bar on desktop and a persistent bottom tab bar on mobile:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flowchart TD
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    AUTH["Sign In Screen\n(Google / GitHub / Meta / Local Passphrase)"] --&gt; ONBOARD{"First Login\nfor Tenant?"}
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    ONBOARD --&gt;|Yes| WIZ["3-Step Setup Wizard\n(1. Connect PDT or Upload CSV -&gt; 2. Confirm Bucket Targets -&gt; 3. Tax Defaults)"]
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    ONBOARD --&gt;|No| APP["Paslood App Shell\n(Header: Sync Status + Account Menu | Mobile: Bottom Tab Bar)"]
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    APP --&gt; T1["1. 📊 Overview\n- Net Worth KPIs (with Liquid-Only pill toggle)\n- Allocation Donut + 30Y Trajectory\n- FI Milestones Bar\n- Top 3 Action Alerts"]
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    APP --&gt; T2["2. 🪣 Portfolio &amp; Buckets\n- Unified Bucket Cards (Progress + Drift + Assigned Tickers)\n- All Assets (Broker + Real Estate + Cash) &amp; Liabilities (Mortgages)\n- 1-Tap PDT Sync &amp; + Add Asset / Loan"]
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    APP --&gt; T3["3. 🧭 Plan &amp; Optimize\n- Smart Buy-Only Rebalancing Calculator (calling Backend UseCase)\n- Debt Payoff vs. Invest Priority Queue\n- Belgian 2026 CGT Simulator (with Holding Selector Dropdown)\n- Contextual 'Ask AI Advisor' Drawer/Panel"]
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    APP --&gt; T4["4. 💳 Cashflow &amp; Import\n- Monthly Income / Expenses / Savings Rate Summary\n- Bank &amp; Portfolio CSV Import (auto-detect content, not filename)\n- Transactions Ledger &amp; Rule Categorizer"]
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    APP --&gt; T5["5. ⚙️ Account &amp; Settings\n- User Profile, Connected OAuth Providers &amp; Household Members\n- Server-Side AI Provider &amp; Encrypted Key Vault\n- Broker / MCP Connections\n- Encrypted Backup Export/Restore &amp; GDPR Delete Account"]
-</code></pre></div>
+<pre class="mermaid"><code>flowchart TD
+    AUTH["Sign In Screen\n(Google / GitHub / Meta / Local Passphrase)"] --&gt; ONBOARD{"First Login\nfor Tenant?"}
+    ONBOARD --&gt;|Yes| WIZ["3-Step Setup Wizard\n(1. Connect PDT or Upload CSV -&gt; 2. Confirm Bucket Targets -&gt; 3. Tax Defaults)"]
+    ONBOARD --&gt;|No| APP["Paslood App Shell\n(Header: Sync Status + Account Menu | Mobile: Bottom Tab Bar)"]
+
+    APP --&gt; T1["1. 📊 Overview\n- Net Worth KPIs (with Liquid-Only pill toggle)\n- Allocation Donut + 30Y Trajectory\n- FI Milestones Bar\n- Top 3 Action Alerts"]
+    APP --&gt; T2["2. 🪣 Portfolio &amp; Buckets\n- Unified Bucket Cards (Progress + Drift + Assigned Tickers)\n- All Assets (Broker + Real Estate + Cash) &amp; Liabilities (Mortgages)\n- 1-Tap PDT Sync &amp; + Add Asset / Loan"]
+    APP --&gt; T3["3. 🧭 Plan &amp; Optimize\n- Smart Buy-Only Rebalancing Calculator (calling Backend UseCase)\n- Debt Payoff vs. Invest Priority Queue\n- Belgian 2026 CGT Simulator (with Holding Selector Dropdown)\n- Contextual 'Ask AI Advisor' Drawer/Panel"]
+    APP --&gt; T4["4. 💳 Cashflow &amp; Import\n- Monthly Income / Expenses / Savings Rate Summary\n- Bank &amp; Portfolio CSV Import (auto-detect content, not filename)\n- Transactions Ledger &amp; Rule Categorizer"]
+    APP --&gt; T5["5. ⚙️ Account &amp; Settings\n- User Profile, Connected OAuth Providers &amp; Household Members\n- Server-Side AI Provider &amp; Encrypted Key Vault\n- Broker / MCP Connections\n- Encrypted Backup Export/Restore &amp; GDPR Delete Account"]</code></pre>
 <h3 id="mobile-wireframe-redesigned-overview-bottom-nav-unified-portfolio-card">Mobile Wireframe: Redesigned Overview + Bottom Nav &amp; Unified Portfolio Card</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>+---------------------------------------+   +---------------------------------------+
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>| 🧭 Paslood   [🔄 2m] [🌐NL] [👤] |   | 🧭 Portfolio &amp; Buckets     [+ Add ▾]  |
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>+---------------------------------------+   +---------------------------------------+
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>| NET WORTH           [x] Liquid Only   |   | [Buckets (4)] [Assets (8)] [Debts (1)]|
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>| € 142.500,00        +4.2% MoM         |   +---------------------------------------+
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>| Assets: € 312,5k  •  Debts: € 170,0k  |   | 🔵 Core World ETFs        UNDERWEIGHT |
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>| Free Cashflow: € 1.650 / mo (34%)     |   | € 62.400  •  43.8% / 50.0% (-€ 8.850) |
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>+---------------------------------------+   | [████████████░░░░░░] ±3% tol   [Edit] |
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>| ⚡ NEXT ACTION                        |   |  ├─ VWCE (Saxo)           € 48.200    |
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>| Buy € 1.500 Core World ETFs (-6.2%)   |   |  └─ IWDA (Bolero)         € 14.200    |
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>| [ Open Buy-Only Calculator → ]        |   +---------------------------------------+
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>+---------------------------------------+   | 🟢 High-Conviction Tech      BALANCED |
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>| 📈 30Y Trajectory  [5Y][10Y][20Y][30Y]|   | € 51.000  •  35.8% / 35.0% (+€ 1.140) |
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>| (Chart.js responsive canvas)          |   | [██████████████░░░░] ±5% tol   [Edit] |
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>+---------------------------------------+   +---------------------------------------+
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>| 📊      🪣       🧭       💳      ⚙️  |   | 📊      🪣       🧭       💳      ⚙️  |
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>| Home  Portfolio  Plan  Cashflow Prefs |   | Home  Portfolio  Plan  Cashflow Prefs |
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>+---------------------------------------+   +---------------------------------------+
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>+---------------------------------------+   +---------------------------------------+
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>| 🧭 Paslood   [🔄 2m] [🌐NL] [👤] |   | 🧭 Portfolio &amp; Buckets     [+ Add ▾]  |
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>+---------------------------------------+   +---------------------------------------+
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>| NET WORTH           [x] Liquid Only   |   | [Buckets (4)] [Assets (8)] [Debts (1)]|
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>| € 142.500,00        +4.2% MoM         |   +---------------------------------------+
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>| Assets: € 312,5k  •  Debts: € 170,0k  |   | 🔵 Core World ETFs        UNDERWEIGHT |
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>| Free Cashflow: € 1.650 / mo (34%)     |   | € 62.400  •  43.8% / 50.0% (-€ 8.850) |
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>+---------------------------------------+   | [████████████░░░░░░] ±3% tol   [Edit] |
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>| ⚡ NEXT ACTION                        |   |  ├─ VWCE (Saxo)           € 48.200    |
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>| Buy € 1.500 Core World ETFs (-6.2%)   |   |  └─ IWDA (Bolero)         € 14.200    |
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>| [ Open Buy-Only Calculator → ]        |   +---------------------------------------+
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>+---------------------------------------+   | 🟢 High-Conviction Tech      BALANCED |
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>| 📈 30Y Trajectory  [5Y][10Y][20Y][30Y]|   | € 51.000  •  35.8% / 35.0% (+€ 1.140) |
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>| (Chart.js responsive canvas)          |   | [██████████████░░░░] ±5% tol   [Edit] |
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>+---------------------------------------+   +---------------------------------------+
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>| 📊      🪣       🧭       💳      ⚙️  |   | 📊      🪣       🧭       💳      ⚙️  |
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>| Home  Portfolio  Plan  Cashflow Prefs |   | Home  Portfolio  Plan  Cashflow Prefs |
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>+---------------------------------------+   +---------------------------------------+
 </code></pre></div>
 <hr />
 <h2 id="6-prioritised-ux-recommendations">6. Prioritised UX Recommendations</h2>

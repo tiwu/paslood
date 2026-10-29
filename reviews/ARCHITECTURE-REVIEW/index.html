@@ -2222,11 +2222,11 @@
 <hr />
 <h2 id="1-executive-summary-top-5-findings">1. Executive Summary (Top 5 Findings)</h2>
 <ol>
-<li><strong>[CRITICAL] Zero Authentication &amp; Arbitrary Server-File Write (<code>app.py</code>)</strong>: All 35+ REST endpoints have no authentication. Worse, <code>POST /api/backup/cloud-sync</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L1296-L1350">app.py:1296-1350</a>) accepts an arbitrary <code>sync_dir</code> string from the JSON body and writes/reads <code>paslood_vault.wpbackup</code> anywhere on the host filesystem. In a remotely accessible or SaaS environment, this is a critical path-traversal / arbitrary file read-write vulnerability.</li>
-<li><strong>[CRITICAL] Process-Global Mutable State &amp; File-Based Single-Tenancy (<code>app.py</code>, <code>config_repo.py</code>)</strong>: <code>create_app()</code> holds mutable singleton dicts <code>pending_oauth</code> and <code>state["pdt_assets"]</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L302-L305">app.py:302-305</a>) in memory, and <code>ConfigRepository</code> does unguarded read-modify-write cycles on <code>~/.paslood/portfolio.yaml</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/config_repo.py#L166">config_repo.py:166</a>). Concurrent requests or multiple users will overwrite each other's portfolios and leak holdings across sessions.</li>
-<li><strong>[HIGH] Fat Delivery Controller &amp; Business Logic Leakage (<code>app.py</code>)</strong>: <code>app.py</code> is 1,357 lines with 35+ endpoints defined inline inside <code>create_app()</code>. Domain rules—balance sheet consolidation (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L307-L342">L307-342</a>), property exclusion filtering (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L355-L363">L355-363</a>), drift alert construction (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L380-L392">L380-392</a>), milestone math (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L474-L490">L474-490</a>), and loan amortization fallback (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L737-L766">L737-766</a>)—live inside HTTP route handlers instead of Use Cases.</li>
-<li><strong>[HIGH] Missing Repository Ports &amp; Split-Brain Persistence (<code>config_repo.py</code>, <code>local_db.py</code>)</strong>: <code>use_cases/</code> has zero <code>Protocol</code> interfaces for persistence. Manual liabilities are written to both <code>portfolio.yaml</code> and SQLite <code>discovered_liabilities</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L771-L788">app.py:771-788</a>), creating dual sources of truth. SQLite stores monetary amounts as IEEE 754 <code>REAL</code> floats (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/adapters/repositories/local_db.py#L49-L93">local_db.py:49-93</a>) instead of integer cents or exact numeric strings.</li>
-<li><strong>[MEDIUM] SSRF &amp; Secret Exposure Surfaces (<code>app.py</code>, <code>llm_client.py</code>)</strong>: <code>POST /api/settings/mcp/servers/test</code> (<a href="file:///Users/tiwu/Downloads/paslood/src/paslood/delivery/web/app.py#L1114-L1165">app.py:1114-1165</a>) blocks link-local IPs (<code>169.254.169.254</code>) but allows <code>127.0.0.1</code>, <code>localhost</code>, and RFC1918 private networks (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>), enabling SSRF against internal container services (including Ollama or Redis/Postgres).</li>
+<li><strong>[CRITICAL] Zero Authentication &amp; Arbitrary Server-File Write (<code>app.py</code>)</strong>: All 35+ REST endpoints had no authentication. Worse, <code>POST /api/backup/cloud-sync</code> (<code>src/paslood/delivery/web/app.py:1296-1350</code>) accepted an arbitrary <code>sync_dir</code> string from the JSON body and wrote/read <code>paslood_vault.wpbackup</code> anywhere on the host filesystem. In a remotely accessible or SaaS environment, this was a critical path-traversal / arbitrary file read-write vulnerability.</li>
+<li><strong>[CRITICAL] Process-Global Mutable State &amp; File-Based Single-Tenancy (<code>app.py</code>, <code>config_repo.py</code>)</strong>: <code>create_app()</code> held mutable singleton dicts <code>pending_oauth</code> and <code>state["pdt_assets"]</code> (<code>src/paslood/delivery/web/app.py:302-305</code>) in memory, and <code>ConfigRepository</code> performed unguarded read-modify-write cycles on <code>~/.paslood/portfolio.yaml</code> (<code>src/paslood/adapters/repositories/config_repo.py:166</code>). Concurrent requests or multiple users could overwrite each other's portfolios and leak holdings across sessions.</li>
+<li><strong>[HIGH] Fat Delivery Controller &amp; Business Logic Leakage (<code>app.py</code>)</strong>: <code>app.py</code> was 1,357 lines with 35+ endpoints defined inline inside <code>create_app()</code>. Domain rules—balance sheet consolidation (<code>src/paslood/delivery/web/app.py:307-342</code>), property exclusion filtering (<code>src/paslood/delivery/web/app.py:355-363</code>), drift alert construction (<code>src/paslood/delivery/web/app.py:380-392</code>), milestone math (<code>src/paslood/delivery/web/app.py:474-490</code>), and loan amortization fallback (<code>src/paslood/delivery/web/app.py:737-766</code>)—lived inside HTTP route handlers instead of Use Cases.</li>
+<li><strong>[HIGH] Missing Repository Ports &amp; Split-Brain Persistence (<code>config_repo.py</code>, <code>local_db.py</code>)</strong>: <code>use_cases/</code> had zero <code>Protocol</code> interfaces for persistence. Manual liabilities were written to both <code>portfolio.yaml</code> and SQLite <code>discovered_liabilities</code> (<code>src/paslood/delivery/web/app.py:771-788</code>), creating dual sources of truth. SQLite stored monetary amounts as IEEE 754 <code>REAL</code> floats (<code>src/paslood/adapters/repositories/local_db.py:49-93</code>) instead of integer cents or exact numeric strings.</li>
+<li><strong>[MEDIUM] SSRF &amp; Secret Exposure Surfaces (<code>app.py</code>, <code>llm_client.py</code>)</strong>: <code>POST /api/settings/mcp/servers/test</code> (<code>src/paslood/delivery/web/app.py:1114-1165</code>) blocked link-local IPs (<code>169.254.169.254</code>) but allowed <code>127.0.0.1</code>, <code>localhost</code>, and RFC1918 private networks (<code>10.0.0.0/8</code>, <code>172.16.0.0/12</code>, <code>192.168.0.0/16</code>), enabling SSRF against internal container services (including Ollama or Redis/Postgres).</li>
 </ol>
 <hr />
 <h2 id="2-detailed-findings-table">2. Detailed Findings Table</h2>
@@ -2354,42 +2354,41 @@
 <li><strong>Delivery (<code>src/paslood/delivery/</code>)</strong>: Monolithic <code>app.py</code> (1,357 lines) + <code>index.html</code> (3,815 lines).</li>
 </ul>
 <h3 id="32-six-bounded-contexts">3.2 Six Bounded Contexts</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flowchart TB
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    subgraph Delivery["Delivery Layer (FastAPI Routers + CLI)"]
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        R_AUTH["routers/auth.py"]
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        R_PORT["routers/portfolio.py"]
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        R_PLAN["routers/planning.py"]
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        R_ING["routers/ingestion.py"]
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        R_AI["routers/ai.py"]
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        R_SET["routers/settings.py"]
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    end
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    subgraph UseCases["Application Layer (Use Cases + Ports)"]
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        UC_ID["Identity &amp; Tenancy\n(AuthenticateOAuth, ResolveTenant)"]
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        UC_PORT["Portfolio &amp; Allocation\n(BuildOverview, CalculateAllocation, AssignBucket)"]
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        UC_PLAN["Strategic Planning\n(AdviseContribution, AdviseDebt, OptimizeTax, ProjectNetWorth)"]
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        UC_ING["Cashflow &amp; Ingestion\n(IngestStatement, CategorizeTransactions)"]
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        UC_AI["AI Advisory\n(AdviseAi, ListProviderModels)"]
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>        PORTS["Repository Protocols (Ports)\nTenantUoW, PortfolioRepo, TransactionRepo, SecretVault"]
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    end
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    subgraph Domain["Enterprise Domain Layer (Pure Python)"]
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        DOM["Money, Asset, Liability, Bucket, BalanceSheet, Transaction, AdviceItem, Tenant, User"]
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    end
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    subgraph Adapters["Infrastructure Adapters"]
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        DB_ADAPT["SQLAlchemy / SQLite / Postgres Repositories\n(Tenant-Scoped + RLS)"]
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        KMS_ADAPT["Envelope Secret Vault\n(AES-256-GCM per Tenant)"]
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        OAUTH_ADAPT["Authlib OIDC/OAuth2 Gateway\n(Google, GitHub, Meta)"]
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        ING_ADAPT["KbcCsv, GenericCsv, PdtMcpGateway"]
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>        LLM_ADAPT["UniversalAIAdvisorClient\n(Server-Side Only)"]
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    end
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    Delivery --&gt; UseCases
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    UseCases --&gt; Domain
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    Adapters -.implements.-&gt; PORTS
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    Adapters --&gt; Domain
-</code></pre></div>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Delivery["Delivery Layer (FastAPI Routers + CLI)"]
+        R_AUTH["routers/auth.py"]
+        R_PORT["routers/portfolio.py"]
+        R_PLAN["routers/planning.py"]
+        R_ING["routers/ingestion.py"]
+        R_AI["routers/ai.py"]
+        R_SET["routers/settings.py"]
+    end
+
+    subgraph UseCases["Application Layer (Use Cases + Ports)"]
+        UC_ID["Identity &amp; Tenancy\n(AuthenticateOAuth, ResolveTenant)"]
+        UC_PORT["Portfolio &amp; Allocation\n(BuildOverview, CalculateAllocation, AssignBucket)"]
+        UC_PLAN["Strategic Planning\n(AdviseContribution, AdviseDebt, OptimizeTax, ProjectNetWorth)"]
+        UC_ING["Cashflow &amp; Ingestion\n(IngestStatement, CategorizeTransactions)"]
+        UC_AI["AI Advisory\n(AdviseAi, ListProviderModels)"]
+        PORTS["Repository Protocols (Ports)\nTenantUoW, PortfolioRepo, TransactionRepo, SecretVault"]
+    end
+
+    subgraph Domain["Enterprise Domain Layer (Pure Python)"]
+        DOM["Money, Asset, Liability, Bucket, BalanceSheet, Transaction, AdviceItem, Tenant, User"]
+    end
+
+    subgraph Adapters["Infrastructure Adapters"]
+        DB_ADAPT["SQLAlchemy / SQLite / Postgres Repositories\n(Tenant-Scoped + RLS)"]
+        KMS_ADAPT["Envelope Secret Vault\n(AES-256-GCM per Tenant)"]
+        OAUTH_ADAPT["Authlib OIDC/OAuth2 Gateway\n(Google, GitHub, Meta)"]
+        ING_ADAPT["KbcCsv, GenericCsv, PdtMcpGateway"]
+        LLM_ADAPT["UniversalAIAdvisorClient\n(Server-Side Only)"]
+    end
+
+    Delivery --&gt; UseCases
+    UseCases --&gt; Domain
+    Adapters -.implements.-&gt; PORTS
+    Adapters --&gt; Domain</code></pre>
 <hr />
 <h2 id="4-multi-tenancy-data-architecture-ddia-evaluation">4. Multi-Tenancy &amp; Data Architecture (DDIA Evaluation)</h2>
 <p>To support <strong>both</strong> a lightweight single-container self-hosted install (Raspberry Pi / NAS / VPS) <strong>and</strong> a multi-tenant cloud SaaS from a single codebase:</p>
@@ -2502,8 +2501,8 @@
 <ul>
 <li><code>.github/workflows/issue-worker.yml</code> <strong>actually invokes</strong> <code>scripts/poll_issues.py</code> on line 68 (<code>uv run python scripts/poll_issues.py "${ARGS[@]}"</code>). They are not two independent implementations—<code>poll_issues.py</code> is the CLI script used by the GitHub Action!</li>
 <li><strong>Why it is "half-working"</strong>:</li>
-<li><strong>Stage 1 (<code>process_planning_stage</code>, <a href="file:///Users/tiwu/Downloads/paslood/scripts/poll_issues.py#L143-L203">poll_issues.py:143-203</a>)</strong>: Writes a static boilerplate template (<code>draft_plan_content</code>) that merely copies <code>issue.body</code> into <code>docs/plans/PLAN-&lt;id&gt;-&lt;slug&gt;.md</code> without any actual codebase analysis or AI planning. Worse, when triggered in GitHub Actions, it commits and pushes to <code>feature/issue-&lt;id&gt;-&lt;slug&gt;</code>, which leaves the local workspace on a dirty branch when run locally.</li>
-<li><strong>Stage 2 (<code>process_approved_stage</code>, <a href="file:///Users/tiwu/Downloads/paslood/scripts/poll_issues.py#L312-L330">poll_issues.py:312-330</a>)</strong>: Only changes the GitHub label from <code>agent:approved</code> to <code>agent:in-progress</code> and posts a comment saying <em>"Implementation is beginning..."</em> — <strong>it does not actually invoke an agent, create the branch in CI, or run any code!</strong></li>
+<li><strong>Stage 1 (<code>process_planning_stage</code>, <code>scripts/poll_issues.py:143-203</code>)</strong>: Writes a static boilerplate template (<code>draft_plan_content</code>) that merely copies <code>issue.body</code> into <code>docs/plans/PLAN-&lt;id&gt;-&lt;slug&gt;.md</code> without any actual codebase analysis or AI planning. Worse, when triggered in GitHub Actions, it commits and pushes to <code>feature/issue-&lt;id&gt;-&lt;slug&gt;</code>, which leaves the local workspace on a dirty branch when run locally.</li>
+<li><strong>Stage 2 (<code>process_approved_stage</code>, <code>scripts/poll_issues.py:312-330</code>)</strong>: Only changes the GitHub label from <code>agent:approved</code> to <code>agent:in-progress</code> and posts a comment saying <em>"Implementation is beginning..."</em> — <strong>it does not actually invoke an agent, create the branch in CI, or run any code!</strong></li>
 </ul>
 <h3 id="recommendation">Recommendation</h3>
 <ul>

@@ -950,41 +950,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-hurdle-rate-framework" class="md-nav__link">
+  <a href="#hurdle-rate-decision-framework" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Hurdle Rate Framework
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="The Hurdle Rate Framework">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-high-interest-debt-apr-50-accelerate-payoff-debt-avalanche" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. High-Interest Debt (APR &gt; 5.0%) -&gt; Accelerate Payoff (Debt Avalanche)
+        Hurdle Rate Decision Framework
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#2-low-interest-debt-apr-30-maintain-minimums-invest" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#debt-decision-matrix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Low-Interest Debt (APR &lt; 3.0%) -&gt; Maintain Minimums &amp; Invest
+        Debt Decision Matrix
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1852,41 +1835,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-hurdle-rate-framework" class="md-nav__link">
+  <a href="#hurdle-rate-decision-framework" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Hurdle Rate Framework
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="The Hurdle Rate Framework">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-high-interest-debt-apr-50-accelerate-payoff-debt-avalanche" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. High-Interest Debt (APR &gt; 5.0%) -&gt; Accelerate Payoff (Debt Avalanche)
+        Hurdle Rate Decision Framework
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#2-low-interest-debt-apr-30-maintain-minimums-invest" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#debt-decision-matrix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Low-Interest Debt (APR &lt; 3.0%) -&gt; Maintain Minimums &amp; Invest
+        Debt Decision Matrix
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1911,24 +1877,52 @@
 
 
 <h1 id="debt-payoff-strategy-avalanche-vs-investing">Debt Payoff Strategy: Avalanche vs. Investing</h1>
-<p>A fundamental dilemma for wealth builders with surplus cashflow is:<br />
-<strong>"Should I pay down my debts faster, or invest the money in my portfolio?"</strong></p>
-<p>Paslood uses a mathematical framework to resolve this trade-off.</p>
+<p>Wealth builders with surplus cashflow face a structural decision:<br />
+<strong>Should monthly savings accelerate loan payoff or be invested in the equity portfolio?</strong></p>
+<p>Paslood evaluates this trade-off using a mathematical hurdle rate framework.</p>
 <hr />
-<h2 id="the-hurdle-rate-framework">The Hurdle Rate Framework</h2>
-<p>Paslood compares each liability's <strong>Annual Percentage Rate (APR)</strong> against your expected long-term portfolio compound annual growth rate (<strong>CAGR</strong>, default: 7.0%):</p>
-<h3 id="1-high-interest-debt-apr-50-accelerate-payoff-debt-avalanche">1. High-Interest Debt (APR &gt; 5.0%) -&gt; Accelerate Payoff (Debt Avalanche)</h3>
-<ul>
-<li>Examples: Consumer lines of credit (<code>Flex Budget</code>), car loans, credit cards.</li>
-<li><strong>Why</strong>: Paying off a 9.5% loan provides a <strong>guaranteed, risk-free return of 9.5%</strong>. No equity market can guarantee that return.</li>
-<li><strong>Priority</strong>: Direct all surplus monthly cashflow toward extinguishing this debt first.</li>
-</ul>
-<h3 id="2-low-interest-debt-apr-30-maintain-minimums-invest">2. Low-Interest Debt (APR &lt; 3.0%) -&gt; Maintain Minimums &amp; Invest</h3>
-<ul>
-<li>Examples: Fixed-rate mortgages (<code>Woningkrediet</code> at 1.5% - 2.5%).</li>
-<li><strong>Why</strong>: When borrowing costs are 1.85% and expected equity compounding is 7.0%, the expected net wealth accumulation is significantly higher by investing the surplus in productive assets rather than prepaying the mortgage.</li>
-<li><strong>Priority</strong>: Maintain required contractual monthly payments and invest the remaining surplus into underweight buckets.</li>
-</ul>
+<h2 id="hurdle-rate-decision-framework">Hurdle Rate Decision Framework</h2>
+<pre class="mermaid"><code>flowchart TD
+    DEBT[Liability APR Evaluation] --&gt; CHECK{Compare APR with Portfolio Expected CAGR&lt;br/&gt;Baseline CAGR = 7.0%}
+    CHECK --&gt;|APR &gt; 5.0%&lt;br/&gt;e.g., Consumer / Car Loan| HIGH["HIGH-INTEREST TIER&lt;br/&gt;Accelerate Payoff (Debt Avalanche)"]
+    CHECK --&gt;|3.0% &amp;le; APR &amp;le; 5.0%| MID["MODERATE TIER&lt;br/&gt;Balanced Approach / Payoff Discretion"]
+    CHECK --&gt;|APR &lt; 3.0%&lt;br/&gt;e.g., Fixed Mortgage at 1.85%| LOW["LOW-INTEREST TIER&lt;br/&gt;Maintain Minimum Contractual Payments"]
+
+    HIGH --&gt; ACT_HIGH["Action: Direct surplus cashflow to debt payoff.&lt;br/&gt;Yields a guaranteed, risk-free return equal to the APR."]
+    MID --&gt; ACT_MID["Action: Split surplus between principal paydown and equity accumulation."]
+    LOW --&gt; ACT_LOW["Action: Invest surplus into underweight equity buckets.&lt;br/&gt;Expected equity compounding exceeds borrowing cost."]</code></pre>
+<hr />
+<h2 id="debt-decision-matrix">Debt Decision Matrix</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Interest Tier</th>
+<th style="text-align: left;">APR Range</th>
+<th style="text-align: left;">Priority</th>
+<th style="text-align: left;">Rationale &amp; Recommended Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>High Interest</strong></td>
+<td style="text-align: left;"><strong>$&gt; 5.0\%$</strong></td>
+<td style="text-align: left;"><strong>Priority 1 (Urgent)</strong></td>
+<td style="text-align: left;">Debt payoff provides a guaranteed, tax-free return equal to the loan APR. Direct 100% of investable cashflow to extinguish this balance first.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Moderate Interest</strong></td>
+<td style="text-align: left;"><strong>$3.0\% - 5.0\%$</strong></td>
+<td style="text-align: left;"><strong>Priority 2 (Discretionary)</strong></td>
+<td style="text-align: left;">Near the hurdle boundary. Split surplus 50/50 between principal reduction and underweight bucket accumulation.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Low Interest</strong></td>
+<td style="text-align: left;"><strong>$&lt; 3.0\%$</strong></td>
+<td style="text-align: left;"><strong>Priority 3 (Maintain Minimums)</strong></td>
+<td style="text-align: left;">Borrowing cost is substantially below long-term expected equity returns (7.0%). Pay contractual monthly minimums and invest remaining surplus.</td>
+</tr>
+</tbody>
+</table>
 
 
 

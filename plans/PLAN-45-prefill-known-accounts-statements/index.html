@@ -1921,7 +1921,7 @@ Furthermore, when users upload CSV statements (e.g. Bunq, KBC, Credit Cards) con
 <p>In Settings &gt; Known Accounts:</p>
 <ul>
 <li>When unmapped discovered accounts exist, display quick-add suggestion chips or a dropdown prompt:
-   <em>"Discovered in statements: NL31BUNQ2093809982 (Bunq) [+ Add to Known Accounts]"</em>.</li>
+    <em>"Discovered in statements: NL00BUNQ0000000000 (Bunq) [+ Add to Known Accounts]"</em>.</li>
 <li>In the "Register Known Account" form, provide an HTML <code>&lt;datalist&gt;</code> or quick-select for the Account Number input populated with all discovered accounts, auto-filling suggested Institution and Label when selected.</li>
 </ul>
 </li>
@@ -1934,7 +1934,7 @@ Furthermore, when users upload CSV statements (e.g. Bunq, KBC, Credit Cards) con
 <p>In the frontend upload handler (<code>uploadFiles</code> in <code>assets_cashflow.js</code>):</p>
 <ul>
 <li>If <code>unregistered_accounts</code> are detected, display an interactive notification banner or prompt with a one-click button:
-   <em>"New account detected: NL31BUNQ2093809982 (bunq). [Register Account]"</em>.</li>
+   <em>"New account detected: NL00BUNQ0000000000 (bunq). [Register Account]"</em>.</li>
 <li>Clicking the prompt opens the Known Accounts registration dialog (or a modal) with the account number, institution, and default label prefilled.</li>
 </ul>
 </li>

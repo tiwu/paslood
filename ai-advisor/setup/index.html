@@ -1093,10 +1093,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#bring-your-own-api-key-byo-key" class="md-nav__link">
+  <a href="#privacy-preserving-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bring Your Own API Key (BYO Key)
+        Privacy-Preserving Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Providers
       
     </span>
   </a>
@@ -1108,17 +1119,6 @@
     <span class="md-ellipsis">
       
         Configuration
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#privacy-protection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Privacy Protection
       
     </span>
   </a>
@@ -1846,10 +1846,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#bring-your-own-api-key-byo-key" class="md-nav__link">
+  <a href="#privacy-preserving-architecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bring Your Own API Key (BYO Key)
+        Privacy-Preserving Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Providers
       
     </span>
   </a>
@@ -1861,17 +1872,6 @@
     <span class="md-ellipsis">
       
         Configuration
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#privacy-protection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Privacy Protection
       
     </span>
   </a>
@@ -1899,29 +1899,78 @@
 
 
 <h1 id="ai-financial-advisor-setup">AI Financial Advisor Setup</h1>
-<p>Paslood includes an optional <strong>AI Financial Advisor</strong> layer designed to provide qualitative, human-readable reviews of your macro financial plan.</p>
+<p>Paslood features a server-side AI advisory layer that provides qualitative assessments of macro financial plans.</p>
 <hr />
-<h2 id="bring-your-own-api-key-byo-key">Bring Your Own API Key (BYO Key)</h2>
-<p>To guarantee complete privacy and zero markups, you provide your own API key from your preferred provider:</p>
-<ol>
-<li><strong>Google Gemini (Recommended)</strong>: Free or pay-as-you-go via <a href="https://aistudio.google.com/">Google AI Studio</a>.</li>
-<li><strong>OpenAI</strong>: GPT-4o / GPT-4o-mini via <a href="https://platform.openai.com/">platform.openai.com</a>.</li>
-<li><strong>Anthropic</strong>: Claude 3.5 Haiku / Sonnet via <a href="https://console.anthropic.com/">console.anthropic.com</a>.</li>
-<li><strong>Local Ollama</strong>: 100% offline local inference (no API key required).</li>
-</ol>
+<h2 id="privacy-preserving-architecture">Privacy-Preserving Architecture</h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph LocalHost["Local Paslood Instance (Private)"]
+        DATA["Raw Balance Sheet &amp; Ledger&lt;br/&gt;(IBANs, Accounts, Real Balances)"]
+        ANON["Anonymization &amp; Aggregation Layer&lt;br/&gt;Strips Account Numbers, Names, Identifiers"]
+        METRICS["Aggregated Financial Metrics&lt;br/&gt;(Asset Totals, Debt APRs, Drift %, Surplus)"]
+        VAULT["SecretVault (AES-256-GCM)&lt;br/&gt;Decrypts API Key In-Memory Only"]
+    end
+
+    subgraph Providers["Supported LLM Providers"]
+        GEMINI["Google Gemini API"]
+        OPENAI["OpenAI API"]
+        CLAUDE["Anthropic Claude API"]
+        OLLAMA["Local Ollama (100% Offline)"]
+    end
+
+    DATA --&gt; ANON
+    ANON --&gt; METRICS
+    METRICS --&gt; AI_DISPATCH["Secure Server-Side Dispatch"]
+    VAULT --&gt; AI_DISPATCH
+    AI_DISPATCH --&gt;|TLS Request with Anonymized Metrics| Providers
+    Providers --&gt;|Strategic Narrative Advice| UI["Web Dashboard &amp; CLI"]</code></pre>
+<hr />
+<h2 id="supported-providers">Supported Providers</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Provider</th>
+<th style="text-align: left;">Supported Models</th>
+<th style="text-align: left;">Key Management</th>
+<th style="text-align: left;">Privacy Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Google Gemini</strong> <em>(Recommended)</em></td>
+<td style="text-align: left;"><code>gemini-2.0-flash</code>, <code>gemini-1.5-pro</code></td>
+<td style="text-align: left;">Encrypted in <code>SecretVault</code></td>
+<td style="text-align: left;">Anonymized metrics payload only</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Anthropic Claude</strong></td>
+<td style="text-align: left;"><code>claude-3-5-sonnet</code>, <code>claude-3-5-haiku</code></td>
+<td style="text-align: left;">Encrypted in <code>SecretVault</code></td>
+<td style="text-align: left;">Anonymized metrics payload only</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>OpenAI</strong></td>
+<td style="text-align: left;"><code>gpt-4o</code>, <code>gpt-4o-mini</code></td>
+<td style="text-align: left;">Encrypted in <code>SecretVault</code></td>
+<td style="text-align: left;">Anonymized metrics payload only</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Local Ollama</strong></td>
+<td style="text-align: left;">Any local model (e.g. <code>llama3</code>, <code>mistral</code>)</td>
+<td style="text-align: left;">No API key required</td>
+<td style="text-align: left;"><strong>100% offline local inference</strong></td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="configuration">Configuration</h2>
-<p>You can enter your API key directly in the Web Dashboard under the <strong>🤖 AI Advisor</strong> tab, or export it in your environment:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Example environment variables</span>
+<p>API keys can be supplied via environment variables or entered directly into the Web Dashboard under <strong>Settings $\rightarrow$ AI Advisor</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Optional environment variables</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">GEMINI_API_KEY</span><span class="o">=</span><span class="s2">"your-gemini-key"</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># or</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ANTHROPIC_API_KEY</span><span class="o">=</span><span class="s2">"your-anthropic-key"</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OPENAI_API_KEY</span><span class="o">=</span><span class="s2">"your-openai-key"</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">OLLAMA_HOST</span><span class="o">=</span><span class="s2">"http://localhost:11434"</span>
 </code></pre></div>
-<hr />
-<h2 id="privacy-protection">Privacy Protection</h2>
-<p>When an AI review is requested, Paslood:
-- <strong>Never</strong> transmits your account numbers, bank identifiers, counterparty names, or personal identities.
-- Sends <strong>only</strong> high-level aggregated metrics: total assets, total debt, debt APRs, bucket percentage deviations, and monthly cashflow surplus.</p>
+<p>All credentials entered through the UI are encrypted at rest with AES-256-GCM using per-tenant keys derived via HKDF-SHA256.</p>
 
 
 

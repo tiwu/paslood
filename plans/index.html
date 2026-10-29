@@ -1180,10 +1180,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-plan-lifecycle-two-stage-queue" class="md-nav__link">
+  <a href="#two-stage-issue-plan-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Plan Lifecycle &amp; Two-Stage Queue
+        Two-Stage Issue &amp; Plan Lifecycle
       
     </span>
   </a>
@@ -1191,21 +1191,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-naming-convention" class="md-nav__link">
+  <a href="#naming-standards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Naming Convention
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-standard-plan-template" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Standard Plan Template
+        Naming Standards
       
     </span>
   </a>
@@ -1846,10 +1835,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-plan-lifecycle-two-stage-queue" class="md-nav__link">
+  <a href="#two-stage-issue-plan-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Plan Lifecycle &amp; Two-Stage Queue
+        Two-Stage Issue &amp; Plan Lifecycle
       
     </span>
   </a>
@@ -1857,21 +1846,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-naming-convention" class="md-nav__link">
+  <a href="#naming-standards" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Naming Convention
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-standard-plan-template" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Standard Plan Template
+        Naming Standards
       
     </span>
   </a>
@@ -1899,52 +1877,27 @@
 
 
 <h1 id="architecture-feature-plans">Architecture &amp; Feature Plans</h1>
-<p>This directory serves as the persistent, version-controlled repository for all architectural proposals, feature designs, and bug fix plans in <strong>Paslood</strong>.</p>
+<p>This directory contains version-controlled architectural specifications and implementation plans for <strong>Paslood</strong>.</p>
 <hr />
-<h2 id="1-plan-lifecycle-two-stage-queue">1. Plan Lifecycle &amp; Two-Stage Queue</h2>
-<p>Feature plans bridge human requirements and autonomous agent implementation.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[User Opens Issue]
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>      │ (with 'agent:plan')
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>      ▼
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>[Stage 1: Planning]
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  - Autonomous Agent analyzes requirements &amp; codebase
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  - Agent writes: docs/plans/PLAN-&lt;id&gt;-&lt;slug&gt;.md
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  - Agent posts plan comment on issue
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  - Label transitions to: 'agent:plan-review'
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>      │
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      ▼
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>[Human Review Checkpoint]
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  - User reviews plan, requests adjustments or confirms
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  - User transitions label to: 'agent:approved'
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>      │
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>      ▼
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>[Stage 2: Implementation]
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  - Agent pulls latest main and creates branch: feature/issue-&lt;id&gt;-&lt;slug&gt;
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  - Agent implements with TDD (tests first, then code)
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  - Agent verifies: Ruff (0 errors) + MkDocs + Pytest (&gt;= 90% coverage)
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  - Agent commits, pushes branch, and opens PR with 'Closes #&lt;id&gt;'
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>  - Label transitions to: 'agent:review-ready'
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>      │
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>      ▼
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>[Stage 3: Review &amp; Merge]
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>  - User reviews PR and tests
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>  - User merges to main; issue automatically closes
-</code></pre></div>
+<h2 id="two-stage-issue-plan-lifecycle">Two-Stage Issue &amp; Plan Lifecycle</h2>
+<pre class="mermaid"><code>flowchart TD
+    A["User Opens Issue&lt;br/&gt;(label: 'agent:plan')"] --&gt; B["Stage 1: Planning&lt;br/&gt;Agent writes docs/plans/PLAN-id-slug.md"]
+    B --&gt; C["Plan Review Request&lt;br/&gt;(label: 'agent:plan-review')"]
+    C --&gt; D{"Human Review Checkpoint"}
+    D --&gt;|"Changes Requested"| B
+    D --&gt;|"Approved"| E["Stage 2: Implementation&lt;br/&gt;(label: 'agent:approved' &amp;rarr; 'agent:in-progress')"]
+    E --&gt; F["TDD Workflow&lt;br/&gt;Red &amp;rarr; Green &amp;rarr; Refactor (&amp;ge;90% coverage)"]
+    F --&gt; G["Open Pull Request&lt;br/&gt;(label: 'agent:review-ready')"]
+    G --&gt; H["Human Review &amp; Merge&lt;br/&gt;(PR merged &amp;rarr; Issue closed)"]</code></pre>
 <hr />
-<h2 id="2-naming-convention">2. Naming Convention</h2>
-<p>Every plan file MUST follow this naming structure:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docs/plans/PLAN-&lt;issue_number&gt;-&lt;kebab_title&gt;.md
-</code></pre></div>
+<h2 id="naming-standards">Naming Standards</h2>
+<p>Plan files follow the naming convention:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docs/plans/PLAN-&lt;issue_number&gt;-&lt;slug&gt;.md
+</code></pre></div></p>
 <p>Examples:
-- <code>docs/plans/PLAN-002-balance-sheet-csv-export.md</code>
-- <code>docs/plans/PLAN-003-belgian-tax-fifo-lookup.md</code></p>
-<hr />
-<h2 id="3-standard-plan-template">3. Standard Plan Template</h2>
-<p>When drafting a new plan, use <a href="PLAN-TEMPLATE/"><code>PLAN-TEMPLATE.md</code></a> as the baseline. Each plan must cover:
-1. <strong>Overview &amp; Acceptance Criteria</strong>
-2. <strong>Hexagonal Architecture Layer Impact</strong> (<code>domain</code>, <code>use_cases</code>, <code>adapters</code>, <code>delivery</code>)
-3. <strong>Test-Driven Development (TDD) Strategy</strong> (Red-Green-Refactor)
-4. <strong>Quality &amp; Verification Checks</strong> (90%+ coverage, linting, formatting)</p>
+- <code>docs/plans/PLAN-3-option-to-exclude-bucket-from-weight-cal.md</code>
+- <code>docs/plans/PLAN-30-security-precision-vault.md</code></p>
+<p>Every non-trivial architectural change must adhere to <a href="PLAN-TEMPLATE/"><code>PLAN-TEMPLATE.md</code></a> and specify Clean Architecture layer boundaries, TDD verification strategies, and statutory citations where applicable.</p>
 
 
 

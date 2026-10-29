@@ -2056,12 +2056,12 @@
 <li>Normalize line endings and skip <code>sep=;</code> + preamble lines in KBC <code>Positie-overzicht</code> exports until the <code>Productklasse;Waardeinfo/ISIN</code> header row.</li>
 <li>Parse Belgian decimal formatting (<code>12.038,76</code> -&gt; <code>Decimal("12038.76")</code>).</li>
 <li>Map <code>beleggingsfonds</code> with <code>PENSION</code> in the name to <code>AssetClass.PENSION</code> (otherwise <code>AssetClass.EQUITY</code>), and <code>spaarrekening</code> to <code>AssetClass.CASH</code>.</li>
-<li>Extract the IBAN from <code>spaarrekening</code> rows (<code>BE63 7450 2071 3108</code>) and assign <code>id="kbc-checking-BE63745020713108"</code> so uploading both the KBC savings CSV and the position overview updates the same cash asset without double-counting.</li>
+<li>Extract the IBAN from <code>spaarrekening</code> rows (<code>BE68 0000 0000 1234</code>) and assign <code>id="kbc-checking-BE68000000001234"</code> so uploading both the KBC savings CSV and the position overview updates the same cash asset without double-counting.</li>
 <li>Validate headers in <code>_parse_generic</code> so unrecognized transaction CSVs raise a clear <code>ValueError</code> instead of creating <code>€ 0.00</code> dummy assets.</li>
 <li><strong><code>src/paslood/adapters/ingestion/bunq_csv.py</code></strong> (New):</li>
 <li>Implement <code>BunqCsvGateway</code> parsing <code>"Date","Interest Date","Amount","Account","Counterparty","Name","Description"</code>.</li>
 <li>Parse European decimal amounts (<code>1.000,00</code>, <code>-1,80</code>) into <code>Money(Decimal, "EUR")</code>.</li>
-<li>Generate deterministic transaction IDs (<code>bunq-tx-&lt;hash&gt;</code>) with a per-row occurrence index so identical same-day purchases (e.g., two <code>"Burgers Zoo"</code> <code>-3,50</code> rows on <code>2023-07-20</code>) are both preserved while re-uploads remain idempotent.</li>
+<li>Generate deterministic transaction IDs (<code>bunq-tx-&lt;hash&gt;</code>) with a per-row occurrence index so identical same-day purchases (e.g., two identical €3.50 merchant charge rows) are both preserved while re-uploads remain idempotent.</li>
 <li><strong><code>src/paslood/adapters/repositories/local_db.py</code></strong>:</li>
 <li>Clean up any legacy bogus <code>gen-*</code> assets with <code>0</code> balance during initialization/save.</li>
 </ul>
@@ -2076,7 +2076,7 @@
 <h2 id="3-tdd-verification-plan">3. TDD Verification Plan</h2>
 <ol>
 <li><strong>Unit &amp; Integration Tests (<code>tests/integration/test_ingestion_csv_formats.py</code>)</strong>:</li>
-<li>Test KBC checking (<code>export_BE90735017192832_*.csv</code>), KBC savings (<code>export_BE63745020713108_*.csv</code>), KBC credit card (<code>export_KBC-Kredietkaart_*.csv</code>), KBC position overview (<code>Positie-overzicht op *.csv</code>), and Bunq checking/savings (<code>*_bunq-afschrift.csv</code>).</li>
+<li>Test KBC checking (<code>export_BE90000000001234_*.csv</code>), KBC savings (<code>export_BE68000000005678_*.csv</code>), KBC credit card (<code>export_KBC-Kredietkaart_*.csv</code>), KBC position overview (<code>Positie-overzicht op *.csv</code>), and Bunq checking/savings (<code>*_bunq-afschrift.csv</code>).</li>
 <li>Verify foreign currency (<code>MGA</code>) conversion to <code>EUR</code>, settlement row filtering, duplicate same-day merchant transaction preservation, and idempotent re-uploads.</li>
 <li>Verify <code>spaarrekening</code> IBAN deduplication between <code>KbcCsvGateway</code> and <code>GenericCsvGateway</code>.</li>
 <li><strong>Delivery API Tests</strong>:</li>

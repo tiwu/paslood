@@ -2059,8 +2059,10 @@
 <li>Users need full pagination controls (page size selector: 25 / 50 / 100 / All, First / Previous / Page indicator / Next / Last buttons) and search/category filtering.</li>
 <li><strong>Multi-Account Column &amp; Filtering</strong>:</li>
 <li>When importing multiple accounts (multiple KBC checking accounts, KBC credit card, Bunq spending &amp; savings accounts), transactions do not show which account they originated from.</li>
-<li><code>GET /api/overview</code> omits <code>account_id</code> from the returned transaction objects.</li>
-<li>Users need an <strong>Account</strong> column displaying a recognizable account badge (e.g. <code>KBC ••2832</code>, <code>KBC ••3108</code>, <code>KBC Card ••9128</code>, <code>bunq ••9982</code>, <code>bunq ••24827</code>) and an Account filter dropdown.</li>
+<li><code>GET /api/overview</code> omits <code>account_id</code> from the returned transaction objects.<ul>
+<li>Users need an <strong>Account</strong> column displaying a recognizable account badge (e.g. <code>KBC ••1234</code>, <code>KBC ••5678</code>, <code>KBC Card ••9999</code>, <code>bunq ••1111</code>, <code>bunq ••2222</code>) and an Account filter dropdown.</li>
+</ul>
+</li>
 <li><strong>Internal Transfers Inflating Monthly Income</strong>:</li>
 <li>Transfer transactions between own savings and checking accounts (<code>Category.TRANSFER</code> or <code>Category.SAVINGS</code>) were counted as inflow income in monthly cashflow calculations.</li>
 <li><code>local_db.py</code> must exclude transfers from income calculations.</li>
@@ -2100,7 +2102,7 @@
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kd">let</span><span class="w"> </span><span class="nx">txAccountFilter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'ALL'</span><span class="p">;</span>
 </code></pre></div></li>
 <li>Implement <code>formatAccountBadge(accountId)</code>:</li>
-<li>Formats IBANs and card numbers into clean, human-friendly badges (<code>KBC ••2832</code>, <code>bunq ••9982</code>, <code>KBC Card ••9128</code>) with full identifier on tooltip.</li>
+<li>Formats IBANs and card numbers into clean, human-friendly badges (<code>KBC ••1234</code>, <code>bunq ••1111</code>, <code>KBC Card ••9999</code>) with full identifier on tooltip.</li>
 <li>Implement <code>getCategoryBadgeClasses(cat)</code>:</li>
 <li>Returns semantic background, border, and text styling for all 10+ transaction categories.</li>
 <li>Implement <code>renderTransactions()</code> with client-side filtering and slice-based page rendering.</li>

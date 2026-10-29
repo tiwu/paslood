@@ -636,33 +636,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-a-bucket" class="md-nav__link">
+  <a href="#rule-based-asset-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What is a Bucket?
+        Rule-Based Asset Matching
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#target-weight-drift-tolerance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Target Weight &amp; Drift Tolerance
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Target Weight &amp; Drift Tolerance">
+    <nav class="md-nav" aria-label="Rule-Based Asset Matching">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#drift-statuses" class="md-nav__link">
+  <a href="#rule-priority-hierarchy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Drift Statuses:
+        Rule Priority Hierarchy
       
     </span>
   </a>
@@ -675,10 +664,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#rule-based-asset-matching" class="md-nav__link">
+  <a href="#target-weights-drift-statuses" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rule-Based Asset Matching
+        Target Weights &amp; Drift Statuses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-bucket-configuration-portfolioyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample Bucket Configuration (portfolio.yaml)
       
     </span>
   </a>
@@ -1863,33 +1863,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-a-bucket" class="md-nav__link">
+  <a href="#rule-based-asset-matching" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What is a Bucket?
+        Rule-Based Asset Matching
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#target-weight-drift-tolerance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Target Weight &amp; Drift Tolerance
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Target Weight &amp; Drift Tolerance">
+    <nav class="md-nav" aria-label="Rule-Based Asset Matching">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#drift-statuses" class="md-nav__link">
+  <a href="#rule-priority-hierarchy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Drift Statuses:
+        Rule Priority Hierarchy
       
     </span>
   </a>
@@ -1902,10 +1891,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#rule-based-asset-matching" class="md-nav__link">
+  <a href="#target-weights-drift-statuses" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Rule-Based Asset Matching
+        Target Weights &amp; Drift Statuses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-bucket-configuration-portfolioyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample Bucket Configuration (portfolio.yaml)
       
     </span>
   </a>
@@ -1933,33 +1933,118 @@
 
 
 <h1 id="strategic-allocation-buckets">Strategic Allocation Buckets</h1>
-<p>Paslood organizes all your financial holdings into macro <strong>strategic allocation buckets</strong>.</p>
-<hr />
-<h2 id="what-is-a-bucket">What is a Bucket?</h2>
-<p>A <strong>Bucket</strong> represents a strategic investment pillar or wealth goal, rather than an arbitrary financial product.</p>
-<p>Common examples:
-- <strong>Core World ETFs (e.g. 50%)</strong>: Broad, low-cost global equity index funds (e.g. VWCE, IWDA).
-- <strong>High-Conviction Tech / Equities (e.g. 35%)</strong>: Individual stock positions (e.g. AAPL, NVDA) with higher growth potential.
-- <strong>Gold &amp; Commodities (e.g. 5%)</strong>: Inflation hedges and uncorrelated assets.
-- <strong>Liquid Emergency Buffer (e.g. 10%)</strong>: High-yield cash reserves in checking/savings (KBC, Bunq).</p>
-<hr />
-<h2 id="target-weight-drift-tolerance">Target Weight &amp; Drift Tolerance</h2>
-<p>Each bucket is defined by:
-1. <strong>Target Weight (%)</strong>: The ideal percentage of your total liquid portfolio value.
-2. <strong>Drift Tolerance (±%)</strong>: The acceptable deviation band before a rebalance alert is triggered (default: ±3.0%).</p>
-<h3 id="drift-statuses">Drift Statuses:</h3>
-<ul>
-<li><strong>BALANCED (🟢)</strong>: Current weight is within the target weight ± drift tolerance.</li>
-<li><strong>UNDERWEIGHT (🔵)</strong>: Current weight is below target by more than the tolerance. Cash deposits will be routed here.</li>
-<li><strong>OVERWEIGHT (🟡)</strong>: Current weight exceeds target by more than tolerance.</li>
-</ul>
+<p>Paslood organizes all financial assets into macro <strong>Strategic Allocation Buckets</strong> representing top-level investment pillars.</p>
 <hr />
 <h2 id="rule-based-asset-matching">Rule-Based Asset Matching</h2>
-<p>Assets are dynamically assigned to buckets using declarative rules:
-- <strong>Symbols</strong>: Match specific tickers (e.g. <code>AAPL</code>, <code>VWCE</code>).
-- <strong>ISINs</strong>: Match exact security identifiers (e.g. <code>NL0010273215</code>, <code>IE00BK5BQT80</code>).
-- <strong>Asset Classes</strong>: Match entire classes (<code>EQUITY</code>, <code>ETF</code>, <code>COMMODITY</code>, <code>CRYPTO</code>, <code>CASH</code>).
-- <strong>Institutions</strong>: Match specific accounts (e.g. <code>KBC</code>, <code>Bunq</code>).</p>
+<p>Incoming assets are automatically assigned to buckets using a prioritized rule engine:</p>
+<pre class="mermaid"><code>flowchart TD
+    A[Discovered Asset] --&gt; B{Matches explicit symbol?}
+    B --&gt;|Yes| C[Assign to Bucket by Symbol]
+    B --&gt;|No| D{Matches security ISIN?}
+    D --&gt;|Yes| E[Assign to Bucket by ISIN]
+    D --&gt;|No| F{Matches name keyword?}
+    F --&gt;|Yes| G[Assign to Bucket by Keyword]
+    F --&gt;|No| H{Matches Asset Class?}
+    H --&gt;|Yes| I[Assign to Bucket by Asset Class]
+    H --&gt;|No| J[Unassigned / Buffer]</code></pre>
+<h3 id="rule-priority-hierarchy">Rule Priority Hierarchy</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Priority</th>
+<th style="text-align: left;">Criteria</th>
+<th style="text-align: left;">Example Match Rule</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>1 (Highest)</strong></td>
+<td style="text-align: left;"><code>symbols</code></td>
+<td style="text-align: left;"><code>["VWCE", "IWDA"]</code></td>
+<td style="text-align: left;">Explicit ticker symbol match. Takes precedence over generic rules.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>2</strong></td>
+<td style="text-align: left;"><code>isins</code></td>
+<td style="text-align: left;"><code>["IE00B4L5Y983", "IE00BK5BQT80"]</code></td>
+<td style="text-align: left;">Exact 12-character international securities identifier.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>3</strong></td>
+<td style="text-align: left;"><code>name_keywords</code></td>
+<td style="text-align: left;"><code>["World", "Treasury", "Gold"]</code></td>
+<td style="text-align: left;">Substring match against asset display names.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>4 (Lowest)</strong></td>
+<td style="text-align: left;"><code>asset_classes</code></td>
+<td style="text-align: left;"><code>["EQUITY", "ETF", "CASH"]</code></td>
+<td style="text-align: left;">Fallback classification based on instrument type.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="target-weights-drift-statuses">Target Weights &amp; Drift Statuses</h2>
+<p>Each bucket defines a <strong>Target Weight (%)</strong> and a <strong>Drift Tolerance ($\pm\%$)</strong> (default: $\pm 3.0\%$).</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Drift Status</th>
+<th style="text-align: left;">Condition</th>
+<th style="text-align: left;">Indicator</th>
+<th style="text-align: left;">Engine Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>BALANCED</strong></td>
+<td style="text-align: left;">$\vert \text{Actual \%} - \text{Target \%} \vert \le \text{Tolerance}$</td>
+<td style="text-align: left;">🟢 Balanced</td>
+<td style="text-align: left;">Target weight satisfied. No mandatory action.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>UNDERWEIGHT</strong></td>
+<td style="text-align: left;">$\text{Actual \%} &lt; \text{Target \%} - \text{Tolerance}$</td>
+<td style="text-align: left;">🔵 Underweight</td>
+<td style="text-align: left;">Deficit identified. Buy-Only calculator routes deposits here.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>OVERWEIGHT</strong></td>
+<td style="text-align: left;">$\text{Actual \%} &gt; \text{Target \%} + \text{Tolerance}$</td>
+<td style="text-align: left;">🟡 Overweight</td>
+<td style="text-align: left;">Surpasses target. Further capital allocation is paused.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sample-bucket-configuration-portfolioyaml">Sample Bucket Configuration (<code>portfolio.yaml</code>)</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">buckets</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"core-etf"</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Core</span><span class="nv"> </span><span class="s">World</span><span class="nv"> </span><span class="s">ETFs"</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">target_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50.0</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">drift_tolerance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">symbols</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"VWCE"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"IWDA"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">asset_classes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"ETF"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"tech-growth"</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"High-Conviction</span><span class="nv"> </span><span class="s">Equities"</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="nt">target_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">35.0</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nt">drift_tolerance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nt">asset_classes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"EQUITY"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"commodities"</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Gold</span><span class="nv"> </span><span class="s">&amp;</span><span class="nv"> </span><span class="s">Commodities"</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="nt">target_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5.0</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="nt">drift_tolerance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.0</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="nt">symbols</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"4GLD"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"SGLD"</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"cash-buffer"</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Liquid</span><span class="nv"> </span><span class="s">Cash</span><span class="nv"> </span><span class="s">Buffer"</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="nt">target_weight</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">    </span><span class="nt">drift_tolerance</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.0</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="nt">asset_classes</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"CASH"</span><span class="p p-Indicator">]</span>
+</code></pre></div>
 
 
 

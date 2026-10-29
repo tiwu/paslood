@@ -978,10 +978,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#historical-inception-timeline" class="md-nav__link">
+  <a href="#trajectory-simulation-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Historical Inception &amp; Timeline
+        Trajectory Simulation Pipeline
       
     </span>
   </a>
@@ -989,10 +989,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#compounding-variables" class="md-nav__link">
+  <a href="#core-simulation-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Compounding Variables
+        Core Simulation Variables
       
     </span>
   </a>
@@ -1000,10 +1000,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#wealth-milestones" class="md-nav__link">
+  <a href="#standard-milestone-definitions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Wealth Milestones
+        Standard Milestone Definitions
       
     </span>
   </a>
@@ -1846,10 +1846,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#historical-inception-timeline" class="md-nav__link">
+  <a href="#trajectory-simulation-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Historical Inception &amp; Timeline
+        Trajectory Simulation Pipeline
       
     </span>
   </a>
@@ -1857,10 +1857,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#compounding-variables" class="md-nav__link">
+  <a href="#core-simulation-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Compounding Variables
+        Core Simulation Variables
       
     </span>
   </a>
@@ -1868,10 +1868,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#wealth-milestones" class="md-nav__link">
+  <a href="#standard-milestone-definitions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Wealth Milestones
+        Standard Milestone Definitions
       
     </span>
   </a>
@@ -1899,26 +1899,70 @@
 
 
 <h1 id="net-worth-milestone-projections">Net Worth Milestone Projections</h1>
-<p>Paslood models compound wealth growth over 5, 10, 20, and 30 years using multi-variable trajectory simulations.</p>
+<p>Paslood models long-term compound wealth trajectories over 5, 10, 20, and 30-year horizons using multi-variable simulations.</p>
 <hr />
-<h2 id="historical-inception-timeline">Historical Inception &amp; Timeline</h2>
-<p>On initial load, Paslood inspects asset acquisition dates, loan start dates, and statement history to identify your earliest portfolio activity (<code>oldest_detected_year</code>). The Compound Wealth Trajectory chart begins at inception, rendering historical net worth progression up to the present before projecting forward compounding. You can also override the start year directly in the dashboard controls.</p>
+<h2 id="trajectory-simulation-pipeline">Trajectory Simulation Pipeline</h2>
+<pre class="mermaid"><code>flowchart LR
+    INCEPT["Inception Discovery&lt;br/&gt;(Earliest Asset/Loan Date)"] --&gt; HIST["Historical Net Worth&lt;br/&gt;Progression to Present"]
+    HIST --&gt; TODAY["Present Balance Sheet&lt;br/&gt;(Assets - Liabilities)"]
+
+    TODAY --&gt; ENGINE["Multi-Variable Projection Engine"]
+    CASHFLOW["Monthly Investable Cashflow"] --&gt; ENGINE
+    CAGR["Expected Annual Return (e.g. 7.0%)"] --&gt; ENGINE
+    AMORT["Loan Principal Amortization"] --&gt; ENGINE
+
+    ENGINE --&gt; MILESTONES["Milestone Horizon Tracking"]
+    MILESTONES --&gt; M100["€100k Savings Accelerator"]
+    MILESTONES --&gt; M250["€250k Quarter-Million"]
+    MILESTONES --&gt; M500["€500k Half-Million"]
+    MILESTONES --&gt; M1M["€1.0M Liquid Millionaire"]
+    MILESTONES --&gt; FI["Financial Independence (4% Rule)"]</code></pre>
 <hr />
-<h2 id="compounding-variables">Compounding Variables</h2>
+<h2 id="core-simulation-variables">Core Simulation Variables</h2>
 <ol>
-<li><strong>Current Net Worth</strong>: Starting assets minus active liabilities.</li>
-<li><strong>Monthly Savings Rate</strong>: Net investable cashflow surplus derived from your bank statement and income.</li>
-<li><strong>Compound Annual Return (CAGR)</strong>: Long-term portfolio return assumption (default: 7.0%).</li>
-<li><strong>Debt Amortization</strong>: Gradual paydown of principal balances over the loan lifecycle.</li>
+<li><strong>Current Net Worth</strong>: Starting balance sheet equity ($\text{Assets} - \text{Liabilities}$).</li>
+<li><strong>Monthly Savings Rate</strong>: Net investable cashflow surplus derived from bank statements and income.</li>
+<li><strong>Compound Annual Growth Rate (CAGR)</strong>: Long-term gross investment return assumption (baseline: 7.0%).</li>
+<li><strong>Debt Amortization Schedule</strong>: Monthly principal reduction across active mortgages and installment loans.</li>
 </ol>
 <hr />
-<h2 id="wealth-milestones">Wealth Milestones</h2>
-<p>The projection engine tracks when your net worth trajectory crosses key financial milestones:
-- <strong>€100k</strong>: The critical baseline where investment returns begin noticeably accelerating savings.
-- <strong>€250k</strong>: Quarter-million milestone.
-- <strong>€500k</strong>: Half-million milestone.
-- <strong>€1M</strong>: Liquid millionaire milestone.
-- <strong>Financial Independence (FI)</strong>: The crossover point where annual investment yield exceeds estimated annual living expenses (using the 4.0% safe withdrawal rule).</p>
+<h2 id="standard-milestone-definitions">Standard Milestone Definitions</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Milestone</th>
+<th style="text-align: left;">Target Valuation</th>
+<th style="text-align: left;">Economic Significance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Baseline Accelerator</strong></td>
+<td style="text-align: left;"><strong>€ 100,000</strong></td>
+<td style="text-align: left;">Threshold where investment compounding begins matching or exceeding annual savings contributions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Quarter-Million</strong></td>
+<td style="text-align: left;"><strong>€ 250,000</strong></td>
+<td style="text-align: left;">Mid-stage accumulation milestone.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Half-Million</strong></td>
+<td style="text-align: left;"><strong>€ 500,000</strong></td>
+<td style="text-align: left;">Substantial capital base providing significant investment yield.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Liquid Millionaire</strong></td>
+<td style="text-align: left;"><strong>€ 1,000,000</strong></td>
+<td style="text-align: left;">Liquid independence threshold.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Financial Independence (FI)</strong></td>
+<td style="text-align: left;"><strong>$25 \times \text{Annual Expenses}$</strong></td>
+<td style="text-align: left;">Crossover point where a 4.0% safe withdrawal rate covers all annual living costs.</td>
+</tr>
+</tbody>
+</table>
 
 
 

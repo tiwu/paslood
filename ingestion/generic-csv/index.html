@@ -835,22 +835,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#csv-column-headers" class="md-nav__link">
+  <a href="#csv-specification" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CSV Column Headers
+        CSV Specification
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="CSV Column Headers">
+    <nav class="md-nav" aria-label="CSV Specification">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#supported-columns" class="md-nav__link">
+  <a href="#required-optional-columns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supported Columns:
+        Required &amp; Optional Columns
       
     </span>
   </a>
@@ -863,10 +863,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#generating-a-sample-template" class="md-nav__link">
+  <a href="#example-generic-csv" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generating a Sample Template
+        Example Generic CSV
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#template-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template Generation
       
     </span>
   </a>
@@ -1852,22 +1863,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#csv-column-headers" class="md-nav__link">
+  <a href="#csv-specification" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CSV Column Headers
+        CSV Specification
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="CSV Column Headers">
+    <nav class="md-nav" aria-label="CSV Specification">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#supported-columns" class="md-nav__link">
+  <a href="#required-optional-columns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Supported Columns:
+        Required &amp; Optional Columns
       
     </span>
   </a>
@@ -1880,10 +1891,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#generating-a-sample-template" class="md-nav__link">
+  <a href="#example-generic-csv" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Generating a Sample Template
+        Example Generic CSV
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#template-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template Generation
       
     </span>
   </a>
@@ -1911,26 +1933,96 @@
 
 
 <h1 id="generic-csv-excel-ingestion">Generic CSV / Excel Ingestion</h1>
-<p>For brokerages or banks that do not have an automated connector, Paslood provides an open, standard CSV format.</p>
+<p>For financial institutions and brokers without automated API connectors, Paslood accepts a standard generic CSV format.</p>
 <hr />
-<h2 id="csv-column-headers">CSV Column Headers</h2>
+<h2 id="csv-specification">CSV Specification</h2>
+<h3 id="required-optional-columns">Required &amp; Optional Columns</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Column</th>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Required</th>
+<th style="text-align: left;">Description</th>
+<th style="text-align: left;">Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>name</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;">Security or account name</td>
+<td style="text-align: left;"><code>Vanguard FTSE All-World</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>symbol</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;">Ticker symbol</td>
+<td style="text-align: left;"><code>VWCE</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>isin</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">Optional</td>
+<td style="text-align: left;">12-character ISIN code</td>
+<td style="text-align: left;"><code>IE00BK5BQT80</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>asset_class</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;">Instrument classification (<code>EQUITY</code>, <code>ETF</code>, <code>COMMODITY</code>, <code>CRYPTO</code>, <code>CASH</code>, <code>REAL_ESTATE</code>)</td>
+<td style="text-align: left;"><code>ETF</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>shares</code></td>
+<td style="text-align: left;"><code>decimal</code></td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;">Quantity of units held</td>
+<td style="text-align: left;"><code>125.50</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>current_price</code></td>
+<td style="text-align: left;"><code>decimal</code></td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;">Market price per share</td>
+<td style="text-align: left;"><code>118.25</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>current_value</code></td>
+<td style="text-align: left;"><code>decimal</code></td>
+<td style="text-align: left;"><strong>Yes</strong></td>
+<td style="text-align: left;">Total position value (<code>shares * current_price</code>)</td>
+<td style="text-align: left;"><code>14840.38</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>institution</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">Optional</td>
+<td style="text-align: left;">Custodian or bank name</td>
+<td style="text-align: left;"><code>Saxo Bank</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>currency</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: left;">Optional</td>
+<td style="text-align: left;">Currency ISO code (default: <code>EUR</code>)</td>
+<td style="text-align: left;"><code>EUR</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="example-generic-csv">Example Generic CSV</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>name,symbol,isin,asset_class,shares,current_price,current_value,institution,currency
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Vanguard FTSE All-World,VWCE,IE00BK5BQT80,ETF,125.50,118.25,14840.38,Saxo Bank,EUR
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Apple Inc.,AAPL,US0378331005,EQUITY,45.00,225.50,10147.50,Bolero,EUR
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Physical Gold ETC,4GLD,DE000A0S9GB0,COMMODITY,30.00,82.10,2463.00,DEGIRO,EUR
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>High-Yield Savings,SAVINGS,,CASH,1.00,10000.00,10000.00,Bunq,EUR
 </code></pre></div>
-<h3 id="supported-columns">Supported Columns:</h3>
-<ul>
-<li><code>name</code>: Security or account name (e.g. <code>Microsoft Corp.</code>)</li>
-<li><code>symbol</code>: Ticker symbol (e.g. <code>MSFT</code>, <code>VWCE</code>)</li>
-<li><code>isin</code>: 12-character ISIN code (e.g. <code>US5949181045</code>)</li>
-<li><code>asset_class</code>: <code>EQUITY</code>, <code>ETF</code>, <code>COMMODITY</code>, <code>CRYPTO</code>, <code>CASH</code>, or <code>REAL_ESTATE</code></li>
-<li><code>shares</code>: Number of units held</li>
-<li><code>current_price</code>: Market price per share</li>
-<li><code>current_value</code>: Total valuation in the specified currency</li>
-<li><code>institution</code>: Brokerage or bank name (e.g. <code>DEGIRO</code>, <code>Saxo Bank</code>, <code>Bolero</code>)</li>
-<li><code>currency</code>: Currency code (default: <code>EUR</code>)</li>
-</ul>
 <hr />
-<h2 id="generating-a-sample-template">Generating a Sample Template</h2>
-<p>You can generate a sample CSV directly from the CLI or download it from the Web Dashboard:</p>
+<h2 id="template-generation">Template Generation</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>run<span class="w"> </span>paslood<span class="w"> </span>template<span class="w"> </span>--output<span class="w"> </span>portfolio_template.csv
 </code></pre></div>
 

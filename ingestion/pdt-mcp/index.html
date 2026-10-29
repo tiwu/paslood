@@ -807,10 +807,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
+  <a href="#integration-protocol" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it Works
+        Integration Protocol
       
     </span>
   </a>
@@ -818,10 +818,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#mcp-tools-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration
+        MCP Tools Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-portfolioyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration (portfolio.yaml)
       
     </span>
   </a>
@@ -1835,10 +1846,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
+  <a href="#integration-protocol" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How it Works
+        Integration Protocol
       
     </span>
   </a>
@@ -1846,10 +1857,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#mcp-tools-reference" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration
+        MCP Tools Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-portfolioyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration (portfolio.yaml)
       
     </span>
   </a>
@@ -1877,23 +1899,56 @@
 
 
 <h1 id="pdt-mcp-server-integration">PDT MCP Server Integration</h1>
-<p>Paslood connects directly to the <strong>Portfolio Dividend Tracker (PDT)</strong> MCP server over JSON-RPC.</p>
+<p>Paslood connects to the <strong>Portfolio Dividend Tracker (PDT)</strong> Model Context Protocol (MCP) server over JSON-RPC to synchronize broker holdings.</p>
 <hr />
-<h2 id="how-it-works">How it Works</h2>
-<ol>
-<li>The <code>PdtMcpGateway</code> queries the PDT MCP server tools:</li>
-<li><code>pdt-get-portfolio</code>: Returns aggregate net invested, current worth, and cash.</li>
-<li><code>pdt-get-portfolio-holdings</code>: Returns open positions, live prices, quantities, and cost basis.</li>
-<li><code>pdt-list-x-ray-holdings</code>: Provides look-through breakdown into underlying ETF holdings.</li>
-<li>The responses are automatically converted into unified domain <code>Asset</code> entities.</li>
-<li>Assets are mapped into your configured <strong>Strategic Buckets</strong> by ticker, ISIN, or asset class.</li>
-</ol>
+<h2 id="integration-protocol">Integration Protocol</h2>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant Paslood as Paslood Server
+    participant Gateway as PdtMcpGateway
+    participant PDT as PDT MCP Server
+
+    Paslood-&gt;&gt;Gateway: Request portfolio synchronization
+    Gateway-&gt;&gt;PDT: Call tool: pdt-get-portfolio
+    PDT--&gt;&gt;Gateway: Return total worth, net invested, cash balances
+    Gateway-&gt;&gt;PDT: Call tool: pdt-get-portfolio-holdings
+    PDT--&gt;&gt;Gateway: Return positions (symbol, ISIN, shares, price, cost basis)
+    Gateway-&gt;&gt;PDT: Call tool: pdt-list-x-ray-holdings
+    PDT--&gt;&gt;Gateway: Return look-through ETF constituent breakdown
+    Gateway-&gt;&gt;Paslood: Map positions to domain Asset models &amp; assign to Buckets</code></pre>
 <hr />
-<h2 id="configuration">Configuration</h2>
-<p>In <code>~/.paslood/portfolio.yaml</code> or environment variables:</p>
+<h2 id="mcp-tools-reference">MCP Tools Reference</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">PDT Tool</th>
+<th style="text-align: left;">Purpose</th>
+<th style="text-align: left;">Domain Mapping</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>pdt-get-portfolio</code></td>
+<td style="text-align: left;">Fetches high-level portfolio metrics</td>
+<td style="text-align: left;">Liquid investment total, cash balances</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pdt-get-portfolio-holdings</code></td>
+<td style="text-align: left;">Returns active securities and lots</td>
+<td style="text-align: left;">Domain <code>Asset</code> (shares, current value, cost basis)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>pdt-list-x-ray-holdings</code></td>
+<td style="text-align: left;">Inspects ETF underlying holdings</td>
+<td style="text-align: left;">Look-through sector and regional exposure</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="configuration-portfolioyaml">Configuration (<code>portfolio.yaml</code>)</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">pdt_mcp</span><span class="p">:</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">"http://localhost:3000/mcp"</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">auth_token</span><span class="p">:</span><span class="w"> </span><span class="s">"your-pdt-token"</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">auth_token</span><span class="p">:</span><span class="w"> </span><span class="s">"your-pdt-auth-token"</span>
 </code></pre></div>
 
 

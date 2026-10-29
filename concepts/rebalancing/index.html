@@ -692,10 +692,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-buy-only-cash-injection-model" class="md-nav__link">
+  <a href="#buy-only-rebalancing-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Buy-Only Cash Injection Model
+        Buy-Only Rebalancing Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rebalancing-strategy-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rebalancing Strategy Comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calculation-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculation Example
       
     </span>
   </a>
@@ -1824,10 +1846,32 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-buy-only-cash-injection-model" class="md-nav__link">
+  <a href="#buy-only-rebalancing-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Buy-Only Cash Injection Model
+        Buy-Only Rebalancing Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rebalancing-strategy-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rebalancing Strategy Comparison
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calculation-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calculation Example
       
     </span>
   </a>
@@ -1855,27 +1899,67 @@
 
 
 <h1 id="buy-only-rebalancing-strategy">Buy-Only Rebalancing Strategy</h1>
-<p>Traditional portfolio rebalancing involves selling over-allocated winners and buying under-allocated laggards. While mathematically sound, selling in the real world introduces friction:</p>
-<ol>
-<li><strong>Transaction Fees &amp; Spreads</strong>: Broker commissions on both sell orders and buy orders.</li>
-<li><strong>Transaction Taxes (TOB)</strong>: E.g., Belgian stock exchange tax on both sales and purchases.</li>
-<li><strong>Capital Gains Taxes</strong>: Realizing taxable profits unnecessarily.</li>
-</ol>
+<p>Traditional portfolio rebalancing sells over-allocated assets to purchase under-allocated assets. In private investing, selling triggers friction:
+1. <strong>Transaction Fees</strong>: Broker commissions on both legs of the trade.
+2. <strong>Exchange Taxes</strong>: Belgian Stock Exchange Tax (TOB) levied on both sale and purchase transactions.
+3. <strong>Capital Gains Taxes</strong>: Realizing taxable profits prematurely.</p>
 <hr />
-<h2 id="the-buy-only-cash-injection-model">The Buy-Only Cash Injection Model</h2>
-<p>Paslood defaults to <strong>Buy-Only Rebalancing</strong>:</p>
-<ol>
-<li>You specify an incoming cash deposit (e.g. your monthly savings of €1,500).</li>
-<li>The engine identifies which buckets are currently <strong>UNDERWEIGHT</strong> (where Current Weight &lt; Target Weight).</li>
-<li>The deposit is distributed <strong>proportionally to each bucket's deficit</strong>, bringing the overall portfolio toward target weights with <strong>zero forced sales</strong>.</li>
-</ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Example:
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Planned Deposit: € 2,000.00
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>- Core World ETF Deficit: € 15,000 (60% of total shortfall) -&gt; BUY € 1,200.00
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>- Tech Conviction Deficit: € 10,000 (40% of total shortfall) -&gt; BUY € 800.00
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>- Gold Bucket: Already balanced -&gt; BUY € 0.00
+<h2 id="buy-only-rebalancing-flow">Buy-Only Rebalancing Flow</h2>
+<pre class="mermaid"><code>flowchart TD
+    DEP[Incoming Cash Deposit&lt;br/&gt;e.g., Monthly Surplus €1,500] --&gt; SCAN[Evaluate All Buckets]
+    SCAN --&gt; DEFICIT{Is Bucket Underweight?&lt;br/&gt;Current Weight &lt; Target Weight}
+    DEFICIT --&gt;|No| ZERO[Order: €0.00&lt;br/&gt;No forced sales of overweight winners]
+    DEFICIT --&gt;|Yes| CALC[Calculate Bucket Deficit&lt;br/&gt;Deficit = Target EUR - Current EUR]
+    CALC --&gt; RATIO[Allocate Deposit Proportionally&lt;br/&gt;Share = Bucket Deficit / Total Deficits]
+    RATIO --&gt; ORDER[Generate Buy Order&lt;br/&gt;Target Mapped ETFs / Securities]
+    ORDER --&gt; OUTCOME[Portfolio Moves Toward Balance&lt;br/&gt;Zero Transaction Fees &amp; Zero Capital Gains Tax]</code></pre>
+<hr />
+<h2 id="rebalancing-strategy-comparison">Rebalancing Strategy Comparison</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Metric</th>
+<th style="text-align: left;">Traditional Selling Rebalance</th>
+<th style="text-align: left;">Paslood Buy-Only Rebalance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Tax Impact</strong></td>
+<td style="text-align: left;">Triggers capital gains tax &amp; double TOB</td>
+<td style="text-align: left;"><strong>Zero capital gains tax, single TOB</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Broker Commissions</strong></td>
+<td style="text-align: left;">Paid on sells and buys</td>
+<td style="text-align: left;"><strong>Paid on buys only</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Portfolio Churn</strong></td>
+<td style="text-align: left;">High turnover</td>
+<td style="text-align: left;"><strong>Zero turnover; pure accumulation</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Execution Timeframe</strong></td>
+<td style="text-align: left;">Instantaneous</td>
+<td style="text-align: left;">Gradual convergence with monthly cashflow</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="calculation-example">Calculation Example</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Deposit Capacity: € 2,000.00
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Shortfall Evaluation:
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>- Core World ETFs:     Current € 45,000 | Target € 60,000 | Shortfall € 15,000 (60%)
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>- High-Conviction Tech: Current € 25,000 | Target € 35,000 | Shortfall € 10,000 (40%)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>- Gold &amp; Commodities:   Current €  5,000 | Target €  5,000 | Shortfall €      0 ( 0%)
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>Optimal Buy Allocation:
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>1. BUY € 1,200.00 in Core World ETFs (60% of deposit)
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>2. BUY €   800.00 in High-Conviction Tech (40% of deposit)
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>3. BUY €     0.00 in Gold &amp; Commodities
 </code></pre></div>
-<p>By accumulating new cash directly into underweight assets, you rebalance continuously without selling your winners.</p>
 
 
 

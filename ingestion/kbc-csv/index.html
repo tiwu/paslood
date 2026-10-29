@@ -779,10 +779,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-export-from-kbc-touch-kbc-mobile" class="md-nav__link">
+  <a href="#ingestion-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to Export from KBC Touch / KBC Mobile
+        Ingestion Flow
       
     </span>
   </a>
@@ -790,10 +790,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#file-format-specs-handled-automatically" class="md-nav__link">
+  <a href="#supported-statement-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        File Format Specs Handled Automatically
+        Supported Statement Formats
       
     </span>
   </a>
@@ -801,10 +801,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#automated-discovery" class="md-nav__link">
+  <a href="#automated-field-parsing-specs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Automated Discovery
+        Automated Field Parsing Specs
       
     </span>
   </a>
@@ -1846,10 +1846,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#how-to-export-from-kbc-touch-kbc-mobile" class="md-nav__link">
+  <a href="#ingestion-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How to Export from KBC Touch / KBC Mobile
+        Ingestion Flow
       
     </span>
   </a>
@@ -1857,10 +1857,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#file-format-specs-handled-automatically" class="md-nav__link">
+  <a href="#supported-statement-formats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        File Format Specs Handled Automatically
+        Supported Statement Formats
       
     </span>
   </a>
@@ -1868,10 +1868,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#automated-discovery" class="md-nav__link">
+  <a href="#automated-field-parsing-specs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Automated Discovery
+        Automated Field Parsing Specs
       
     </span>
   </a>
@@ -1899,31 +1899,69 @@
 
 
 <h1 id="ingesting-belgian-kbc-bank-statements">Ingesting Belgian KBC Bank Statements</h1>
-<p>Paslood features native, zero-configuration support for <strong>KBC Bank CSV statement exports</strong>.</p>
+<p>Paslood provides native parsing for <strong>KBC Bank CSV statement exports</strong>.</p>
 <hr />
-<h2 id="how-to-export-from-kbc-touch-kbc-mobile">How to Export from KBC Touch / KBC Mobile</h2>
-<ol>
-<li>Log in to <strong>KBC Touch</strong> (web) or <strong>KBC Mobile</strong>.</li>
-<li>Navigate to your checking account (<code>Zichtrekening</code>).</li>
-<li>Click <strong>Historiek exporteren</strong> (Export History) -&gt; Select <strong>CSV-formaat</strong>.</li>
-<li>Download the <code>.csv</code> file.</li>
-</ol>
+<h2 id="ingestion-flow">Ingestion Flow</h2>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    actor User as Account Holder
+    participant UI as Web Dashboard
+    participant Gateway as KbcCsvGateway
+    participant DB as SQLite LocalDb
+
+    User-&gt;&gt;UI: Upload KBC CSV export
+    UI-&gt;&gt;Gateway: Parse file stream
+    Gateway-&gt;&gt;Gateway: Detect encoding (Latin-1 / Windows-1252) &amp; normalize line endings
+    Gateway-&gt;&gt;Gateway: Extract closing balance from latest transaction
+    Gateway-&gt;&gt;Gateway: Detect loan repayment patterns (WONINGKREDIET, FLEX BUDGET)
+    Gateway-&gt;&gt;DB: Save discovered Cash asset &amp; Liabilities
+    Gateway-&gt;&gt;DB: Deduplicate and insert transactions
+    DB--&gt;&gt;UI: Refresh cashflow summary &amp; transaction ledger</code></pre>
 <hr />
-<h2 id="file-format-specs-handled-automatically">File Format Specs Handled Automatically</h2>
+<h2 id="supported-statement-formats">Supported Statement Formats</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Statement Type</th>
+<th style="text-align: left;">Header Signatures</th>
+<th style="text-align: left;">Encoding</th>
+<th style="text-align: left;">Auto-Discovered Data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Checking (<code>Zichtrekening</code>)</strong></td>
+<td style="text-align: left;"><code>Rekeningnummer;Datum;Bedrag;Omschrijving</code></td>
+<td style="text-align: left;">ISO-8859-1</td>
+<td style="text-align: left;">Current liquid cash, salary income, mortgage payments (<code>WONINGKREDIET</code>), revolving credit (<code>FLEX BUDGET</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Savings (<code>Spaarrekening</code>)</strong></td>
+<td style="text-align: left;"><code>Rekeningnummer;Datum;Bedrag;Omschrijving</code></td>
+<td style="text-align: left;">ISO-8859-1</td>
+<td style="text-align: left;">Dedicated emergency savings cash asset, transfer inflows/outflows.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Credit Card</strong></td>
+<td style="text-align: left;"><code>kredietkaart;kaarthouder;bedrag in EUR</code></td>
+<td style="text-align: left;">Windows-1252</td>
+<td style="text-align: left;">Credit card transactions, merchant locations, foreign currency conversions.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Position Overview</strong></td>
+<td style="text-align: left;"><code>Productklasse;Waardeinfo/ISIN;Naam product</code></td>
+<td style="text-align: left;">ISO-8859-1</td>
+<td style="text-align: left;">Pension savings funds (<em>Pensioensparen</em>), mutual funds, investment cash accounts.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="automated-field-parsing-specs">Automated Field Parsing Specs</h2>
 <ul>
-<li><strong>Encoding</strong>: ISO-8859-1 (Latin-1) / Windows-1252</li>
-<li><strong>Delimiter</strong>: Semicolon (<code>;</code>)</li>
-<li><strong>Number Formats</strong>: European format (e.g., <code>-579,68</code> or <code>1.452,04</code>)</li>
-<li><strong>Date Format</strong>: <code>DD/MM/YYYY</code></li>
+<li><strong>Delimiters</strong>: Semicolon (<code>;</code>) delimiter with European number formatting (<code>1.250,50</code> $\rightarrow$ <code>Decimal("1250.50")</code>).</li>
+<li><strong>Date Format</strong>: <code>DD/MM/YYYY</code>.</li>
+<li><strong>Deduplication</strong>: SHA-256 row hashing incorporating row sequence indexes to preserve legitimate same-day charges while ensuring idempotent re-uploads.</li>
 </ul>
-<hr />
-<h2 id="automated-discovery">Automated Discovery</h2>
-<p>When you upload or ingest your KBC CSV:
-1. <strong>Liquid Checking Balance</strong>: Extracted from the most recent transaction's <code>Saldo</code> column and assigned to the Cash asset.
-2. <strong>Liabilities Discovery</strong>: Scans descriptions for loan references (<code>WONINGKREDIET</code> and <code>FLEX BUDGET</code>) and automatically records active debts.
-3. <strong>Monthly Debt Servicing</strong>: Sums recurring mortgage repayments and consumer credit payments.
-4. <strong>Income Extraction</strong>: Averages recurring salary deposits from your employer.
-5. <strong>Interactive Re-Bucketing</strong>: Displays all transactions in the Web Dashboard, allowing you to re-bucket any transaction and save custom categorization rules.</p>
 
 
 
