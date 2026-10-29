@@ -2,15 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light dark;
-  --color-scrollbar-track: light-dark(#f1f5f9, #0f172a);
-  --color-scrollbar-thumb: light-dark(#94a3b8, #334155);
+/* ==========================================================================
+   Paslood Architectural Design System & Refactoring UI Tokens
+   - Light Theme : "Architectural Vellum" (Warm Stone-Tinted Neutrals)
+   - Dark Theme  : "Midnight Blueprint" (No Halation, Elevation by Lightness)
+   ========================================================================== */
+:root,
+html.light-theme {
+  color-scheme: light;
+  --pas-bg-canvas: #F5F3EE;
+  --pas-bg-grid: rgba(44, 40, 36, 0.035);
+  --pas-bg-surface: #FDFCFA;
+  --pas-bg-surface-inset: #EBE7DF;
+  --pas-bg-surface-muted: #E4DFD5;
+  --pas-bg-surface-elevated: #FFFFFF;
+  --pas-bg-header: rgba(253, 252, 250, 0.92);
+
+  --pas-border-subtle: #DFDBD2;
+  --pas-border-strong: #C8C2B6;
+  --pas-border-accent: #B88628;
+  --pas-card-top-rim: rgba(255, 255, 255, 0.8);
+
+  --pas-text-primary: #1C1917;
+  --pas-text-secondary: #44403C;
+  --pas-text-tertiary: #57534E;
+  --pas-text-accent: #9A6F1A;
+
+  --pas-accent-brass: #B88628;
+  --pas-accent-cobalt: #1E4E79;
+  --pas-accent-patina: #1F6F5B;
+  --pas-accent-oxide: #9A3412;
+
+  --pas-shadow-card: 0 1px 3px 0 rgba(28, 25, 23, 0.06), 0 1px 2px -1px rgba(28, 25, 23, 0.04);
+  --pas-shadow-elevated: 0 10px 15px -3px rgba(28, 25, 23, 0.08), 0 4px 6px -4px rgba(28, 25, 23, 0.04);
+
+  --pas-chart-grid: #E5E0D5;
+  --pas-chart-ticks: #57534E;
+  --pas-chart-surface: #FDFCFA;
+
+  --color-scrollbar-track: #EBE7DF;
+  --color-scrollbar-thumb: #A8A29E;
   scrollbar-width: thin;
   scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
 }
-:root:has(> head > meta[name="color-scheme"][content="dark"]) { color-scheme: dark; }
-:root:has(> head > meta[name="color-scheme"][content="light"]) { color-scheme: light; }
+
+html.dark {
+  color-scheme: dark;
+  --pas-bg-canvas: #0B111E;
+  --pas-bg-grid: rgba(148, 163, 184, 0.038);
+  --pas-bg-surface: #131C2E;
+  --pas-bg-surface-inset: #080C16;
+  --pas-bg-surface-muted: #1C2840;
+  --pas-bg-surface-elevated: #23314E;
+  --pas-bg-header: rgba(19, 28, 46, 0.88);
+
+  --pas-border-subtle: #23314E;
+  --pas-border-strong: #33476B;
+  --pas-border-accent: #F59E0B;
+  --pas-card-top-rim: rgba(255, 255, 255, 0.06);
+
+  --pas-text-primary: #F1F5F9;
+  --pas-text-secondary: #CBD5E1;
+  --pas-text-tertiary: #94A3B8;
+  --pas-text-accent: #FBBF24;
+
+  --pas-accent-brass: #F59E0B;
+  --pas-accent-cobalt: #38BDF8;
+  --pas-accent-patina: #34D399;
+  --pas-accent-oxide: #FB7185;
+
+  --pas-shadow-card: 0 2px 8px -2px rgba(0, 0, 0, 0.45), inset 0 1px 0 0 var(--pas-card-top-rim);
+  --pas-shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+
+  --pas-chart-grid: rgba(148, 163, 184, 0.08);
+  --pas-chart-ticks: #94A3B8;
+  --pas-chart-surface: #131C2E;
+
+  --color-scrollbar-track: #0B111E;
+  --color-scrollbar-thumb: #33476B;
+}
 
 .tab-content { display: none; }
 .tab-content.active { display: block; }
@@ -21,15 +91,94 @@
   ::-webkit-scrollbar-thumb { background: var(--color-scrollbar-thumb); border-radius: 3px; }
 }
 
-/* Responsive table container */
+/* 24px Architectural Cartesian Drafting Grid */
+body,
+.pas-drafting-grid {
+  background-color: var(--pas-bg-canvas);
+  background-image:
+    linear-gradient(to right, var(--pas-bg-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--pas-bg-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--pas-text-primary);
+  font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1;
+}
+
+/* Tabular lining numerals for financial alignment */
+.font-mono,
+td.font-mono,
+th.font-mono,
+.tabular-nums,
+.whitespace-nowrap-numbers,
+#kpi-net-worth,
+#kpi-total-assets,
+#kpi-total-debts,
+#kpi-surplus {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap !important;
+}
+
+/* Architectural Drafting Card with Registration Crosshair */
+.pas-card {
+  position: relative;
+  background-color: var(--pas-bg-surface);
+  border: 1px solid var(--pas-border-subtle);
+  box-shadow: var(--pas-shadow-card);
+  border-radius: 0.5rem;
+}
+.pas-card::after {
+  content: "+";
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--pas-border-strong);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Refactoring UI Button Hierarchy: 1 Primary per view, Secondary outlined, Tertiary text */
+.pas-btn-primary {
+  background-color: var(--pas-accent-cobalt);
+  color: #FFFFFF;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.12);
+}
+html.dark .pas-btn-primary {
+  background-color: #2563EB;
+  color: #FFFFFF;
+}
+.pas-btn-secondary {
+  background-color: var(--pas-bg-surface-muted);
+  color: var(--pas-text-primary);
+  border: 1px solid var(--pas-border-strong);
+  box-shadow: 0 1px 2px 0 rgba(28, 25, 23, 0.04);
+}
+.pas-btn-secondary:hover {
+  border-color: var(--pas-accent-brass);
+}
+.pas-btn-tertiary {
+  background-color: transparent;
+  color: var(--pas-text-secondary);
+}
+.pas-btn-tertiary:hover {
+  color: var(--pas-text-primary);
+}
+
+/* Responsive table container & Refactoring UI Table Rigor */
 .table-wrapper {
   overflow-x: auto;
   max-inline-size: 100%;
   container-type: inline-size;
   -webkit-overflow-scrolling: touch;
 }
-td.font-mono, th.font-mono, .whitespace-nowrap-numbers {
-  white-space: nowrap !important;
+.table-wrapper thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pas-text-tertiary);
 }
 
 /* Dialog & Modal accessibility enhancements */
@@ -39,72 +188,99 @@ dialog:modal {
 dialog::backdrop {
   overflow: hidden;
   overscroll-behavior: contain;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(11, 17, 30, 0.72);
   backdrop-filter: blur(4px);
 }
 
-/* Light Theme Overrides */
+/* Keyboard Focus Ring (WCAG 2.1 AA Operable) */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--pas-accent-brass);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Semantic Theme Binding for Utility Classes (Light "Architectural Vellum") */
 html.light-theme body {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
+  background-color: var(--pas-bg-canvas);
+  color: var(--pas-text-primary);
 }
-html.light-theme header {
-  background-color: rgba(255, 255, 255, 0.92) !important;
-  border-color: #e2e8f0 !important;
+html.light-theme header,
+html.light-theme nav.fixed.bottom-0 {
+  background-color: var(--pas-bg-header);
+  border-color: var(--pas-border-subtle);
 }
-html.light-theme .bg-slate-900 {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06) !important;
+html.light-theme .bg-slate-900,
+html.light-theme .bg-slate-900\/80,
+html.light-theme .bg-slate-900\/95 {
+  background-color: var(--pas-bg-surface);
+  border-color: var(--pas-border-subtle);
+  box-shadow: var(--pas-shadow-card);
 }
 html.light-theme .bg-slate-950,
 html.light-theme .bg-slate-950\/50,
 html.light-theme .bg-slate-950\/60,
 html.light-theme .bg-slate-950\/70,
 html.light-theme .bg-slate-950\/40 {
-  background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
+  background-color: var(--pas-bg-surface-inset);
+  border-color: var(--pas-border-strong);
 }
 html.light-theme .bg-slate-850,
 html.light-theme .bg-slate-800,
 html.light-theme .bg-slate-800\/60,
 html.light-theme .bg-slate-800\/80 {
-  background-color: #e2e8f0 !important;
-  border-color: #cbd5e1 !important;
-  color: #1e293b !important;
+  background-color: var(--pas-bg-surface-muted);
+  border-color: var(--pas-border-strong);
+  color: var(--pas-text-primary);
 }
 html.light-theme .text-white {
-  color: #0f172a !important;
+  color: var(--pas-text-primary);
 }
 html.light-theme .bg-blue-600.text-white,
 html.light-theme .bg-emerald-600.text-white,
 html.light-theme .bg-rose-600.text-white,
 html.light-theme .bg-purple-600.text-white,
 html.light-theme .bg-indigo-600.text-white,
-html.light-theme .nav-btn.bg-blue-600 {
-  color: #ffffff !important;
+html.light-theme .nav-btn.bg-blue-600,
+html.light-theme .mnav-btn.bg-blue-600 {
+  color: #FFFFFF;
 }
 html.light-theme .text-slate-100,
 html.light-theme .text-slate-200,
 html.light-theme .text-slate-300 {
-  color: #334155 !important;
+  color: var(--pas-text-secondary);
 }
 html.light-theme .text-slate-400,
 html.light-theme .text-slate-500 {
-  color: #64748b !important;
+  color: var(--pas-text-tertiary);
 }
 html.light-theme .border-slate-800,
 html.light-theme .border-slate-700,
 html.light-theme .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #e2e8f0 !important;
+  border-color: var(--pas-border-subtle);
 }
 html.light-theme input,
 html.light-theme select,
 html.light-theme textarea {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+  background-color: var(--pas-bg-surface-elevated);
+  color: var(--pas-text-primary);
+  border-color: var(--pas-border-strong);
 }
 html.light-theme .prose-invert {
-  color: #1e293b !important;
+  color: var(--pas-text-secondary);
 }

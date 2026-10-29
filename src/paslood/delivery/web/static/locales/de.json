@@ -12,7 +12,7 @@
     "buckets": "🪣 Segmente",
     "portfolio": "🪣 Portfolio & Buckets",
     "guidance": "💡 Leitfaden",
-    "plan": "🧭 Planen & Rebalancieren",
+    "plan": "⚖️ Planen & Rebalancieren",
     "ai": "🤖 KI-Berater",
     "cashflow": "💳 Cashflow & Import",
     "settings": "⚙️ Einstellungen",
@@ -22,7 +22,7 @@
     "lang_label": "Sprache:"
   },
   "dashboard": {
-    "explore_banner": "🧭 <strong>Übersichtsmodus</strong> — Vermögenstelemetrie & Wachstumsprojektionen",
+    "explore_banner": "<strong>Bilanz im Lot</strong> — Strukturelle Solvenz & Wachstumsprojektionen",
     "exclude_property": "Immobilien / Illiquide Segmente aus Nettovermögen & Wachstum ausschließen",
     "manage_assets_link": "Vermögen & Darlehen verwalten →",
     "kpi_net_worth": "Gesamtes Nettovermögen",

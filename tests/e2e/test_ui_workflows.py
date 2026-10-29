@@ -359,3 +359,33 @@ def test_overview_cashflow_formula_and_cashflow_visualizations_and_known_account
 
     expect(known_tbody).to_contain_text("Saxo Investor Updated")
     expect(known_tbody).to_contain_text("INVESTMENT")
+
+
+def test_architectural_theme_tokens_and_light_dark_visual_integrity(app_page, live_server):
+    """Verify Issue #54 Plumb Bob SVG mark, Midnight Blueprint dark theme, and Architectural Vellum light theme."""
+    app_page.add_init_script("localStorage.setItem('paslood_setup_completed', 'true');")
+    app_page.goto(live_server, wait_until="networkidle")
+
+    # 1. Plumb Bob brand SVG mark is visible in header
+    plumb_mark = app_page.locator("#brand-plumb-mark svg")
+    expect(plumb_mark).to_be_visible()
+
+    # 2. Dark mode defaults: Midnight Blueprint tokens
+    dark_tokens = app_page.evaluate("getChartThemeTokens()")
+    assert dark_tokens["isLight"] is False
+    assert dark_tokens["caliperColor"] == "#FBBF24"
+
+    # 3. Switch to Light theme (Architectural Vellum)
+    app_page.locator("#btn-theme-toggle").click()
+    expect(app_page.locator("html")).to_have_class("light-theme")
+
+    light_tokens = app_page.evaluate("getChartThemeTokens()")
+    assert light_tokens["isLight"] is True
+    assert light_tokens["textPrimary"] == "#1C1917"
+    assert light_tokens["caliperColor"] == "#1C1917"
+
+    # 4. Verify Cashflow Sankey SVG in light mode uses dark charcoal ink instead of white
+    app_page.locator("#nav-cashflow").click()
+    sankey_svg_html = app_page.locator("#cashflow-sankey-container").inner_html()
+    assert "#f8fafc" not in sankey_svg_html
+    assert "#1C1917" in sankey_svg_html

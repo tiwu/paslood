@@ -3,14 +3,14 @@
   "name": "Paslood — Whole-Life Balance Sheet & Belgian Fiscal Shield",
   "icons": [
     {
-      "src": "https://cdn.jsdelivr.net/npm/@tabler/icons@3.2.0/icons/compass.svg",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F59E0B' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='2' x2='12' y2='8'/><circle cx='12' cy='9.5' r='1.5'/><path d='M8.5 11h7L12 21l-3.5-10z' fill='%23F59E0B' fill-opacity='0.25'/></svg>",
       "type": "image/svg+xml",
       "sizes": "192x192 512x512"
     }
   ],
   "start_url": "/",
-  "background_color": "#0F172A",
-  "theme_color": "#3B82F6",
+  "background_color": "#0B111E",
+  "theme_color": "#1E4E79",
   "display": "standalone",
   "orientation": "portrait"
 }

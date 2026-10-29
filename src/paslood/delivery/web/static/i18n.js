@@ -308,8 +308,13 @@ const I18N = {
   applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
-      const val = this.t(key);
-      if (val && val !== key) el.textContent = val;
+      let val = this.t(key);
+      if (val && val !== key) {
+        if (el.parentElement && el.parentElement.querySelector('svg')) {
+          val = val.replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F\s]+/u, '');
+        }
+        el.textContent = val;
+      }
     });
 
     document.querySelectorAll('[data-i18n-html]').forEach(el => {

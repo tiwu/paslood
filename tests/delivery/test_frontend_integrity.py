@@ -542,6 +542,47 @@ if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expect
     throw new Error('renderManualAssetsAndDebts did not display acquisition_date or cost_basis: ' + assetRowHtml);
   }}
 
+  // 15. Test getChartThemeTokens across dark (Midnight Blueprint) and light (Architectural Vellum) modes (#54)
+  if (typeof sandbox.getChartThemeTokens !== 'function') {{
+    throw new Error('Missing getChartThemeTokens() in core.js');
+  }}
+  sandbox.document.documentElement.classList.remove('light-theme');
+  sandbox.document.documentElement.classList.add('dark');
+  const darkTokens = sandbox.getChartThemeTokens();
+  if (darkTokens.isLight !== false || darkTokens.caliperColor !== '#FBBF24') {{
+    throw new Error('Unexpected dark theme tokens: ' + JSON.stringify(darkTokens));
+  }}
+
+  sandbox.document.documentElement.classList.remove('dark');
+  sandbox.document.documentElement.classList.add('light-theme');
+  const lightTokens = sandbox.getChartThemeTokens();
+  if (lightTokens.isLight !== true || lightTokens.textPrimary !== '#1C1917' || lightTokens.caliperColor !== '#1C1917') {{
+    throw new Error('Unexpected light theme tokens: ' + JSON.stringify(lightTokens));
+  }}
+
+  // Re-render bullet meters and Sankey in light mode and verify no white-on-white #ffffff / #f8fafc
+  sandbox.renderBulletMeters(sampleAllocs, bulletContainer);
+  if (!bulletContainer.children[0].innerHTML.includes('#1C1917')) {{
+    throw new Error('Light mode bullet meter target-pin did not use #1C1917 charcoal caliper');
+  }}
+  sandbox.renderCashflowAnalytics({{
+    cashflow_analytics: {{
+      sankey: {{
+        monthly_income: 5000,
+        links: [{{ source: 'Monthly Income', target: 'Investments & Savings', value: 1500, color: '#1F6F5B' }}]
+      }},
+      monthly_spending: [],
+      savings_opportunities: []
+    }}
+  }});
+  const lightSankeyHtml = getEl('cashflow-sankey-container').innerHTML;
+  if (lightSankeyHtml.includes('fill="#f8fafc"')) {{
+    throw new Error('Light mode Sankey SVG still uses unreadable white fill="#f8fafc"');
+  }}
+  if (!lightSankeyHtml.includes('fill="#1C1917"')) {{
+    throw new Error('Light mode Sankey SVG did not use #1C1917 primary ink fill');
+  }}
+
   console.log('NODE_UNIT_OK');
 }})().catch(err => {{
   console.error(err);
@@ -556,3 +597,31 @@ if (getEl('bucket-excluded-list').children.length !== 1) throw new Error('Expect
     )
     assert res.returncode == 0, f"Node JS unit test harness failed:\n{res.stderr}"
     assert "NODE_UNIT_OK" in res.stdout
+
+
+def test_paslood_architectural_design_system_and_theme_tokens():
+    """Verify Issue #54 Paslood plumb-line motif, Refactoring UI CSS tokens, and removal of compass.svg."""
+    manifest = json.loads((STATIC_DIR / "manifest.json").read_text(encoding="utf-8"))
+    for icon in manifest.get("icons", []):
+        assert "compass.svg" not in icon.get("src", ""), (
+            "manifest.json still references legacy aviation compass.svg"
+        )
+
+    input_css = (STATIC_DIR / "css" / "input.css").read_text(encoding="utf-8")
+    for token in (
+        "--pas-bg-canvas",
+        "--pas-bg-surface",
+        "--pas-text-primary",
+        "--pas-text-secondary",
+        "--pas-text-tertiary",
+        "--pas-accent-brass",
+        "--pas-accent-cobalt",
+        ".pas-drafting-grid",
+        "prefers-reduced-motion",
+    ):
+        assert token in input_css, f"Missing design system token/rule `{token}` in input.css"
+
+    index_html = (TEMPLATES_DIR / "index.html").read_text(encoding="utf-8")
+    assert 'id="brand-plumb-mark"' in index_html, "Missing #brand-plumb-mark SVG in index.html"
+    assert "🧭" not in index_html, "Legacy compass emoji 🧭 still present in index.html"
+    assert "py-0.2" not in index_html, "Invalid off-scale Tailwind class py-0.2 still in index.html"

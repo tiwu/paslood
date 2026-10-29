@@ -106,13 +106,14 @@ function toggleCashflowFormulaBreakdown() {
 
 function renderDonutChart(allocations) {
   const canvas = document.getElementById('allocationDonutChart');
+  const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens() : { surface: '#131C2E' };
   if (canvas && typeof Chart !== 'undefined') {
     const ctx = canvas.getContext('2d');
     if (donutChartInstance) donutChartInstance.destroy();
 
     const labels = allocations.map(a => a.name);
     const values = allocations.map(a => a.current_value);
-    const colors = allocations.map(a => a.color || '#3B82F6');
+    const colors = allocations.map(a => a.color || '#2B5C8F');
 
     donutChartInstance = new Chart(ctx, {
       type: 'doughnut',
@@ -121,7 +122,7 @@ function renderDonutChart(allocations) {
         datasets: [{
           data: values,
           backgroundColor: colors,
-          borderColor: '#0f172a',
+          borderColor: tokens.surface,
           borderWidth: 2
         }]
       },
@@ -185,6 +186,14 @@ function renderProjectionChart(trajectory) {
 
   const ptRadii = trajectory.map(t => (t.is_current ? 5 : (t.is_historical ? 2.5 : 1.5)));
   const ptHoverRadii = trajectory.map(t => (t.is_current ? 7 : (t.is_historical ? 4.5 : 3)));
+  const tokens = typeof getChartThemeTokens === 'function' ? getChartThemeTokens() : {
+    gridColor: 'rgba(148, 163, 184, 0.08)',
+    tickColor: '#94A3B8',
+    netWorthColor: '#38BDF8',
+    netWorthFill: 'rgba(56, 189, 248, 0.14)',
+    assetsColor: '#34D399',
+    debtsColor: '#FB923C'
+  };
 
   projectionChartInstance = new Chart(ctx, {
     type: 'line',
@@ -194,8 +203,8 @@ function renderProjectionChart(trajectory) {
         {
           label: I18N.t('dashboard.chart_label_net_worth', 'Net Worth'),
           data: netWorthData,
-          borderColor: '#10B981',
-          backgroundColor: 'rgba(16, 185, 129, 0.15)',
+          borderColor: tokens.netWorthColor,
+          backgroundColor: tokens.netWorthFill,
           fill: true,
           tension: 0.3,
           pointRadius: ptRadii,
@@ -207,16 +216,16 @@ function renderProjectionChart(trajectory) {
         {
           label: I18N.t('dashboard.chart_label_assets', 'Assets'),
           data: assetsData,
-          borderColor: '#3B82F6',
-          borderDash: [5, 5],
+          borderColor: tokens.assetsColor,
+          borderDash: [6, 4],
           tension: 0.3,
           pointRadius: ptRadii
         },
         {
           label: I18N.t('dashboard.chart_label_debts', 'Debts'),
           data: debtsData,
-          borderColor: '#EF4444',
-          borderDash: [2, 2],
+          borderColor: tokens.debtsColor,
+          borderDash: [2, 3],
           tension: 0.3,
           pointRadius: ptRadii
         }
@@ -227,7 +236,7 @@ function renderProjectionChart(trajectory) {
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { labels: { color: '#94a3b8', font: { size: 11 } } },
+        legend: { labels: { color: tokens.tickColor, font: { size: 11 } } },
         tooltip: {
           callbacks: {
             title: function(items) {
@@ -246,8 +255,8 @@ function renderProjectionChart(trajectory) {
         }
       },
       scales: {
-        x: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } },
-        y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b', callback: v => `€ ${v/1000}k` } }
+        x: { grid: { display: false }, ticks: { color: tokens.tickColor } },
+        y: { grid: { color: tokens.gridColor }, ticks: { color: tokens.tickColor, callback: v => `€ ${v/1000}k` } }
       }
     }
   });
