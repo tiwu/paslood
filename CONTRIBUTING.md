@@ -110,6 +110,7 @@ uv run mkdocs build --strict
 
 Before submitting your PR, ensure:
 - [ ] All automated tests pass (`uv run pytest`).
+- [ ] All relevant documentation updated.
 - [ ] Code coverage remains at or above **90%** (target 95%+).
 - [ ] Ruff linting passes without warnings (`uv run ruff check src tests`).
 - [ ] Ruff formatting passes (`uv run ruff format --check src tests`).
